@@ -1,3 +1,10 @@
 #### kubernetes-operator
 
-kubernetes-operator is a control plane and manager all k8s cluster lifecycle。
+kubernetes-operator is a control plane and manage all k8s cluster lifecycle。
+
+
+#### development plan 
+
+1. use binary deploy k8s cluster,and use ansible deploy
+2. k8s-operator develop 
+3. k8s-operator crd ValidatingAdmissionWebhook develop

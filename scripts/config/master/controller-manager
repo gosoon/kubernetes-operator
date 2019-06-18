@@ -1,0 +1,7 @@
+###
+# The following values are used to configure the kubernetes controller-manager
+
+# defaults from config and apiserver should be adequate
+
+# Add your own!
+KUBE_CONTROLLER_MANAGER_ARGS="--master=http://172.16.5.81:8080  --address=127.0.0.1  --service-cluster-ip-range=10.0.6.0/24  --cluster-name=kubernetes  --cluster-signing-cert-file=/etc/kubernetes/kubernetesTLS/ca.pem  --cluster-signing-key-file=/etc/kubernetes/kubernetesTLS/ca.key  --service-account-private-key-file=/etc/kubernetes/kubernetesTLS/ca.key  --root-ca-file=/etc/kubernetes/kubernetesTLS/ca.pem  --leader-elect=true  --cluster-cidr=10.1.0.0/16"

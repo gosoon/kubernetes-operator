@@ -1,0 +1,28 @@
+###
+# kubernetes kubelet (minion) config
+
+# The address for the info server to serve on (set to 0.0.0.0 or "" for all interfaces)
+KUBELET_ADDRESS="--address=0.0.0.0"
+
+# The port for the info server to serve on
+# KUBELET_PORT="--port=10250"
+
+# You may leave this blank to use the actual hostname
+KUBELET_HOSTNAME="--hostname_override=xxx"
+
+# location of the api-server
+#KUBELET_API_SERVER="--api_servers=http://:8080"
+
+# pod infrastructure container
+KUBELET_POD_INFRA_CONTAINER=""
+
+# Add your own!
+KUBELET_ARGS="--kubeconfig=/etc/kubernetes/kubeconfig/kubelet.kubeconfig \
+--cert-dir=/etc/kubernetes/ssl \
+--log-dir=/var/log/kubernetes --stderrthreshold=3 \
+--allowed-unsafe-sysctls=net.*,kernel.shm*,kernel.msg*,kernel.sem,fs.mqueue.* \
+--eviction-hard=  \
+--image-gc-high-threshold=75 --image-gc-low-threshold=65 \
+--restart-count-limit=1 \
+--network-plugin=cni \
+--cluster-dns=10.0.6.200"

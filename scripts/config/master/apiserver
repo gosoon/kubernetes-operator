@@ -1,0 +1,38 @@
+###
+# kubernetes system config
+
+# The following values are used to configure the kube-apiserver
+
+# The address on the local server to listen to.
+#KUBE_API_ADDRESS="--insecure-bind-address=0.0.0.0"
+
+# The port on the local server to listen on.
+# KUBE_API_PORT="--port=8080"
+
+# Port minions listen on
+# KUBELET_PORT="--kubelet-port=10250"
+
+# Comma separated list of nodes in the etcd cluster
+KUBE_ETCD_SERVERS="--etcd-servers=xxx"
+
+# Address range to use for services
+KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=192.168.0.0/16 --secure-port=6443 --bind-address=0.0.0.0 --insecure-bind-address=0.0.0.0"
+
+# default admission control policies
+KUBE_ADMISSION_CONTROL="--enable-admission-plugins=ServiceAccount,NamespaceLifecycle,NamespaceExists,LimitRanger,ResourceQuota"
+
+# Add by chencong
+KUBE_API_ARGS="--etcd-servers-overrides=/events#https://xxx \
+--storage-backend=etcd3 --storage-media-type=application/json --log-dir=/var/log/kubernetes \
+--audit-policy-file=/etc/kubernetes/audit-policy.yaml --audit-webhook-config-file=/etc/kubernetes/audit-webhook-kubeconfig \
+--api-filters=/etc/kubernetes/api-filters.json  \
+--stderrthreshold=3 --enable-garbage-collector=true --enable-swagger-ui=true \
+--authorization-mode=RBAC \
+--kubelet-https=true \
+--tls-cert-file=/etc/kubernetes/ssl/apiserver-server.pem \
+--tls-private-key-file=/etc/kubernetes/ssl/apiserver-server-key.pem \
+--client-ca-file=/etc/kubernetes/ssl/ca.pem \
+--etcd-cafile=/etc/kubernetes/ssl/ca.pem \
+--etcd-certfile=/etc/kubernetes/ssl/etcd-client.pem \
+--etcd-keyfile=/etc/kubernetes/ssl/etcd-client-key.pem --apiserver-count=2 \
+--feature-gates=TaintNodesByCondition=false,PodPriority=false,ScheduleDaemonSetPods=false"

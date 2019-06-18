@@ -1,2 +1,4 @@
 scripts/bin/kubernetes_v1.14.0/kube-controller-manager filter=lfs diff=lfs merge=lfs -text
 scripts/bin/kubernetes_v1.14.0 filter=lfs diff=lfs merge=lfs -text
+scripts/bin/kubernetes_v1.14.0/kube-apiserver filter=lfs diff=lfs merge=lfs -text
+scripts/bin/kubernetes_v1.14.0/kubelet filter=lfs diff=lfs merge=lfs -text

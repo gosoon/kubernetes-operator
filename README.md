@@ -3,7 +3,7 @@
 kubernetes-operator is a control plane and manage all k8s cluster lifecycle。
 
 
-#### development plan 
+#### ecs(elastic cloud service) development plan 
 
 1. use binary deploy k8s cluster,and use ansible deploy
 2. k8s-operator develop 

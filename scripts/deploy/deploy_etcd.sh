@@ -5,14 +5,14 @@
 
 # etcd download releases doc: https://github.com/etcd-io/etcd/releases/
 
-etcd_bin_dir="../bin/${ETCD_VER}"
+ETCD_BIN_DIR="../bin/${ETCD_VER}"
 CERTS_DIR="../certs/"
-ETCD_SYSTEMD_CONFIG_DIR="../systemd/"
-ETCD_CONFIG_DIR="../config/etcd/"
+ETCD_SYSTEMD_CONFIG_DIR="../systemd"
+ETCD_CONFIG_DIR="../config/etcd"
 
 
 dest_etcd_config_dir="/etc/etcd/etcd.conf"
-DEST_SYSTEMD_DIR="/usr/lib/systemd/system/"
+DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
 
 # TODO : if etcd not download and download etcd
 download_etcd(){
@@ -32,16 +32,14 @@ download_etcd(){
     ETCDCTL_API=3 /tmp/etcd-download-test/etcdctl version
 }
 
-cp ${etcd_bin_dir}/{etcd,etcdctl} /usr/bin/
+cp ${ETCD_BIN_DIR}/{etcd,etcdctl} /usr/bin/
 
 cp ${ETCD_SYSTEMD_CONFIG_DIR}/{etcd.service}  ${DEST_SYSTEMD_DIR}
 
 cp ${ETCD_CONFIG_DIR}/* /etc/etcd/
 
-
 # cp ssl
 cp ${CERTS_DIR}{etcd-client-key.pem,etcd-peer-key.pem,etcd-peer.pem,etcd-server-key.pem,etcd-server.pem,ca.pem}  /etc/kubernetes/ssl/
-
 
 #TODO : replace etcd ip addr
 systemctl daemon-reload

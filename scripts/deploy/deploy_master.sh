@@ -22,3 +22,8 @@ cp ${cert_dir}/{apiserver-client-key.pem,apiserver-client.csr,apiserver-client.p
 
 
 #TODO : copy kubeconfig
+
+systemctl daemon-reload
+systemctl enable kube-apiserver kube-controller-manager kube-scheduler 
+systemctl start kube-apiserver kube-controller-manager kube-scheduler
+systemctl status kube-apiserver kube-controller-manager kube-scheduler

@@ -1,0 +1,7 @@
+apiVersion: ecs.yun.com/v1
+kind: KubernetesCluster
+metadata:
+  name: example-kubernetescluster
+spec:
+  # Add fields here
+  size: 3

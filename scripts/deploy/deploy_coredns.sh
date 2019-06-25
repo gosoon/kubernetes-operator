@@ -1,7 +1,7 @@
 #!/bin/bash
 
 [ -e /etc/init.d/functions ] && . /etc/init.d/functions || exit
-[ -e ./version.sh ] && . ./version.sh || exit
+[ -e ./config.sh ] && . ./config.sh || exit
 
 # k8s version >= v1.9
 # docs: https://github.com/coredns/deployment/tree/master/kubernetes

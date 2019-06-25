@@ -2,7 +2,7 @@
 
 
 [ -e /etc/init.d/functions ] && . /etc/init.d/functions || exit
-[ -e ../install/version.sh ] && . ../install/version.sh || exit
+[ -e ../deploy/config.sh ] && . ../deploy/config.sh || exit
 
 rpm -e ${define_docker_version}
 if [ $? -eq 0 ];then

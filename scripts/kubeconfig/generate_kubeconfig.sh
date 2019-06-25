@@ -16,7 +16,7 @@ mkdir -p ${OUTPUT}
 
 KUBE_APISERVER=""
 if [[ "$#" -lt 2 ]]; then
-    echo "need the apiserver secure endpoint, exec the script like './${SCRIPT_NAME} hxy01 https://10.0.2.15:6443'."
+    echo "need the apiserver secure endpoint, exec the script like './${SCRIPT_NAME} local https://10.0.2.15:6443'."
     exit 1
 fi
 REGION="$1"

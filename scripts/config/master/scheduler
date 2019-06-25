@@ -4,4 +4,6 @@
 # defaults from config and scheduler should be adequate
 
 # Add your own!
-KUBE_SCHEDULER_ARGS="--master=http://172.16.5.81:8080 --leader-elect=true --address=127.0.0.1"
+KUBE_SCHEDULER_ARGS="--address=127.0.0.1 \
+--master=http://172.16.5.81:8080 \
+--leader-elect=true"

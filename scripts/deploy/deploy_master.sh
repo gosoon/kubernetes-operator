@@ -1,25 +1,41 @@
 #!/bin/bash
 
 [ -e /etc/init.d/functions ] && . /etc/init.d/functions || exit
-[ -e ./version.sh ] && . ./version.sh || exit
+[ -e ./config.sh ] && . ./config.sh || exit
 
 
-kube_master_bin_dir="../bin/${KUBERNETES_VER}"
-kube_master_config_dir="../config/master"
-kube_master_systemd_config_dir="../systemd"
-cert_dir="../certs"
+KUBE_MASTER_BIN_DIR="../bin/${KUBERNETES_VER}"
+KUBE_MASTER_CONFIG_DIR="../config/master"
+KUBE_MASTER_SYSTEMD_CONFIG_DIR="../systemd"
+CERTS_DIR="../certs"
 
-DEST_SYSTEMD_DIR="/usr/lib/systemd/system/"
+DEST_CONFIG_DIR="/etc/kubernetes"
+DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
+DEST_CERTS_DIR="/etc/kubernetes/ssl"
 
-cp ${kube_master_bin_dir}/{kube-apiserver,kube-controller-manager,kube-scheduler,kubectl} /usr/bin/
+cp ${KUBE_MASTER_BIN_DIR}/{kube-apiserver,kube-controller-manager,kube-scheduler,kubectl} /usr/bin/
 
-cp ${kube_master_systemd_config_dir}/{kube-apiserver.service,kube-controller-manager.service,kube-scheduler.service} ${DEST_SYSTEMD_DIR}
+cp ${KUBE_MASTER_SYSTEMD_CONFIG_DIR}/{kube-apiserver.service,kube-controller-manager.service,kube-scheduler.service} ${DEST_SYSTEMD_DIR}/
 
-cp ${kube_master_config_dir}/* /etc/kubernetes/
+# cp config, apiserver config controller-manager scheduler 
+cp ${KUBE_MASTER_CONFIG_DIR}/* ${DEST_CONFIG_DIR}/
+# https://127.0.0.1:2379
+etcd_num=$(echo ${ETCD_HOSTS} | awk -F ',' '{print NF}')
+etcd_cluster=""
+for i in `seq 1 ${etcd_num}`;do
+	ip=$(echo ${ETCD_HOSTS} | awk -v idx=$i -F ',' '{print $idx}')
+    cluster=$(echo "https://${ip}:2379")
+    if [ $i -ne ${etcd_num} ];then
+        cluster="${cluster},"
+    fi
+    etcd_cluster="${etcd_cluster}${cluster}"
+done
+
+sed -i -e "s#--etcd-servers=xxx#--etcd-servers=${etcd_cluster}#g" ${DEST_CONFIG_DIR}/apiserver
+sed -i -e "s#--master=https#--master=https://${LOCAL_IP}:6443#g" ${DEST_CONFIG_DIR}/config
 
 # cp ssl
-cp ${cert_dir}/{apiserver-client-key.pem,apiserver-client.csr,apiserver-client.pem,apiserver-server-key.pem,apiserver-server.csr,apiserver-server.pem,ca.csr,ca.pem,ca-key.pem}  /etc/kubernetes/ssl/
-
+cp ${CERTS_DIR}/{apiserver-client-key.pem,apiserver-client.csr,apiserver-client.pem,apiserver-server-key.pem,apiserver-server.csr,apiserver-server.pem,ca.csr,ca.pem,ca-key.pem}  ${DEST_CERTS_DIR}/
 
 #TODO : copy kubeconfig
 

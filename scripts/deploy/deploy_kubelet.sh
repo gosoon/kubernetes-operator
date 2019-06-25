@@ -1,7 +1,7 @@
 #!/bin/bash
 
 [ -e /etc/init.d/functions ] && . /etc/init.d/functions || exit
-[ -e ./version.sh ] && . ./version.sh || exit
+[ -e ./config.sh ] && . ./config.sh || exit
 
 KUBE_NODE_BIN_DIR="../bin/${KUBERNETES_VER}"
 KUBE_NODE_CONFIG_DIR="../config/node"

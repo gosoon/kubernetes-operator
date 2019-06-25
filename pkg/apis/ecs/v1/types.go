@@ -51,18 +51,14 @@ type KubernetesClusterList struct {
 	Items           []KubernetesCluster `json:"items"`
 }
 
-//func init() {
-//SchemeBuilder.Register(&KubernetesCluster{}, &KubernetesClusterList{})
-//}
-
 // users
 type KubernetesOperatorPhase string
 
-const (
-	Active  KubernetesOperatorPhase = "active"
-	Failed  KubernetesOperatorPhase = "failed"
-	Succeed KubernetesOperatorPhase = "succeed"
-)
+//const (
+//Active  KubernetesOperatorPhase = "active"
+//Failed  KubernetesOperatorPhase = "failed"
+//Succeed KubernetesOperatorPhase = "succeed"
+//)
 
 type Node struct {
 	IP string `json:"ip,omitempty"`

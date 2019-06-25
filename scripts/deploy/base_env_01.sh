@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# author:tianfeiyu
-
 set -x
 
 #TODO : check os version and use root exec

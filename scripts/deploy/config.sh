@@ -17,3 +17,7 @@ CALICO_VER="v3.7"
 # coredns version 
 COREDNS_VER="v1.4.0"
 
+# etcd hosts, eg : "10.0.2.15,10.0.2.16"   
+ETCD_HOSTS="10.0.2.15"  
+
+LOCAL_IP=$(ip route get 1 | awk '{print $NF;exit}')

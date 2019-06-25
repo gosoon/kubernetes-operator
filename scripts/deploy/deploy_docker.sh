@@ -3,7 +3,7 @@
 # docker releases download docs:  https://kubernetes.io/docs/setup/production-environment/container-runtimes/
 
 [ -e /etc/init.d/functions ] && . /etc/init.d/functions || exit
-[ -e ./version.sh ] && . ./version.sh || exit
+[ -e ./config.sh ] && . ./config.sh || exit
 
 # Install Docker CE
 ## Set up the repository

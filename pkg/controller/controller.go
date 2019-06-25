@@ -26,14 +26,14 @@ import (
 
 const controllerAgentName = "ecs-controller"
 
-type KubernetesOperatorPhase string
+//type KubernetesOperatorPhase string
 
 const (
 	// kubernetes cluster phase
 	// Active is the create kubernetes job is running
-	Active  KubernetesOperatorPhase = "active"
-	Failed  KubernetesOperatorPhase = "failed"
-	Succeed KubernetesOperatorPhase = "succeed"
+	Active  ecsv1.KubernetesOperatorPhase = "active"
+	Failed  ecsv1.KubernetesOperatorPhase = "failed"
+	Succeed ecsv1.KubernetesOperatorPhase = "succeed"
 
 	// SuccessSynced is used as part of the Event 'reason' when a KubernetesCluster is synced
 	SuccessSynced = "Synced"
@@ -41,6 +41,9 @@ const (
 	// MessageResourceSynced is the message used for an Event fired when a KubernetesCluster
 	// is synced successfully
 	MessageResourceSynced = "ecs synced successfully"
+
+	SuccessCreated = "SuccessCreated"
+	FailCreated    = "FailCreated"
 
 	CreateKubernetesClusterJobSuccess = "create kubernetes cluster job success"
 )
@@ -259,13 +262,14 @@ func (c *Controller) syncHandler(key string) error {
 		}
 		// create kubernetes cluster
 		batchJob := newCreateKubernetesClusterBatchJob(kubernetesCluster)
-		err := c.kubeclientset.BatchV1().Jobs.Create(batchJob)
+		_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(batchJob)
 		if err != nil {
 			createKubernetesClusterJobFailed := fmt.Sprintf("create kubernetes cluster job failed with:%v", err)
-			c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, SuccessSynced, createKubernetesClusterJobSuccess)
+			c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, FailCreated, createKubernetesClusterJobFailed)
 			glog.Errorf("Create %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
 			return err
 		}
+		c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, SuccessCreated, CreateKubernetesClusterJobSuccess)
 
 		// callback controller to ensure create success
 	// update or delete

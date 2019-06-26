@@ -10,17 +10,19 @@ DEPLOY_ETCD_LOG="/var/log/deploy_etcd.log"
 
 master() {
     echo -n "starting deploy master... "
-    [ -f ${DEPLOY_MASTER_LOG} ] && echo "master is deployed"; exit 0 || touch ${DEPLOY_MASTER_LOG}
+    [ -f ${DEPLOY_MASTER_LOG} ] && { echo "master is deployed"; exit; } || touch ${DEPLOY_MASTER_LOG}
     [ -f base_env_01.sh ] && bash -x base_env_01.sh | tee -a ${DEPLOY_MASTER_LOG} || exit 1
     [ -f deploy_master.sh ] && bash -x deploy_master.sh | tee -a ${DEPLOY_MASTER_LOG} || exit 1
 }
 
 node() {
     echo -n "starting deploy node... "
-    [ -f ${DEPLOY_NODE_LOG} ] && echo "node is deployed"; exit 0 || touch ${DEPLOY_NODE_LOG}
+    [ -f ${DEPLOY_NODE_LOG} ] && { echo "node is deployed"; exit; } || touch ${DEPLOY_NODE_LOG}
     [ -f base_env_01.sh ] && bash -x base_env_01.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
-    [ -f deploy_node.sh ] && bash -x deploy_node.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
+    [ -f deploy_kubelet.sh ] && bash -x deploy_kubelet.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
+    [ -f deploy_kube_proxy.sh ] && bash -x deploy_kube_proxy.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
     [ -f deploy_coredns.sh ] && bash -x deploy_coredns.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
+    [ -f deploy_calico.sh ] && bash -x deploy_calico.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
 }
 
 etcd() {

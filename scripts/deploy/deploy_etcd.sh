@@ -42,7 +42,7 @@ cp ${ETCD_CONFIG_DIR}/* ${DEST_CONFIG_DIR}/
 
 # cp ssl 
 [ -d ${DEST_CERTS_DIR} ] || mkdir -pv ${DEST_CERTS_DIR}
-cp ${CERTS_DIR}{etcd-client-key.pem,etcd-peer-key.pem,etcd-peer.pem,etcd-server-key.pem,etcd-server.pem,ca.pem} ${DEST_CERTS_DIR}/
+cp ${CERTS_DIR}{etcd-client-key.pem,etcd-client.pem,etcd-peer-key.pem,etcd-peer.pem,etcd-server-key.pem,etcd-server.pem,ca.pem} ${DEST_CERTS_DIR}/
 
 # config etcd 
 source ${ETCD_CONFIG_DIR}/*

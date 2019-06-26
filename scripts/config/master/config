@@ -19,4 +19,4 @@ KUBE_LOG_LEVEL="--v=3"
 KUBE_ALLOW_PRIV="--allow-privileged=true"
 
 # How the controller-manager, scheduler, and proxy find the apiserver
-KUBE_MASTER="--master=https://xxxx:6443"  
+KUBE_MASTER="--master=https://<apiserver_ip>:6443 --log-dir=/var/log/kubernetes"  

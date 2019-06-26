@@ -1,7 +1,17 @@
-###
-# kubernetes proxy config
-
-# defaults from config and proxy should be adequate
-
-# Add your own!
-KUBE_PROXY_ARGS="--kubeconfig=/etc/kubernetes/kube-proxy.kubeconfig  --cluster-cidr=10.1.0.0/16"
+####
+## kubernetes proxy config
+####
+#
+## The address for the info server to serve on (set to 0.0.0.0 or "" for all interfaces)
+KUBE_PROXY_ADDRESS="--bind-address=0.0.0.0"
+#
+## You may leave this blank to use the actual hostname
+KUBE_PROXY_HOSTNAME="--hostname-override=<node_ip>"
+#
+## Add your own!
+KUBE_PROXY_ARGS="--proxy-mode=ipvs \
+--ipvs-scheduler=rr \
+--ipvs-sync-period=5s \
+--ipvs-min-sync-period=5s \
+--cluster-cidr=10.240.0.0/16 \
+--kubeconfig=/etc/kubernetes/kube-proxy.kubeconfig"

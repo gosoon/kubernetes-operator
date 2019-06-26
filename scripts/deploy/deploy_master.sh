@@ -31,8 +31,10 @@ for i in `seq 1 ${etcd_num}`;do
     etcd_cluster="${etcd_cluster}${cluster}"
 done
 
-sed -i -e "s#--etcd-servers=xxx#--etcd-servers=${etcd_cluster}#g" ${DEST_CONFIG_DIR}/apiserver
-sed -i -e "s#--master=https#--master=https://${LOCAL_IP}:6443#g" ${DEST_CONFIG_DIR}/config
+
+sed -i -e "s#--etcd-servers=<etcd_cluster>#--etcd-servers=${etcd_cluster}#g" ${DEST_CONFIG_DIR}/apiserver
+# kube-apiserver
+sed -i -e "s#--master=https://<apiserver_ip>:6443#--master=https://${LOCAL_IP}:6443#g" ${DEST_CONFIG_DIR}/config
 
 # cp ssl
 cp ${CERTS_DIR}/{apiserver-client-key.pem,apiserver-client.csr,apiserver-client.pem,apiserver-server-key.pem,apiserver-server.csr,apiserver-server.pem,ca.csr,ca.pem,ca-key.pem}  ${DEST_CERTS_DIR}/

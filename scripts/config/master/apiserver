@@ -13,7 +13,7 @@
 # KUBELET_PORT="--kubelet-port=10250"
 
 # Comma separated list of nodes in the etcd cluster
-KUBE_ETCD_SERVERS="--etcd-servers=xxx"
+KUBE_ETCD_SERVERS="--etcd-servers=<etcd_cluster>"
 
 # Address range to use for services
 KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=192.168.0.0/16 --secure-port=6443 --bind-address=0.0.0.0 --insecure-bind-address=0.0.0.0"
@@ -22,11 +22,8 @@ KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=192.168.0.0/16 --secure-port=
 KUBE_ADMISSION_CONTROL="--enable-admission-plugins=ServiceAccount,NamespaceLifecycle,NamespaceExists,LimitRanger,ResourceQuota"
 
 # Add by chencong
-KUBE_API_ARGS="--etcd-servers-overrides=/events#https://xxx \
---storage-backend=etcd3 --storage-media-type=application/json --log-dir=/var/log/kubernetes \
---audit-policy-file=/etc/kubernetes/audit-policy.yaml --audit-webhook-config-file=/etc/kubernetes/audit-webhook-kubeconfig \
---api-filters=/etc/kubernetes/api-filters.json  \
---stderrthreshold=3 --enable-garbage-collector=true --enable-swagger-ui=true \
+KUBE_API_ARGS="--storage-backend=etcd3 --storage-media-type=application/json --log-dir=/var/log/kubernetes \
+--stderrthreshold=3 --enable-garbage-collector=true \
 --authorization-mode=RBAC \
 --kubelet-https=true \
 --tls-cert-file=/etc/kubernetes/ssl/apiserver-server.pem \
@@ -36,3 +33,6 @@ KUBE_API_ARGS="--etcd-servers-overrides=/events#https://xxx \
 --etcd-certfile=/etc/kubernetes/ssl/etcd-client.pem \
 --etcd-keyfile=/etc/kubernetes/ssl/etcd-client-key.pem --apiserver-count=2 \
 --feature-gates=TaintNodesByCondition=false,PodPriority=false,ScheduleDaemonSetPods=false"
+
+# --etcd-servers-overrides=/events#https://xxx
+#--audit-policy-file=/etc/kubernetes/audit-policy.yaml --audit-webhook-config-file=/etc/kubernetes/audit-webhook-kubeconfig \

@@ -13,7 +13,7 @@ KUBE_PROXY_SYSTEMD_CONFIG_DIR="../systemd"
 KUBE_PROXY_CONFIG_DIR="../config/node"
 KUBECONFIG_DIR="../kubeconfig/"
 
-DEST_KUBECONFIG_DIR="/etc/kubernetes/kubeconfig/"
+DEST_CONFIG_DIR="/etc/kubernetes"
 DEST_SYSTEMD_DIR="/usr/lib/systemd/system/"
 
 
@@ -24,9 +24,11 @@ cp ${KUBE_PROXY_SYSTEMD_CONFIG_DIR}/kube-proxy.service  ${DEST_SYSTEMD_DIR}
 cp ${KUBE_PROXY_CONFIG_DIR}/kube-proxy /etc/kubernetes/
 
 # cp kubeconfig 
-cp ${KUBECONFIG_DIR}/kube-proxy.kubeconfig  ${DEST_KUBECONFIG_DIR}
+cp ${KUBECONFIG_DIR}/kube-proxy.kubeconfig  ${DEST_CONFIG_DIR}/
 
 #TODO: update config and kubeconfig master ip
+sed -i -e "s#--hostname_override=<node_ip>#--hostname_override=${LOCAL_IP}#g" ${DEST_CONFIG_DIR}/kube-proxy
+
 systemctl daemon-reload
 systemctl enable kube-proxy
 systemctl start kube-proxy

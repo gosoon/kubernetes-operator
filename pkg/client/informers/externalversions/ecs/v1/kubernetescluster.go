@@ -41,32 +41,33 @@ type KubernetesClusterInformer interface {
 type kubernetesClusterInformer struct {
 	factory          internalinterfaces.SharedInformerFactory
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
+	namespace        string
 }
 
 // NewKubernetesClusterInformer constructs a new informer for KubernetesCluster type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewKubernetesClusterInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredKubernetesClusterInformer(client, resyncPeriod, indexers, nil)
+func NewKubernetesClusterInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+	return NewFilteredKubernetesClusterInformer(client, namespace, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredKubernetesClusterInformer constructs a new informer for KubernetesCluster type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredKubernetesClusterInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredKubernetesClusterInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
 	return cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.EcsV1().KubernetesClusters().List(options)
+				return client.EcsV1().KubernetesClusters(namespace).List(options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.EcsV1().KubernetesClusters().Watch(options)
+				return client.EcsV1().KubernetesClusters(namespace).Watch(options)
 			},
 		},
 		&ecsv1.KubernetesCluster{},
@@ -76,7 +77,7 @@ func NewFilteredKubernetesClusterInformer(client versioned.Interface, resyncPeri
 }
 
 func (f *kubernetesClusterInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredKubernetesClusterInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewFilteredKubernetesClusterInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
 }
 
 func (f *kubernetesClusterInformer) Informer() cache.SharedIndexInformer {

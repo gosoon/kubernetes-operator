@@ -26,6 +26,7 @@ KUBE_API_ARGS="--storage-backend=etcd3 --storage-media-type=application/json --l
 --stderrthreshold=3 --enable-garbage-collector=true \
 --authorization-mode=RBAC \
 --kubelet-https=true \
+--enable-bootstrap-token-auth=true \
 --tls-cert-file=/etc/kubernetes/ssl/apiserver-server.pem \
 --tls-private-key-file=/etc/kubernetes/ssl/apiserver-server-key.pem \
 --client-ca-file=/etc/kubernetes/ssl/ca.pem \

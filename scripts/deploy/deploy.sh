@@ -13,6 +13,8 @@ master() {
     [ -f ${DEPLOY_MASTER_LOG} ] && { echo "master is deployed"; exit; } || touch ${DEPLOY_MASTER_LOG}
     [ -f base_env_01.sh ] && bash -x base_env_01.sh | tee -a ${DEPLOY_MASTER_LOG} || exit 1
     [ -f deploy_master.sh ] && bash -x deploy_master.sh | tee -a ${DEPLOY_MASTER_LOG} || exit 1
+    [ -f deploy_coredns.sh ] && bash -x deploy_coredns.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
+    [ -f deploy_calico.sh ] && bash -x deploy_calico.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
 }
 
 node() {
@@ -21,8 +23,6 @@ node() {
     [ -f base_env_01.sh ] && bash -x base_env_01.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
     [ -f deploy_kubelet.sh ] && bash -x deploy_kubelet.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
     [ -f deploy_kube_proxy.sh ] && bash -x deploy_kube_proxy.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
-    [ -f deploy_coredns.sh ] && bash -x deploy_coredns.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
-    [ -f deploy_calico.sh ] && bash -x deploy_calico.sh | tee -a ${DEPLOY_NODE_LOG} || exit 1
 }
 
 etcd() {

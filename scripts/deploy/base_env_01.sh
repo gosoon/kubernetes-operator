@@ -10,14 +10,6 @@ setenforce 0
 
 systemctl disable firewalld.service && systemctl stop firewalld.service
 
-cat << EOF >> /etc/sysctl.conf
-net.bridge.bridge-nf-call-ip6tables = 1
-net.bridge.bridge-nf-call-iptables = 1
-vm.swappiness=0
-EOF 
-
-sysctl -p
-
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes

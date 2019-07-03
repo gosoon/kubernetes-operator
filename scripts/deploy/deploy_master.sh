@@ -13,6 +13,8 @@ DEST_CONFIG_DIR="/etc/kubernetes"
 DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
 DEST_CERTS_DIR="/etc/kubernetes/ssl"
 
+KUBE_MASTER_LOG="/var/log/kubernetes"
+
 cp ${KUBE_MASTER_BIN_DIR}/{kube-apiserver,kube-controller-manager,kube-scheduler,kubectl} /usr/bin/
 
 cp ${KUBE_MASTER_SYSTEMD_CONFIG_DIR}/{kube-apiserver.service,kube-controller-manager.service,kube-scheduler.service} ${DEST_SYSTEMD_DIR}/
@@ -38,6 +40,9 @@ sed -i -e "s#--master=https://<apiserver_ip>:6443#--master=https://${LOCAL_IP}:6
 
 # cp ssl
 cp ${CERTS_DIR}/{apiserver-client-key.pem,apiserver-client.csr,apiserver-client.pem,apiserver-server-key.pem,apiserver-server.csr,apiserver-server.pem,ca.csr,ca.pem,ca-key.pem}  ${DEST_CERTS_DIR}/
+
+[ -d ${KUBE_MASTER_LOG} ] || mkdir -pv ${KUBE_MASTER_LOG}
+
 
 #TODO : copy kubeconfig
 

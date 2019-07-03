@@ -18,9 +18,12 @@ KUBELET_POD_INFRA_CONTAINER=""
 
 # Add your own!
 KUBELET_ARGS="--config=/etc/kubernetes/config.yaml \
+--bootstrap-kubeconfig=/etc/kubernetes/bootstrap.kubeconfig \
 --kubeconfig=/etc/kubernetes/kubelet.kubeconfig \
---log-dir=/var/log/kubernetes \
---cert-dir=/etc/kubernetes/ssl \
+--tls-cert-file=/etc/kubernetes/ssl/ca.pem \
+--tls-private-key-file=/etc/kubernetes/ssl/ca-key.pem \
 --stderrthreshold=3 \
+--log-dir=/var/log/kubernetes \
 --allowed-unsafe-sysctls=net.*,kernel.shm*,kernel.msg*,kernel.sem,fs.mqueue.*"
+#--cert-dir=/etc/kubernetes/ssl \
 #--network-plugin=cni"

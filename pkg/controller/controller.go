@@ -29,11 +29,13 @@ const controllerAgentName = "ecs-controller"
 //type KubernetesOperatorPhase string
 
 const (
-	// kubernetes cluster phase
+	// kubernetes cluster phase,"None,Creating,Running,Failed,Scaling"
 	// Active is the create kubernetes job is running
-	Active  ecsv1.KubernetesOperatorPhase = "active"
-	Failed  ecsv1.KubernetesOperatorPhase = "failed"
-	Succeed ecsv1.KubernetesOperatorPhase = "succeed"
+	None     ecsv1.KubernetesOperatorPhase = ""
+	Creating ecsv1.KubernetesOperatorPhase = "Creating"
+	Running  ecsv1.KubernetesOperatorPhase = "Running"
+	Failed   ecsv1.KubernetesOperatorPhase = "Failed"
+	Scaling  ecsv1.KubernetesOperatorPhase = "Scaling"
 
 	// SuccessSynced is used as part of the Event 'reason' when a KubernetesCluster is synced
 	SuccessSynced = "Synced"
@@ -216,6 +218,11 @@ func (c *Controller) syncHandler(key string) error {
 		return nil
 	}
 
+	if len(namespace) == 0 || len(name) == 0 {
+		glog.Errorf("invalid key %q: either namespace or name is missing", key)
+		return err
+	}
+
 	// Get the KubernetesCluster resource with this namespace/name
 	kubernetesCluster, err := c.kubernetesClusterLister.KubernetesClusters(namespace).Get(name)
 	if err != nil {
@@ -230,7 +237,16 @@ func (c *Controller) syncHandler(key string) error {
 			// FIX ME: call Neutron API to delete this kubernetesCluster by name.
 			//
 			// neutron.Delete(namespace, name)
+			// delete job and kubernetes cluster
+			// update DeletionTimestamp
+			deleteClusterBatchJob := newDeleteKubernetesClusterBatchJob(name, namespace)
+			_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterBatchJob)
+			if err != nil {
+				glog.Errorf("delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
+				return err
+			}
 
+			// call back and delete deleteJob and createJob
 			return nil
 		}
 
@@ -251,14 +267,22 @@ func (c *Controller) syncHandler(key string) error {
 	// 	neutron.Update(namespace, name)
 	// }
 
+	// TODO: handle previous events when operator restart
+	// when started,diff current and expect obj
+	//if !reflect.DeepEqual(kubernetesCluster, currentKubernetesCluster) {
+	//case "SCALE":
+	//case "CREATE":
+	//}
+
 	switch kubernetesCluster.Status.Phase {
 	// phase is "" express create new kubernetesCluster
 	case "":
 		// update phase
-		kubernetesCluster.Status.Phase = Active
-		_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters().UpdateStatus(kubernetesCluster)
+		kubernetesCluster.Status.Phase = Creating
+		_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(kubernetesCluster)
 		if err != nil {
-			glog.Errorf("update")
+			glog.Errorf("update status failed with:%v", err)
+			return err
 		}
 		// create kubernetes cluster
 		batchJob := newCreateKubernetesClusterBatchJob(kubernetesCluster)
@@ -266,12 +290,16 @@ func (c *Controller) syncHandler(key string) error {
 		if err != nil {
 			createKubernetesClusterJobFailed := fmt.Sprintf("create kubernetes cluster job failed with:%v", err)
 			c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, FailCreated, createKubernetesClusterJobFailed)
-			glog.Errorf("Create %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
+			glog.Errorf("create %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
 			return err
 		}
 		c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, SuccessCreated, CreateKubernetesClusterJobSuccess)
 
 		// callback controller to ensure create success
+
+	case "CREATING":
+		// check job
+
 	// update or delete
 	default:
 

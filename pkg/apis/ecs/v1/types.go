@@ -24,7 +24,6 @@ type KubernetesClusterSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	Name          string `json:"phase" tag:"required"`
 	TimeoutMins   string `json:"timeout_mins,omitempty"`
 	ClusterType   string `json:"cluster_type,omitempty"`
 	ContainerCIDR string `json:"container_cidr,omitempty"`
@@ -38,7 +37,8 @@ type KubernetesClusterStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	Phase KubernetesOperatorPhase
+	Phase  KubernetesOperatorPhase `json:"phase,omitempty"`
+	Reason string                  `json:"reason,omitempty"`
 }
 
 // +genclient:nonNamespaced
@@ -52,13 +52,8 @@ type KubernetesClusterList struct {
 }
 
 // users
+// "None,Creating,Running,Failed,Scaling"
 type KubernetesOperatorPhase string
-
-//const (
-//Active  KubernetesOperatorPhase = "active"
-//Failed  KubernetesOperatorPhase = "failed"
-//Succeed KubernetesOperatorPhase = "succeed"
-//)
 
 type Node struct {
 	IP string `json:"ip,omitempty"`

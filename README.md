@@ -1,7 +1,8 @@
-#### kubernetes-operator
+#### ecs
 
 kubernetes-operator is a control plane and manage all k8s cluster lifecycle。
 
+![ecs](http://cdn.tianfeiyu.com/kuber.png)
 
 #### ecs(elastic cloud service) development plan 
 

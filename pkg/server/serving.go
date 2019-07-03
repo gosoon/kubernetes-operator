@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"git.yun.pingan.com/eks/admission-webhook/pkg/server/service"
 	"github.com/gosoon/glog"
 	"k8s.io/api/admission/v1beta1"
 )
@@ -42,7 +41,7 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 	deserializer := codecs.UniversalDeserializer()
 	if _, _, err := deserializer.Decode(body, nil, &requestedAdmissionReview); err != nil {
 		glog.Error(err)
-		responseAdmissionReview.Response = service.ToAdmissionResponse(err)
+		//responseAdmissionReview.Response = service.ToAdmissionResponse(err)
 	} else {
 		// pass to admitFunc
 		responseAdmissionReview.Response = admit(requestedAdmissionReview)
@@ -62,22 +61,20 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 	}
 }
 
-func serveClusterOperator(w http.ResponseWriter, r *http.Request) {
-	serve(w, r, service.AdmitClusterOperator)
+func serveCallbackCreateCluster(w http.ResponseWriter, r *http.Request) {
+	//serve(w, r, service.CallbackCreateCluster)
 }
 
-func servePods(w http.ResponseWriter, r *http.Request) {
-	serve(w, r, service.AdmitPods)
-}
-
-func serveMutatePods(w http.ResponseWriter, r *http.Request) {
-	serve(w, r, service.MutatePods)
+func serveCallbackDeleteCluster(w http.ResponseWriter, r *http.Request) {
+	//serve(w, r, service.CallbackDeleteCluster)
 }
 
 func RunServer() error {
-	http.HandleFunc("/eks/operator/cluster", serveClusterOperator)
-	http.HandleFunc("/pods", servePods)
-	http.HandleFunc("/mutating-pods", serveMutatePods)
+	//http.HandleFunc("/eks/operator/cluster", serveClusterOperator)
+	//http.HandleFunc("/pods", servePods)
+	//http.HandleFunc("/mutating-pods", serveMutatePods)
+	http.HandleFunc("/callback/namespace/{namespace}/cluster/{cluster}/delete", serveCallbackDeleteCluster)
+	http.HandleFunc("/callback/namespace/{namespace}/cluster/{cluster}/create", serveCallbackCreateCluster)
 
 	server := &http.Server{
 		Addr: ":8080",

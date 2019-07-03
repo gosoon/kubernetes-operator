@@ -34,8 +34,8 @@ type EcsV1Client struct {
 	restClient rest.Interface
 }
 
-func (c *EcsV1Client) KubernetesClusters() KubernetesClusterInterface {
-	return newKubernetesClusters(c)
+func (c *EcsV1Client) KubernetesClusters(namespace string) KubernetesClusterInterface {
+	return newKubernetesClusters(c, namespace)
 }
 
 // NewForConfig creates a new EcsV1Client for the given config.

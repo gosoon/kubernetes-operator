@@ -12,6 +12,7 @@ KUBECONFIG_DIR="../kubeconfig/"
 DEST_CERTS_DIR="/etc/kubernetes/ssl"
 DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
 DEST_CONFIG_DIR="/etc/kubernetes"
+KUBE_MASTER_LOG="/var/log/kubernetes"
 
 cp ${KUBE_NODE_BIN_DIR}/kubelet /usr/bin/
 
@@ -26,10 +27,12 @@ cp ${CERTS_DIR}/{apiserver-client-key.pem,apiserver-client.csr,apiserver-client.
 # cp kubeconfig 
 cp ${KUBECONFIG_DIR}/kubelet.kubeconfig  ${DEST_CONFIG_DIR}/
 
-sed -i -e "s#--master=https://<apiserver_ip>:6443#--master=https://${LOCAL_IP}:6443#g" ${DEST_CONFIG_DIR}/config
+sed -i -e "s#--master=https://<apiserver_ip>:6443#--master=https://${MASTER_HOSTS}:6443#g" ${DEST_CONFIG_DIR}/config
 #TODO: update config and kubeconfig master ip
 sed -i -e "s#--hostname_override=<node_ip>#--hostname_override=${LOCAL_IP}#g" ${DEST_CONFIG_DIR}/kubelet
 sed -i -e "s#hostnameOverride: <node_ip>#hostnameOverride: ${LOCAL_IP}#g" ${DEST_CONFIG_DIR}/config.yaml
+
+[ -d ${KUBE_MASTER_LOG} ] || mkdir -pv ${KUBE_MASTER_LOG}
 
 systemctl daemon-reload
 systemctl enable kubelet

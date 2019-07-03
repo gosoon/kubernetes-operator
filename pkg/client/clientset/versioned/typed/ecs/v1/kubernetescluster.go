@@ -32,7 +32,7 @@ import (
 // KubernetesClustersGetter has a method to return a KubernetesClusterInterface.
 // A group's client should implement this interface.
 type KubernetesClustersGetter interface {
-	KubernetesClusters() KubernetesClusterInterface
+	KubernetesClusters(namespace string) KubernetesClusterInterface
 }
 
 // KubernetesClusterInterface has methods to work with KubernetesCluster resources.
@@ -55,12 +55,14 @@ type KubernetesClusterInterface interface {
 // kubernetesClusters implements KubernetesClusterInterface
 type kubernetesClusters struct {
 	client rest.Interface
+	ns     string
 }
 
 // newKubernetesClusters returns a KubernetesClusters
-func newKubernetesClusters(c *EcsV1Client) *kubernetesClusters {
+func newKubernetesClusters(c *EcsV1Client, namespace string) *kubernetesClusters {
 	return &kubernetesClusters{
 		client: c.RESTClient(),
+		ns:     namespace,
 	}
 }
 
@@ -68,6 +70,7 @@ func newKubernetesClusters(c *EcsV1Client) *kubernetesClusters {
 func (c *kubernetesClusters) Get(name string, options metav1.GetOptions) (result *v1.KubernetesCluster, err error) {
 	result = &v1.KubernetesCluster{}
 	err = c.client.Get().
+		Namespace(c.ns).
 		Resource("kubernetesclusters").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -84,6 +87,7 @@ func (c *kubernetesClusters) List(opts metav1.ListOptions) (result *v1.Kubernete
 	}
 	result = &v1.KubernetesClusterList{}
 	err = c.client.Get().
+		Namespace(c.ns).
 		Resource("kubernetesclusters").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -100,6 +104,7 @@ func (c *kubernetesClusters) Watch(opts metav1.ListOptions) (watch.Interface, er
 	}
 	opts.Watch = true
 	return c.client.Get().
+		Namespace(c.ns).
 		Resource("kubernetesclusters").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -110,6 +115,7 @@ func (c *kubernetesClusters) Watch(opts metav1.ListOptions) (watch.Interface, er
 func (c *kubernetesClusters) Create(kubernetesCluster *v1.KubernetesCluster) (result *v1.KubernetesCluster, err error) {
 	result = &v1.KubernetesCluster{}
 	err = c.client.Post().
+		Namespace(c.ns).
 		Resource("kubernetesclusters").
 		Body(kubernetesCluster).
 		Do().
@@ -121,6 +127,7 @@ func (c *kubernetesClusters) Create(kubernetesCluster *v1.KubernetesCluster) (re
 func (c *kubernetesClusters) Update(kubernetesCluster *v1.KubernetesCluster) (result *v1.KubernetesCluster, err error) {
 	result = &v1.KubernetesCluster{}
 	err = c.client.Put().
+		Namespace(c.ns).
 		Resource("kubernetesclusters").
 		Name(kubernetesCluster.Name).
 		Body(kubernetesCluster).
@@ -135,6 +142,7 @@ func (c *kubernetesClusters) Update(kubernetesCluster *v1.KubernetesCluster) (re
 func (c *kubernetesClusters) UpdateStatus(kubernetesCluster *v1.KubernetesCluster) (result *v1.KubernetesCluster, err error) {
 	result = &v1.KubernetesCluster{}
 	err = c.client.Put().
+		Namespace(c.ns).
 		Resource("kubernetesclusters").
 		Name(kubernetesCluster.Name).
 		SubResource("status").
@@ -147,6 +155,7 @@ func (c *kubernetesClusters) UpdateStatus(kubernetesCluster *v1.KubernetesCluste
 // Delete takes name of the kubernetesCluster and deletes it. Returns an error if one occurs.
 func (c *kubernetesClusters) Delete(name string, options *metav1.DeleteOptions) error {
 	return c.client.Delete().
+		Namespace(c.ns).
 		Resource("kubernetesclusters").
 		Name(name).
 		Body(options).
@@ -161,6 +170,7 @@ func (c *kubernetesClusters) DeleteCollection(options *metav1.DeleteOptions, lis
 		timeout = time.Duration(*listOptions.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
+		Namespace(c.ns).
 		Resource("kubernetesclusters").
 		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -173,6 +183,7 @@ func (c *kubernetesClusters) DeleteCollection(options *metav1.DeleteOptions, lis
 func (c *kubernetesClusters) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1.KubernetesCluster, err error) {
 	result = &v1.KubernetesCluster{}
 	err = c.client.Patch(pt).
+		Namespace(c.ns).
 		Resource("kubernetesclusters").
 		SubResource(subresources...).
 		Name(name).

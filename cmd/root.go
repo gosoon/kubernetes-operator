@@ -71,6 +71,9 @@ to quickly create a Cobra application.`,
 			glog.Fatalf("Error building example clientset: %s", err.Error())
 		}
 
+		// add leader elect
+		//
+
 		kubernetesClusterInformerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, time.Second*30)
 
 		controller := controller.NewController(kubeClient, kubernetesClusterClient,
@@ -119,7 +122,7 @@ func init() {
 	// will be global for your application.
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.kubernetes-operator.yaml)")
 
-	rootCmd.PersistentFlags().StringVar(&kubeconfig, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
+	rootCmd.PersistentFlags().StringVarP(&kubeconfig, "kubeconfig", "c", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	rootCmd.PersistentFlags().StringVar(&masterURL, "master", "", "The address of the Kubernetes API server. Overrides any value in kubeconfig. Only required if out-of-cluster.")
 
 	// Cobra also supports local flags, which will only run

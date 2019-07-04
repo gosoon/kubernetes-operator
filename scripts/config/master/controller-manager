@@ -4,12 +4,12 @@
 # defaults from config and apiserver should be adequate
 
 # Add your own!
-KUBE_CONTROLLER_MANAGER_ARGS="--bind-address=127.0.0.1 \
---leader-elect=true  \
+KUBE_CONTROLLER_MANAGER_ARGS=" --bind-address=127.0.0.1 \
 --cluster-signing-cert-file=/etc/kubernetes/ssl/ca.pem \
 --cluster-signing-key-file=/etc/kubernetes/ssl/ca-key.pem \
 --service-account-private-key-file=/etc/kubernetes/ssl/ca-key.pem  \
---root-ca-file=/etc/kubernetes/ssl/ca.pem  \
+--leader-elect=true  \
 --use-service-account-credentials=true \
---cluster-cidr=10.244.0.0/16 \
---kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig"
+--kubeconfig=/etc/kubernetes/ssl/kube-controller-manager.kubeconfig \
+--tls-cert-file=/etc/kubernetes/ssl/kube-controller-manager.pem \
+--tls-private-key-file=/etc/kubernetes/ssl/kube-controller-manager-key.pem"

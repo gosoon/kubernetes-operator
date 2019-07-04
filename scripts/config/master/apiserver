@@ -19,21 +19,23 @@ KUBE_ETCD_SERVERS="--etcd-servers=<etcd_cluster>"
 KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=192.168.0.0/16 --secure-port=6443 --bind-address=0.0.0.0 --insecure-bind-address=0.0.0.0"
 
 # default admission control policies
-KUBE_ADMISSION_CONTROL="--enable-admission-plugins=ServiceAccount,NamespaceLifecycle,NamespaceExists,LimitRanger,ResourceQuota"
+# reference: https://kubernetes.io/blog/2019/03/21/a-guide-to-kubernetes-admission-controllers/
+KUBE_ADMISSION_CONTROL="--enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,Priority,ResourceQuota,PodSecurityPolicy"
 
-# Add by chencong
-KUBE_API_ARGS="--storage-backend=etcd3 --storage-media-type=application/json --log-dir=/var/log/kubernetes \
+# Add your own! 
+KUBE_API_ARGS=" --storage-backend=etcd3 --storage-media-type=application/json \
 --stderrthreshold=3 --enable-garbage-collector=true \
---authorization-mode=RBAC \
+--anonymous-auth=false \
+--authorization-mode=Node,RBAC \
 --kubelet-https=true \
 --enable-bootstrap-token-auth=true \
---tls-cert-file=/etc/kubernetes/ssl/apiserver-server.pem \
---tls-private-key-file=/etc/kubernetes/ssl/apiserver-server-key.pem \
+--service-account-key-file=/etc/kubernetes/ssl/ca.pem \
+--tls-cert-file=/etc/kubernetes/ssl/kube-apiserver.pem \
+--tls-private-key-file=/etc/kubernetes/ssl/kube-apiserver-key.pem \
 --client-ca-file=/etc/kubernetes/ssl/ca.pem \
---etcd-cafile=/etc/kubernetes/ssl/ca.pem \
---etcd-certfile=/etc/kubernetes/ssl/etcd-client.pem \
---etcd-keyfile=/etc/kubernetes/ssl/etcd-client-key.pem --apiserver-count=2 \
---feature-gates=TaintNodesByCondition=false,PodPriority=false,ScheduleDaemonSetPods=false"
-
-# --etcd-servers-overrides=/events#https://xxx
-#--audit-policy-file=/etc/kubernetes/audit-policy.yaml --audit-webhook-config-file=/etc/kubernetes/audit-webhook-kubeconfig \
+--etcd-cafile=/etc/etcd/ssl/ca.pem \
+--etcd-certfile=/etc/etcd/ssl/etcd-server.pem \
+--etcd-keyfile=/etc/etcd/ssl/etcd-server-key.pem \
+--etcd-compaction-interval=0s \
+--kubelet-client-certificate=/etc/kubernetes/ssl/kubelet-api-admin.pem \
+--kubelet-client-key=/etc/kubernetes/ssl/kubelet-api-admin-key.pem"

@@ -1,0 +1,21 @@
+--- 
+- hosts: localhost
+  gather_facts: false
+  become: no
+  tasks:
+    - name: "Check ansible version >=2.7.6"
+      assert:
+        msg: "Ansible must be v2.7.6 or higher"
+        that:
+          - ansible_version.string is version("2.7.6", ">=")
+      tags:
+        - check
+  vars:
+    ansible_connection: local
+
+- hosts: kube-node
+  gather_facts: false 
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  roles:
+    - { role: kubernetes/preinstall, tags: preinstall }
+    - { role: kubernetes/node, tags: node }

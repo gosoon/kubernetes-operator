@@ -1,0 +1,17 @@
+---
+- name: install git cmd
+  command: yum install git -y
+  ignore_errors: "{{ ignore_assert_errors }}"
+
+- name: add kube user
+  command: useradd kube
+  ignore_errors: "{{ ignore_assert_errors }}"
+   
+- name: clone deploy script
+  command: git clone https://github.com/gosoon/kubernetes-operator /home/kube/kubernetes-operator
+  ignore_errors: "{{ ignore_assert_errors }}"
+
+- name: deploy master
+  command: bash deploy.sh master
+  args:
+    chdir: /home/kube/kubernetes-operator/scripts/deploy

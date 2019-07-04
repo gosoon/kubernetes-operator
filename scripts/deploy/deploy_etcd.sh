@@ -13,7 +13,7 @@ ETCD_CONFIG_DIR="../config/etcd"
 DEST_ETCD_CONFIG_DIR="/etc/etcd/etcd.conf"
 DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
 DEST_CONFIG_DIR="/etc/etcd"
-DEST_CERTS_DIR="/etc/kubernetes/ssl"
+DEST_CERTS_DIR="/etc/etcd/ssl"
 
 # TODO : if etcd not download and download etcd
 download_etcd(){
@@ -34,9 +34,7 @@ download_etcd(){
 }
 
 cp ${ETCD_BIN_DIR}/{etcd,etcdctl} /usr/bin/
-
 cp ${ETCD_SYSTEMD_CONFIG_DIR}/etcd.service  ${DEST_SYSTEMD_DIR}/
-
 [ -d ${DEST_CONFIG_DIR} ] || mkdir ${DEST_CONFIG_DIR}
 cp ${ETCD_CONFIG_DIR}/* ${DEST_CONFIG_DIR}/
 
@@ -46,9 +44,7 @@ cp ${CERTS_DIR}{etcd-client-key.pem,etcd-client.pem,etcd-peer-key.pem,etcd-peer.
 
 # config etcd 
 source ${ETCD_CONFIG_DIR}/*
-
 etcd_num=$(echo ${ETCD_HOSTS} | awk -F ',' '{print NF}')
-
 etcd_cluster=""
 for i in `seq 1 ${etcd_num}`;do
 	ip=$(echo ${ETCD_HOSTS} | awk -v idx=$i -F ',' '{print $idx}')
@@ -62,13 +58,16 @@ for i in `seq 1 ${etcd_num}`;do
     fi
 done
 
-sed -i -e "s@\(ETCD_INITIAL_ADVERTISE_PEER_URLS=\).*@\1\"https://${local_ip}:2380\"@g" ${DEST_CONFIG_DIR}/etcd.conf
-sed -i -e "s@\(ETCD_ADVERTISE_CLIENT_URLS=\).*@\1\"https://${local_ip}:2379\"@g" ${DEST_CONFIG_DIR}/etcd.conf
+sed -i -e "s@\(ETCD_INITIAL_ADVERTISE_PEER_URLS=\).*@\1\"https://${LOCAL_IP}:2380\"@g" ${DEST_CONFIG_DIR}/etcd.conf
+sed -i -e "s@\(ETCD_ADVERTISE_CLIENT_URLS=\).*@\1\"https://${LOCAL_IP}:2379\"@g" ${DEST_CONFIG_DIR}/etcd.conf
 sed -i -e "s@\(ETCD_INITIAL_CLUSTER=\).*@\1\"${etcd_cluster}\"@g" ${DEST_CONFIG_DIR}/etcd.conf
 
 useradd etcd 
 [ -d ${ETCD_DATA_DIR} ] || mkdir -pv ${ETCD_DATA_DIR}
 chown -R etcd:etcd ${ETCD_DATA_DIR}
+
+# TODO: copy cfssl bin and gen cert
+
 
 systemctl daemon-reload
 systemctl enable etcd

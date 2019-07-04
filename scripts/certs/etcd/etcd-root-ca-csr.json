@@ -1,0 +1,19 @@
+{
+    "CN": "etcd-root-ca",
+    "key": {
+        "algo": "rsa",
+        "size": 4096
+    },
+    "names": [
+        {
+            "O": "etcd",
+            "OU": "etcd Security",
+            "L": "Beijing",
+            "ST": "Beijing",
+            "C": "CN"
+        }
+    ],
+    "ca": {
+        "expiry": "87600h"
+    }
+}

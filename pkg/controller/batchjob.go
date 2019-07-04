@@ -34,8 +34,8 @@ func newCreateKubernetesClusterBatchJob(cluster *ecsv1.KubernetesCluster) *batch
 			Namespace: cluster.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				{
-					APIVersion:         fmt.Sprintf("%v/v1", ecs.GroupName), // occur invalid error
-					Kind:               "KubernetesCluster",                 // occur invalid error
+					APIVersion:         fmt.Sprintf("%v/v1", ecs.GroupName), // not define and occur invalid error
+					Kind:               "KubernetesCluster",                 // not define and occur invalid error
 					Name:               cluster.Name,
 					UID:                cluster.UID,
 					Controller:         pointer.BoolPtr(true),

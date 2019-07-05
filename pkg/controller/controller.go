@@ -254,6 +254,7 @@ func (c *Controller) syncHandler(key string) error {
 
 		return err
 	}
+	fmt.Println("%+v", *kubernetesCluster)
 
 	glog.Infof("[Neutron] Try to process kubernetesCluster: %#v ...", kubernetesCluster)
 
@@ -286,6 +287,9 @@ func (c *Controller) syncHandler(key string) error {
 		}
 		// create kubernetes cluster
 		batchJob := newCreateKubernetesClusterBatchJob(kubernetesCluster)
+
+		fmt.Println("%+v", batchJob)
+
 		_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(batchJob)
 		if err != nil {
 			createKubernetesClusterJobFailed := fmt.Sprintf("create kubernetes cluster job failed with:%v", err)

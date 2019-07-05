@@ -1,7 +1,18 @@
 apiVersion: ecs.yun.com/v1
 kind: KubernetesCluster
-metadata:
-  name: example-kubernetescluster
+metadata: 
+  name: test-cluster
 spec:
-  # Add fields here
-  size: 3
+  clusterType: kubernetes
+  masterList:
+  - ip: 192.168.1.10
+  - ip: 192.168.1.11
+  nodeList:
+  - ip: 192.168.1.12
+  - ip: 192.168.1.12
+  etcdList:
+  - ip: 192.168.1.12
+  - ip: 192.168.1.12
+  privateSSHKey: ''
+  serviceCIDR: ''
+status: {}

@@ -1,0 +1,17 @@
+{
+    "CN": "system:node",
+    "hosts": [ ],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "ST": "BeiJing",
+            "L": "BeiJing",
+            "O": "system:node",
+            "OU": "System"
+        }
+    ]
+}

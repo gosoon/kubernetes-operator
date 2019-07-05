@@ -9,6 +9,7 @@ ETCD_BIN_DIR="../bin/${ETCD_VER}"
 CERTS_DIR="../certs/"
 ETCD_SYSTEMD_CONFIG_DIR="../systemd"
 ETCD_CONFIG_DIR="../config/etcd"
+GENERATE_CERTS_FILE="../certs/etcd/gen_cert.sh"
 
 DEST_ETCD_CONFIG_DIR="/etc/etcd/etcd.conf"
 DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
@@ -33,14 +34,16 @@ download_etcd(){
     ETCDCTL_API=3 /tmp/etcd-download-test/etcdctl version
 }
 
+# cp etcd config
 cp ${ETCD_BIN_DIR}/{etcd,etcdctl} /usr/bin/
 cp ${ETCD_SYSTEMD_CONFIG_DIR}/etcd.service  ${DEST_SYSTEMD_DIR}/
 [ -d ${DEST_CONFIG_DIR} ] || mkdir ${DEST_CONFIG_DIR}
 cp ${ETCD_CONFIG_DIR}/* ${DEST_CONFIG_DIR}/
 
-# cp ssl 
-[ -d ${DEST_CERTS_DIR} ] || mkdir -pv ${DEST_CERTS_DIR}
-cp ${CERTS_DIR}{etcd-client-key.pem,etcd-client.pem,etcd-peer-key.pem,etcd-peer.pem,etcd-server-key.pem,etcd-server.pem,ca.pem} ${DEST_CERTS_DIR}/
+# generate ssl 
+bash ${GENERATE_CERTS_FILE}
+[ $? -eq 0 ] && echo "generate certs success" || exit 1
+cp ${GENERATE_CERTS_FILE}/output/* ${DEST_CERTS_DIR}/
 
 # config etcd 
 source ${ETCD_CONFIG_DIR}/*
@@ -58,6 +61,7 @@ for i in `seq 1 ${etcd_num}`;do
     fi
 done
 
+# replace ip addr
 sed -i -e "s@\(ETCD_INITIAL_ADVERTISE_PEER_URLS=\).*@\1\"https://${LOCAL_IP}:2380\"@g" ${DEST_CONFIG_DIR}/etcd.conf
 sed -i -e "s@\(ETCD_ADVERTISE_CLIENT_URLS=\).*@\1\"https://${LOCAL_IP}:2379\"@g" ${DEST_CONFIG_DIR}/etcd.conf
 sed -i -e "s@\(ETCD_INITIAL_CLUSTER=\).*@\1\"${etcd_cluster}\"@g" ${DEST_CONFIG_DIR}/etcd.conf
@@ -66,9 +70,7 @@ useradd etcd
 [ -d ${ETCD_DATA_DIR} ] || mkdir -pv ${ETCD_DATA_DIR}
 chown -R etcd:etcd ${ETCD_DATA_DIR}
 
-# TODO: copy cfssl bin and gen cert
-
-
+# start etcd service
 systemctl daemon-reload
 systemctl enable etcd
 systemctl start etcd

@@ -69,10 +69,14 @@ func serveCallbackDeleteCluster(w http.ResponseWriter, r *http.Request) {
 	//serve(w, r, service.CallbackDeleteCluster)
 }
 
+func serverCreateCluster(w http.ResponseWriter, r *http.Request) {
+	// TODO: check namespace/name duplicate and create CRD
+	//serve(w, r, service.CallbackDeleteCluster)
+}
+
 func RunServer() error {
-	//http.HandleFunc("/eks/operator/cluster", serveClusterOperator)
-	//http.HandleFunc("/pods", servePods)
-	//http.HandleFunc("/mutating-pods", serveMutatePods)
+	http.HandleFunc("/namespace/{namespace}/cluster/{cluster}/create", serveCreateCluster)
+
 	http.HandleFunc("/callback/namespace/{namespace}/cluster/{cluster}/delete", serveCallbackDeleteCluster)
 	http.HandleFunc("/callback/namespace/{namespace}/cluster/{cluster}/create", serveCallbackCreateCluster)
 

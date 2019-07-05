@@ -19,7 +19,7 @@ const (
 )
 
 func newCreateKubernetesClusterBatchJob(cluster *ecsv1.KubernetesCluster) *batchv1.Job {
-	jobName := fmt.Sprintf("create-%v-%v-cluster", cluster.Namespace, cluster.Name)
+	jobName := fmt.Sprintf("create-%v-cluster", cluster.Name)
 	completions := pointer.Int32Ptr(1)
 	parallelism := pointer.Int32Ptr(1)
 	backoffLimit := pointer.Int32Ptr(0)
@@ -56,6 +56,20 @@ func newCreateKubernetesClusterBatchJob(cluster *ecsv1.KubernetesCluster) *batch
 						{
 							Name:  jobName,
 							Image: Image,
+							Env: []corev1.EnvVar{
+								{
+									Name:  "CLUSTER_MASTER_LIST",
+									Value: convertNodesToString(cluster.Spec.MasterList),
+								},
+								{
+									Name:  "CLUSTER_NODE_LIST",
+									Value: convertNodesToString(cluster.Spec.NodeList),
+								},
+								{
+									Name:  "CLUSTER_ETCD_LIST",
+									Value: convertNodesToString(cluster.Spec.EtcdList),
+								},
+							},
 						},
 					},
 				},

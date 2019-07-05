@@ -25,11 +25,12 @@ type KubernetesClusterSpec struct {
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	TimeoutMins   string `json:"timeout_mins,omitempty"`
-	ClusterType   string `json:"cluster_type,omitempty"`
-	ContainerCIDR string `json:"container_cidr,omitempty"`
-	ServiceCIDR   string `json:"service_cidr,omitempty"`
-	MasterList    []Node `json:"master_list" tag:"required"`
-	NodeList      []Node `json:"node_list" tag:"required"`
+	ClusterType   string `json:"clusterType,omitempty"`
+	ContainerCIDR string `json:"containerCIDR,omitempty"`
+	ServiceCIDR   string `json:"serviceCIDR,omitempty"`
+	MasterList    []Node `json:"masterList" tag:"required"`
+	NodeList      []Node `json:"nodeList" tag:"required"`
+	EtcdList      []Node `json:"etcdList"`
 }
 
 // KubernetesClusterStatus defines the observed state of KubernetesCluster

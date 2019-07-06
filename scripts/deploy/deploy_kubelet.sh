@@ -22,8 +22,6 @@ cp ${KUBE_NODE_SYSTEMD_CONFIG_DIR}/kubelet.service  ${DEST_SYSTEMD_DIR}
 
 cp ${KUBE_NODE_CONFIG_DIR}/{config,config.yaml,kubelet} /etc/kubernetes/
 
-# dest dir use ansible confirm
-
 
 # update config master ip
 sed -i -e "s#--master=https://<apiserver_ip>:6443#--master=https://${MASTER_HOSTS}:6443#g" ${DEST_CONFIG_DIR}/config

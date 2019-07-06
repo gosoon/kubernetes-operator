@@ -1,89 +1,59 @@
 package server
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
 	"net/http"
+	"time"
 
-	"github.com/gosoon/glog"
-	"k8s.io/api/admission/v1beta1"
+	ctrl "github.com/gosoon/kubernetes-operator/pkg/server/controller"
+	"github.com/gosoon/kubernetes-operator/pkg/server/controller/cluster"
+	"github.com/gosoon/kubernetes-operator/pkg/server/service"
+
+	"github.com/gorilla/mux"
 )
 
-// admitFunc is the type we use for all of our validators and mutators
-type admitFunc func(v1beta1.AdmissionReview) *v1beta1.AdmissionResponse
+type Server interface {
+	http.Handler
+	ListenAndServe() error
+}
 
-// serve handles the http portion of a request prior to handing to an admit
-// function
-func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
-	var body []byte
-	if r.Body != nil {
-		if data, err := ioutil.ReadAll(r.Body); err == nil {
-			body = data
-		}
-	}
+type Options struct {
+	CtrlOptions *ctrl.Options
+	ListenAddr  string
+}
 
-	// verify the content type is accurate
-	contentType := r.Header.Get("Content-Type")
-	if contentType != "application/json" {
-		glog.Errorf("contentType=%s, expect application/json", contentType)
-		return
-	}
+type server struct {
+	opt    Options
+	router *mux.Router
+}
 
-	glog.Info(fmt.Sprintf("handling request: %s", body))
+func New(opt Options) Server {
+	// init service
+	opt.CtrlOptions.Service = service.New(&service.Options{KubernetesClusterClientset: opt.CtrlOptions.KubernetesClusterClientset})
 
-	// The AdmissionReview that was sent to the webhook
-	requestedAdmissionReview := v1beta1.AdmissionReview{}
+	router := mux.NewRouter().StrictSlash(true)
+	cluster.New(opt.CtrlOptions).Register(router)
 
-	// The AdmissionReview that will be returned
-	responseAdmissionReview := v1beta1.AdmissionReview{}
-
-	deserializer := codecs.UniversalDeserializer()
-	if _, _, err := deserializer.Decode(body, nil, &requestedAdmissionReview); err != nil {
-		glog.Error(err)
-		//responseAdmissionReview.Response = service.ToAdmissionResponse(err)
-	} else {
-		// pass to admitFunc
-		responseAdmissionReview.Response = admit(requestedAdmissionReview)
-	}
-
-	// Return the same UID
-	responseAdmissionReview.Response.UID = requestedAdmissionReview.Request.UID
-
-	glog.Info(fmt.Sprintf("sending response: %v", responseAdmissionReview.Response))
-
-	respBytes, err := json.Marshal(responseAdmissionReview)
-	if err != nil {
-		glog.Error(err)
-	}
-	if _, err := w.Write(respBytes); err != nil {
-		glog.Error(err)
+	return &server{
+		opt:    opt,
+		router: router,
 	}
 }
 
-func serveCallbackCreateCluster(w http.ResponseWriter, r *http.Request) {
-	//serve(w, r, service.CallbackCreateCluster)
+func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.router.ServeHTTP(w, r)
 }
 
-func serveCallbackDeleteCluster(w http.ResponseWriter, r *http.Request) {
-	//serve(w, r, service.CallbackDeleteCluster)
-}
-
-func serverCreateCluster(w http.ResponseWriter, r *http.Request) {
-	// TODO: check namespace/name duplicate and create CRD
-	//serve(w, r, service.CallbackDeleteCluster)
-}
-
-func RunServer() error {
-	http.HandleFunc("/namespace/{namespace}/cluster/{cluster}/create", serveCreateCluster)
-
-	http.HandleFunc("/callback/namespace/{namespace}/cluster/{cluster}/delete", serveCallbackDeleteCluster)
-	http.HandleFunc("/callback/namespace/{namespace}/cluster/{cluster}/create", serveCallbackCreateCluster)
-
+func (s *server) ListenAndServe() error {
 	server := &http.Server{
-		Addr: ":8080",
-		//TLSConfig: configs.ConfigTLS(config),
+		Handler: s.router,
+		Addr:    s.opt.ListenAddr,
+		// Good practice: enforce timeouts for servers you create!
+		WriteTimeout:   15 * time.Second,
+		ReadTimeout:    15 * time.Second,
+		MaxHeaderBytes: 1 << 20,
 	}
-	err := server.ListenAndServe()
-	return err
+	if err := server.ListenAndServe(); err != nil {
+		return err
+	}
+	return nil
 }

@@ -31,11 +31,12 @@ const controllerAgentName = "ecs-controller"
 const (
 	// kubernetes cluster phase,"None,Creating,Running,Failed,Scaling"
 	// Active is the create kubernetes job is running
-	None     ecsv1.KubernetesOperatorPhase = ""
-	Creating ecsv1.KubernetesOperatorPhase = "Creating"
-	Running  ecsv1.KubernetesOperatorPhase = "Running"
-	Failed   ecsv1.KubernetesOperatorPhase = "Failed"
-	Scaling  ecsv1.KubernetesOperatorPhase = "Scaling"
+	None        ecsv1.KubernetesOperatorPhase = ""
+	Creating    ecsv1.KubernetesOperatorPhase = "Creating"
+	Running     ecsv1.KubernetesOperatorPhase = "Running"
+	Failed      ecsv1.KubernetesOperatorPhase = "Failed"
+	Scaling     ecsv1.KubernetesOperatorPhase = "Scaling"
+	Terminating ecsv1.KubernetesOperatorPhase = "Terminating"
 
 	// SuccessSynced is used as part of the Event 'reason' when a KubernetesCluster is synced
 	SuccessSynced = "Synced"
@@ -225,35 +226,27 @@ func (c *Controller) syncHandler(key string) error {
 
 	// Get the KubernetesCluster resource with this namespace/name
 	kubernetesCluster, err := c.kubernetesClusterLister.KubernetesClusters(namespace).Get(name)
-	if err != nil {
+	switch {
+	case errors.IsNotFound(err):
 		// The KubernetesCluster resource may no longer exist, in which case we stop
 		// processing.
-		if errors.IsNotFound(err) {
-			glog.Warningf("KubernetesCluster: %s/%s does not exist in local cache, will delete it from Neutron ...",
-				namespace, name)
-
-			glog.Infof("[Neutron] Deleting kubernetesCluster: %s/%s ...", namespace, name)
-
-			// FIX ME: call Neutron API to delete this kubernetesCluster by name.
-			//
-			// neutron.Delete(namespace, name)
-			// delete job and kubernetes cluster
-			// update DeletionTimestamp
-			deleteClusterBatchJob := newDeleteKubernetesClusterBatchJob(name, namespace)
-			_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterBatchJob)
-			if err != nil {
-				glog.Errorf("delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
-				return err
-			}
-
-			// call back and delete deleteJob and createJob
-			return nil
-		}
-
-		runtime.HandleError(fmt.Errorf("failed to list kubernetesCluster by: %s/%s", namespace, name))
-
-		return err
+		err = c.processKubernetesClusterDeletion(key)
+	case err != nil:
+		runtime.HandleError(fmt.Errorf("Unable to retrieve service %v from store: %v", key, err))
+	default:
+		err = c.processKubernetesClusterCreateOrUpdate(kubernetesCluster, key)
 	}
+	return err
+}
+
+func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *ecsv1.KubernetesCluster, key string) error {
+	// Convert the namespace/name string into a distinct namespace and name
+	namespace, name, err := cache.SplitMetaNamespaceKey(key)
+	if err != nil {
+		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
+		return nil
+	}
+
 	fmt.Println("%+v", *kubernetesCluster)
 
 	glog.Infof("[Neutron] Try to process kubernetesCluster: %#v ...", kubernetesCluster)
@@ -310,6 +303,36 @@ func (c *Controller) syncHandler(key string) error {
 	}
 
 	c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
+	return nil
+}
+
+func (c *Controller) processKubernetesClusterDeletion(key string) error {
+
+	// Convert the namespace/name string into a distinct namespace and name
+	namespace, name, err := cache.SplitMetaNamespaceKey(key)
+	if err != nil {
+		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
+		return nil
+	}
+
+	glog.Warningf("KubernetesCluster: %s/%s does not exist in local cache, will delete it from Neutron ...",
+		namespace, name)
+
+	glog.Infof("[Neutron] Deleting kubernetesCluster: %s/%s ...", namespace, name)
+
+	// FIX ME: call Neutron API to delete this kubernetesCluster by name.
+	//
+	// neutron.Delete(namespace, name)
+	// delete job and kubernetes cluster
+	// update DeletionTimestamp
+	deleteClusterBatchJob := newDeleteKubernetesClusterBatchJob(name, namespace)
+	_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterBatchJob)
+	if err != nil {
+		glog.Errorf("delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
+		return err
+	}
+
+	// call back and delete deleteJob and createJob
 	return nil
 }
 

@@ -10,6 +10,7 @@ setenforce 0
 
 systemctl disable firewalld.service && systemctl stop firewalld.service
 
+# use aliyun kubernetes yum source
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
@@ -19,3 +20,6 @@ gpgcheck=1
 repo_gpgcheck=1
 gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
 EOF
+
+# add kube use 
+[ -d "/home/kube" ] || useradd kube

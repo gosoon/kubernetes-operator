@@ -25,6 +25,7 @@ import (
 	informers "github.com/gosoon/kubernetes-operator/pkg/client/informers/externalversions"
 	"github.com/gosoon/kubernetes-operator/pkg/controller"
 	"github.com/gosoon/kubernetes-operator/pkg/server"
+	ctrl "github.com/gosoon/kubernetes-operator/pkg/server/controller"
 
 	"github.com/gosoon/glog"
 	homedir "github.com/mitchellh/go-homedir"
@@ -82,7 +83,10 @@ to quickly create a Cobra application.`,
 		go kubernetesClusterInformerFactory.Start(stopCh)
 
 		go func() {
-			if err := server.RunServer(); err != nil {
+			opt := &ctrl.Options{KubernetesClusterClientset: kubernetesClusterClient}
+			server := server.New(server.Options{CtrlOptions: opt, ListenAddr: ":8080"})
+
+			if err := server.ListenAndServe(); err != nil {
 				glog.Errorf("Failed to listen and serve admission webhook server: %v", err)
 			}
 		}()

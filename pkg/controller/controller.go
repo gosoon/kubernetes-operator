@@ -49,6 +49,8 @@ const (
 	FailCreated    = "FailCreated"
 
 	CreateKubernetesClusterJobSuccess = "create kubernetes cluster job success"
+
+	DeleteJobLabelCreated = "created"
 )
 
 // Controller is the controller implementation for KubernetesCluster resources
@@ -246,68 +248,95 @@ func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *e
 		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
 		return nil
 	}
-
 	fmt.Println("%+v", *kubernetesCluster)
-
-	glog.Infof("[Neutron] Try to process kubernetesCluster: %#v ...", kubernetesCluster)
-
-	// FIX ME: Do diff().
-	//
-	// actualKubernetesCluster, exists := neutron.Get(namespace, name)
-	//
-	// if !exists {
-	// 	neutron.Create(namespace, name)
-	// } else if !reflect.DeepEqual(actualKubernetesCluster, kubernetesCluster) {
-	// 	neutron.Update(namespace, name)
-	// }
-
-	// TODO: handle previous events when operator restart
-	// when started,diff current and expect obj
-	//if !reflect.DeepEqual(kubernetesCluster, currentKubernetesCluster) {
-	//case "SCALE":
-	//case "CREATE":
-	//}
 
 	switch kubernetesCluster.Status.Phase {
 	// phase is "" express create new kubernetesCluster
 	case "":
-		// update phase
-		kubernetesCluster.Status.Phase = Creating
-		_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(kubernetesCluster)
-		if err != nil {
-			glog.Errorf("update status failed with:%v", err)
-			return err
-		}
+		curKubernetesCluster := kubernetesCluster.DeepCopy()
 		// create kubernetes cluster
-		batchJob := newCreateKubernetesClusterBatchJob(kubernetesCluster)
-
-		fmt.Println("%+v", batchJob)
-
-		_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(batchJob)
+		createClusterJob := newCreateKubernetesClusterJob(kubernetesCluster)
+		_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(createClusterJob)
 		if err != nil {
 			createKubernetesClusterJobFailed := fmt.Sprintf("create kubernetes cluster job failed with:%v", err)
 			c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, FailCreated, createKubernetesClusterJobFailed)
 			glog.Errorf("create %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
 			return err
 		}
-		c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, SuccessCreated, CreateKubernetesClusterJobSuccess)
 
-		// callback controller to ensure create success
+		// set finalizers
+		curKubernetesCluster.Finalizers = []string{fmt.Sprintf("kubernetescluster.ecs.yun.com/%v", curKubernetesCluster.Name)}
+		k, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curKubernetesCluster)
+		if err != nil {
+			glog.Errorf("update spec failed with:%v", err)
+			return err
+		}
 
-	case "CREATING":
-		// check job
+		// update phase
+		curKubernetesCluster = k.DeepCopy()
+		curKubernetesCluster.Status.Phase = Creating
+		k, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curKubernetesCluster)
+		if err != nil {
+			glog.Errorf("update status failed with:%v", err)
+			return err
+		}
+
+		curKubernetesCluster = k.DeepCopy()
+		c.recorder.Event(curKubernetesCluster, corev1.EventTypeNormal, SuccessCreated, CreateKubernetesClusterJobSuccess)
+
+		// TODO: callback controller to ensure create success
+	case Creating, Running, Scaling, Failed:
+		// delete crd
+		// 1.delete own job; 2.update finalizers; 3. delete crds
+		if kubernetesCluster.DeletionTimestamp != nil {
+			curKubernetesCluster := kubernetesCluster.DeepCopy()
+
+			deleteClusterJob := newDeleteKubernetesClusterJob(namespace, name)
+			_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterJob)
+			if err != nil {
+				glog.Errorf("create delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
+				return err
+			}
+
+			// update label if delete job created
+			deleteLabel := deleteClusterJob.Name
+			if curKubernetesCluster.Labels == nil {
+				curKubernetesCluster.Labels = map[string]string{}
+			}
+			if _, existed := curKubernetesCluster.Labels[deleteLabel]; !existed {
+				curKubernetesCluster.Labels[deleteLabel] = DeleteJobLabelCreated
+			}
+			k, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curKubernetesCluster)
+			if err != nil {
+				glog.Errorf("update spec failed with:%v", err)
+				return err
+			}
+
+			// update status to Terminating
+			curKubernetesCluster = k.DeepCopy()
+			curKubernetesCluster.Status.Phase = Terminating
+			k, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curKubernetesCluster)
+			if err != nil {
+				glog.Errorf("update status failed with:%v", err)
+				return err
+			}
+			curKubernetesCluster = k.DeepCopy()
+			c.recorder.Event(curKubernetesCluster, corev1.EventTypeNormal, SuccessCreated, fmt.Sprintf("create delete-cluster job success"))
+		}
+
+	// Terminating
+	case Terminating:
 
 	// update or delete
 	default:
+		c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
 
 	}
 
-	c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
 	return nil
 }
 
 func (c *Controller) processKubernetesClusterDeletion(key string) error {
-
 	// Convert the namespace/name string into a distinct namespace and name
 	namespace, name, err := cache.SplitMetaNamespaceKey(key)
 	if err != nil {
@@ -325,10 +354,10 @@ func (c *Controller) processKubernetesClusterDeletion(key string) error {
 	// neutron.Delete(namespace, name)
 	// delete job and kubernetes cluster
 	// update DeletionTimestamp
-	deleteClusterBatchJob := newDeleteKubernetesClusterBatchJob(name, namespace)
-	_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterBatchJob)
+	deleteClusterJob := newDeleteKubernetesClusterJob(namespace, name)
+	_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterJob)
 	if err != nil {
-		glog.Errorf("delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
+		glog.Errorf("create delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
 		return err
 	}
 

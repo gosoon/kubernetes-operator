@@ -20,4 +20,5 @@ func New(opt *Options) Interface {
 type Interface interface {
 	CreateCluster(namespace string, name string, kubernetesCluster *ecsv1.KubernetesCluster) error
 	DeleteCluster(namespace string, name string) error
+	DeleteClusterCallback(namespace string, name string) error
 }

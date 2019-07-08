@@ -53,6 +53,7 @@ func (c *cluster) createCluster(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *cluster) deleteCluster(w http.ResponseWriter, r *http.Request) {
+	// TODO: generate simple ecsv1.KubernetesCluster for web
 	cluster := &ecsv1.KubernetesCluster{}
 	err := json.NewDecoder(r.Body).Decode(cluster)
 	if err != nil {
@@ -77,5 +78,20 @@ func (c *cluster) createClusterCallback(w http.ResponseWriter, r *http.Request) 
 }
 
 func (c *cluster) deleteClusterCallback(w http.ResponseWriter, r *http.Request) {
+	//cluster := &ecsv1.KubernetesCluster{}
+	//err := json.NewDecoder(r.Body).Decode(cluster)
+	//if err != nil {
+	//errMsg := "Data format error,post data unable to decode."
+	//controller.FailedResponse(w, r, errMsg, int(500))
+	//return
+	//}
+	namespace := mux.Vars(r)["namespace"]
+	name := mux.Vars(r)["name"]
 
+	err := c.opt.Service.DeleteClusterCallback(namespace, name)
+	if err != nil {
+		controller.FailedResponse(w, r, err, int(500))
+		return
+	}
+	controller.SuccessResponse(w, r, `ok`, int(200))
 }

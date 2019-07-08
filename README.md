@@ -2,7 +2,7 @@
 
 kubernetes-operator is a control plane and manage all kubernetes cluster lifecycle.
 
-![ecs](http://cdn.tianfeiyu.com/kuber.png)
+<img src="doc/images/image-20190708160044358.png"></img>
 
 ## introduce
 

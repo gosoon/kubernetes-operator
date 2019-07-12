@@ -9,9 +9,6 @@
 # The port on the local server to listen on.
 # KUBE_API_PORT="--port=8080"
 
-# Port minions listen on
-# KUBELET_PORT="--kubelet-port=10250"
-
 # Comma separated list of nodes in the etcd cluster
 KUBE_ETCD_SERVERS="--etcd-servers=<etcd_cluster>"
 
@@ -23,6 +20,7 @@ KUBE_ADMISSION_CONTROL="--enable-admission-plugins=NamespaceLifecycle,LimitRange
 
 # Add your own! 
 KUBE_API_ARGS=" --storage-backend=etcd3 --storage-media-type=application/json \
+--log-dir=/var/log/kubernetes \
 --stderrthreshold=3 --enable-garbage-collector=true \
 --anonymous-auth=false \
 --authorization-mode=Node,RBAC \

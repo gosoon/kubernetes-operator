@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+// hosts is read env and generate have local host ip certs.
+
 type certKeyConfig struct {
 	Algo string `json:"algo"`
 	Size int    `json:"size"`

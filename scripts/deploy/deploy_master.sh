@@ -6,7 +6,7 @@
 KUBE_MASTER_BIN_DIR="../bin/${KUBERNETES_VER}"
 KUBE_MASTER_CONFIG_DIR="../config/master"
 KUBE_MASTER_SYSTEMD_CONFIG_DIR="../systemd"
-GENERATE_CERTS_FILE="../certs/master/gen_cert.sh"
+GENERATE_CERTS_FILE="../certs/master"
 GENERATE_KUBECONFIG_FILE="../kubeconfig/generate_master_kubeconfig.sh"
 
 DEST_CONFIG_DIR="/etc/kubernetes"
@@ -37,8 +37,9 @@ sed -i -e "s#--etcd-servers=<etcd_cluster>#--etcd-servers=${etcd_cluster}#g" ${D
 sed -i -e "s#--master=https://<apiserver_ip>:6443#--master=https://${LOCAL_IP}:6443#g" ${DEST_CONFIG_DIR}/config
 
 # generate ssl 
-bash ${GENERATE_CERTS_FILE}
+cd ${GENERATE_CERTS_FILE} && bash gen_cert.sh
 [ $? -eq 0 ] && echo "generate certs success" || exit 1
+cd -
 cp ${GENERATE_CERTS_FILE}/output/* ${DEST_CERTS_DIR}/
 
 # generate kubeconfig
@@ -46,6 +47,7 @@ sed -i -e "s#https://<apiserver_ip>:6443#https://${LOCAL_IP}:6443#g" ${GENERATE_
 bash ${GENERATE_KUBECONFIG_FILE}
 [ $? -eq 0 ] && echo "generate kubeconfig success" || exit 1
 cp ${GENERATE_KUBECONFIG_FILE}/output/* ${DEST_CONFIG_DIR}/
+cp ${GENERATE_KUBECONFIG_FILE}/output/kubectl.kubeconfig ~/.kube/config
 
 # mkdir master log dir 
 [ -d ${KUBE_MASTER_LOG} ] || mkdir -pv ${KUBE_MASTER_LOG}

@@ -2,8 +2,12 @@ Scripts dir is use binary deploy kubernetes cluster,default version is v1.14.0.K
 
 use scripts deploy kubernetes:
 
+1. define version and hosts in scripts/deploy/config.sh
+
+2. exec scripts to deploy
  ```
-$ bash deploy/deploy.sh etcd
-$ bash deploy/deploy.sh master
-$ bash deploy/deploy.sh node
+$ cd deploy/
+$ bash deploy.sh etcd
+$ bash deploy.sh master
+$ bash deploy.sh node
  ```

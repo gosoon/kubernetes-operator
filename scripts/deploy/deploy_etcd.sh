@@ -9,7 +9,7 @@ ETCD_BIN_DIR="../bin/${ETCD_VER}"
 CERTS_DIR="../certs/"
 ETCD_SYSTEMD_CONFIG_DIR="../systemd"
 ETCD_CONFIG_DIR="../config/etcd"
-GENERATE_CERTS_FILE="../certs/etcd/gen_cert.sh"
+GENERATE_CERTS_FILE="../certs/etcd"
 
 DEST_ETCD_CONFIG_DIR="/etc/etcd/etcd.conf"
 DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
@@ -41,8 +41,12 @@ cp ${ETCD_SYSTEMD_CONFIG_DIR}/etcd.service  ${DEST_SYSTEMD_DIR}/
 cp ${ETCD_CONFIG_DIR}/* ${DEST_CONFIG_DIR}/
 
 # generate ssl 
-bash ${GENERATE_CERTS_FILE}
+cd ${GENERATE_CERTS_FILE} && bash gen_cert.sh
 [ $? -eq 0 ] && echo "generate certs success" || exit 1
+cd -
+
+# create ssl dir
+[ -d ${DEST_CERTS_DIR} ] || mkdir ${DEST_CERTS_DIR}
 cp ${GENERATE_CERTS_FILE}/output/* ${DEST_CERTS_DIR}/
 
 # config etcd 

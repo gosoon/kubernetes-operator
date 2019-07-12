@@ -10,6 +10,6 @@ KUBE_CONTROLLER_MANAGER_ARGS=" --bind-address=127.0.0.1 \
 --service-account-private-key-file=/etc/kubernetes/ssl/ca-key.pem  \
 --leader-elect=true  \
 --use-service-account-credentials=true \
---kubeconfig=/etc/kubernetes/ssl/kube-controller-manager.kubeconfig \
+--kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig \
 --tls-cert-file=/etc/kubernetes/ssl/kube-controller-manager.pem \
 --tls-private-key-file=/etc/kubernetes/ssl/kube-controller-manager-key.pem"

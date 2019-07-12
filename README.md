@@ -1,6 +1,6 @@
-## kubernetes-operator
+## kubernetes-operator 
 
-kubernetes-operator is a control plane and manage all kubernetes cluster lifecycle.
+kubernetes-operator is a control plane and manage all kubernetes cluster lifecycle(Kubernetes on Kubernetes).
 
 <img src="doc/images/image-20190708160044358.png"></img>
 

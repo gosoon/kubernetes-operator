@@ -6,5 +6,6 @@
 
 systemctl stop kube-apiserver kube-controller-manager kube-scheduler
 rm -rf /etc/kubernetes/
+rm -rf /root/.kube/
 rm -f /var/log/deploy_master.log
 rm -rf /var/log/kubernetes/

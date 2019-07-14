@@ -23,7 +23,7 @@ pre_ipvs() {
 net.ipv4.ip_forward=1
 net.bridge.bridge-nf-call-iptables=1
 net.bridge.bridge-nf-call-ip6tables=1
-    EOF
+EOF
 
     sysctl -p
 
@@ -41,12 +41,12 @@ ip_vs_fo
 ip_vs_nq
 ip_vs_sed
 ip_vs_ftp
-    EOF
+EOF
 
     yum install -y conntrack ipvsadm
 }
 
-pre_ipvs()
+pre_ipvs
 cp ${KUBE_PROXY_BIN_DIR}/kube-proxy /usr/bin/
 
 cp ${KUBE_PROXY_SYSTEMD_CONFIG_DIR}/kube-proxy.service  ${DEST_SYSTEMD_DIR}
@@ -54,7 +54,7 @@ cp ${KUBE_PROXY_SYSTEMD_CONFIG_DIR}/kube-proxy.service  ${DEST_SYSTEMD_DIR}
 cp ${KUBE_PROXY_CONFIG_DIR}/kube-proxy /etc/kubernetes/
 
 # cp kubeconfig 
-cp ${KUBECONFIG_DIR}/kube-proxy.kubeconfig  ${DEST_CONFIG_DIR}/
+cp ${KUBECONFIG_DIR}/output/kube-proxy.kubeconfig  ${DEST_CONFIG_DIR}/
 
 #TODO: update config and kubeconfig master ip
 sed -i -e "s#--hostname_override=<node_ip>#--hostname_override=${LOCAL_IP}#g" ${DEST_CONFIG_DIR}/kube-proxy

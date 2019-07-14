@@ -17,13 +17,13 @@ CALICO_VER="v3.7"
 COREDNS_VER="v1.4.0"
 
 # etcd hosts, eg : "10.0.2.15,10.0.2.16"   
-ETCD_HOSTS="10.0.2.15"  
+ETCD_HOSTS="10.0.4.15"  
 
 # master hosts, eg : "10.0.2.15,10.0.2.16"
-MASTER_HOSTS="10.0.2.15"  
+MASTER_HOSTS="10.0.4.15"  
 
 # host ip
-LOCAL_IP=$(ip route get 1 | awk '{print $NF;exit}')
+LOCAL_IP="10.0.4.15"
 
 # deploy home  
 DEPLOY_HOME_DIR="/home/kube"

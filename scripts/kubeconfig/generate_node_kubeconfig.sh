@@ -1,6 +1,6 @@
 #!/bin/bash
 # 指定 apiserver 地址
-KUBE_APISERVER="https://<apiserver_ip>:6443"
+KUBE_APISERVER="https://10.0.4.15:6443"
 
 # 生成 Bootstrap Token
 BOOTSTRAP_TOKEN_ID=$(head -c 6 /dev/urandom | md5sum | head -c 6)

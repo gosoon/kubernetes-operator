@@ -7,7 +7,7 @@ KUBE_MASTER_BIN_DIR="../bin/${KUBERNETES_VER}"
 KUBE_MASTER_CONFIG_DIR="../config/master"
 KUBE_MASTER_SYSTEMD_CONFIG_DIR="../systemd"
 GENERATE_CERTS_FILE="../certs/master"
-GENERATE_KUBECONFIG_FILE="../kubeconfig/generate_master_kubeconfig.sh"
+GENERATE_KUBECONFIG_FILE="../kubeconfig"
 
 DEST_CONFIG_DIR="/etc/kubernetes"
 DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
@@ -18,6 +18,7 @@ cp ${KUBE_MASTER_BIN_DIR}/{kube-apiserver,kube-controller-manager,kube-scheduler
 cp ${KUBE_MASTER_SYSTEMD_CONFIG_DIR}/{kube-apiserver.service,kube-controller-manager.service,kube-scheduler.service} ${DEST_SYSTEMD_DIR}/
 
 # cp config, apiserver config controller-manager scheduler 
+[ -d ${DEST_CONFIG_DIR} ] || mkdir ${DEST_CONFIG_DIR}
 cp ${KUBE_MASTER_CONFIG_DIR}/* ${DEST_CONFIG_DIR}/
 
 # config etcd server
@@ -40,17 +41,23 @@ sed -i -e "s#--master=https://<apiserver_ip>:6443#--master=https://${LOCAL_IP}:6
 cd ${GENERATE_CERTS_FILE} && bash gen_cert.sh
 [ $? -eq 0 ] && echo "generate certs success" || exit 1
 cd -
+[ -d ${DEST_CERTS_DIR} ] || mkdir ${DEST_CERTS_DIR}
 cp ${GENERATE_CERTS_FILE}/output/* ${DEST_CERTS_DIR}/
 
 # generate kubeconfig
-sed -i -e "s#https://<apiserver_ip>:6443#https://${LOCAL_IP}:6443#g" ${GENERATE_KUBECONFIG_FILE}
-bash ${GENERATE_KUBECONFIG_FILE}
+sed -i -e "s#https://<apiserver_ip>:6443#https://${LOCAL_IP}:6443#g" ${GENERATE_KUBECONFIG_FILE}/generate_master_kubeconfig.sh
+cd ${GENERATE_KUBECONFIG_FILE} && bash generate_master_kubeconfig.sh
 [ $? -eq 0 ] && echo "generate kubeconfig success" || exit 1
+cd -
 cp ${GENERATE_KUBECONFIG_FILE}/output/* ${DEST_CONFIG_DIR}/
 cp ${GENERATE_KUBECONFIG_FILE}/output/kubectl.kubeconfig ~/.kube/config
 
 # mkdir master log dir 
 [ -d ${KUBE_MASTER_LOG} ] || mkdir -pv ${KUBE_MASTER_LOG}
+
+# kubectl bash-completion
+yum install -y bash-completion
+kubectl completion bash >> ~/.bashrc
 
 # start service
 systemctl daemon-reload

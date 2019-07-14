@@ -16,7 +16,7 @@ KUBE_ETCD_SERVERS="--etcd-servers=<etcd_cluster>"
 KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=192.168.0.0/16 --secure-port=6443 --bind-address=0.0.0.0 --insecure-bind-address=0.0.0.0"
 
 # default admission control policies
-KUBE_ADMISSION_CONTROL="--enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,Priority,ResourceQuota,PodSecurityPolicy"
+KUBE_ADMISSION_CONTROL="--enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,Priority,ResourceQuota"
 
 # Add your own! 
 KUBE_API_ARGS=" --storage-backend=etcd3 --storage-media-type=application/json \

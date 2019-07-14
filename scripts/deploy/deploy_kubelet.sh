@@ -32,14 +32,15 @@ sed -i -e "s#hostnameOverride: <node_ip>#hostnameOverride: ${LOCAL_IP}#g" ${DEST
 cd ${GENERATE_CERTS_FILE} && bash gen_cert.sh
 [ $? -eq 0 ] && echo "generate certs success" || exit 1
 cd -
-cp ${GENERATE_CERTS_FILE}/output/* ${DEST_CERTS_DIR}/
+cp ${GENERATE_CERTS_FILE}/output/{kube-proxy-key.pem,kube-proxy.pem,kubelet-client-key.pem,kubelet-client.pem} ${DEST_CERTS_DIR}/
 
 # generate kubeconfig
-sed -i -e "s#https://<apiserver_ip>:6443#https://${MASTER_HOSTS}:6443#g" ${GENERATE_KUBECONFIG_FILE}/generate_node_kubeconfig.sh
-cd ${GENERATE_KUBECONFIG_FILE} && bash generate_node_kubeconfig.sh
-[ $? -eq 0 ] && echo "generate kubeconfig success" || exit 1
-cp ${GENERATE_KUBECONFIG_FILE}/output/* ${DEST_CONFIG_DIR}/
-cd -
+cp ${GENERATE_KUBECONFIG_FILE}/output/{kubelet.kubeconfig,bootstrap.kubeconfig} ${DEST_CONFIG_DIR}/
+#sed -i -e "s#https://<apiserver_ip>:6443#https://${MASTER_HOSTS}:6443#g" ${GENERATE_KUBECONFIG_FILE}/generate_node_kubeconfig.sh
+#cd ${GENERATE_KUBECONFIG_FILE} && bash generate_node_kubeconfig.sh
+#[ $? -eq 0 ] && echo "generate kubeconfig success" || exit 1
+#cp ${GENERATE_KUBECONFIG_FILE}/output/* ${DEST_CONFIG_DIR}/
+#cd -
 
 # mkdir log dir
 [ -d ${KUBE_MASTER_LOG} ] || mkdir -pv ${KUBE_MASTER_LOG}

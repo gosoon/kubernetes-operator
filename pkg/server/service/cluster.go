@@ -8,7 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s *service) CreateCluster(namespace string, name string, clusterInfo *types.EcsClient) error {
+func (s *service) CreateCluster(region string, namespace string, name string, clusterInfo *types.EcsClient) error {
 	clientset := s.opt.KubernetesClusterClientset
 	if !clusterInfo.Retry {
 		kubernetesCluster := &ecsv1.KubernetesCluster{
@@ -28,6 +28,7 @@ func (s *service) CreateCluster(namespace string, name string, clusterInfo *type
 				MasterList:    clusterInfo.MasterList,
 				NodeList:      clusterInfo.NodeList,
 				EtcdList:      clusterInfo.EtcdList,
+				Region:        region,
 			},
 		}
 
@@ -63,7 +64,7 @@ func (s *service) CreateCluster(namespace string, name string, clusterInfo *type
 	return nil
 }
 
-func (s *service) DeleteCluster(namespace string, name string, clusterInfo *types.EcsClient) error {
+func (s *service) DeleteCluster(region string, namespace string, name string, clusterInfo *types.EcsClient) error {
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {

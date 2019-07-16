@@ -7,8 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s *service) ScaleUp(namespace string, name string, clusterInfo *types.EcsClient) error {
-	// TODO: operation failed callback and check receive error
+func (s *service) ScaleUp(region string, namespace string, name string, clusterInfo *types.EcsClient) error {
 	clientset := s.opt.KubernetesClusterClientset
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
@@ -36,8 +35,7 @@ func (s *service) ScaleUp(namespace string, name string, clusterInfo *types.EcsC
 	return nil
 }
 
-func (s *service) ScaleDown(namespace string, name string, clusterInfo *types.EcsClient) error {
-	// TODO: operation failed callback and check receive error
+func (s *service) ScaleDown(region string, namespace string, name string, clusterInfo *types.EcsClient) error {
 	clientset := s.opt.KubernetesClusterClientset
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})

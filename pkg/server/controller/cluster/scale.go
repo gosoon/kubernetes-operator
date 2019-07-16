@@ -13,38 +13,34 @@ func (c *cluster) scaleUpCluster(w http.ResponseWriter, r *http.Request) {
 	cluster := &types.EcsClient{}
 	err := json.NewDecoder(r.Body).Decode(cluster)
 	if err != nil {
-		errMsg := "Data format error,post data unable to decode."
-		controller.FailedResponse(w, r, errMsg, int(500))
+		controller.BadRequest(w, r, err)
 		return
 	}
-	//region := mux.Vars(r)["region"]
-	namespace := mux.Vars(r)["namespace"]
+	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.ScaleUp(namespace, name, cluster)
+	err = c.opt.Service.ScaleUp(region, namespace, name, cluster)
 	if err != nil {
-		controller.FailedResponse(w, r, err, int(500))
+		controller.BadRequest(w, r, err)
 		return
 	}
-	controller.SuccessResponse(w, r, err, int(200))
+	controller.OK(w, r, "success")
 }
 
 func (c *cluster) scaleDownCluster(w http.ResponseWriter, r *http.Request) {
 	cluster := &types.EcsClient{}
 	err := json.NewDecoder(r.Body).Decode(cluster)
 	if err != nil {
-		errMsg := "Data format error,post data unable to decode."
-		controller.FailedResponse(w, r, errMsg, int(500))
+		controller.BadRequest(w, r, err)
 		return
 	}
-	//region := mux.Vars(r)["region"]
-	namespace := mux.Vars(r)["namespace"]
+	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.CreateCluster(namespace, name, cluster)
+	err = c.opt.Service.CreateCluster(region, namespace, name, cluster)
 	if err != nil {
-		controller.FailedResponse(w, r, err, int(500))
+		controller.BadRequest(w, r, err)
 		return
 	}
-	controller.SuccessResponse(w, r, err, int(200))
+	controller.OK(w, r, "success")
 }

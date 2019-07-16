@@ -19,16 +19,16 @@ func New(opt *Options) Interface {
 
 type Interface interface {
 	// cluster
-	CreateCluster(namespace string, name string, clusterInfo *types.EcsClient) error
-	DeleteCluster(namespace string, name string, clusterInfo *types.EcsClient) error
+	CreateCluster(region string, namespace string, name string, clusterInfo *types.EcsClient) error
+	DeleteCluster(region string, namespace string, name string, clusterInfo *types.EcsClient) error
 
 	// scale
-	ScaleUp(namespace string, name string, clusterInfo *types.EcsClient) error
-	ScaleDown(namespace string, name string, clusterInfo *types.EcsClient) error
+	ScaleUp(region string, namespace string, name string, clusterInfo *types.EcsClient) error
+	ScaleDown(region string, namespace string, name string, clusterInfo *types.EcsClient) error
 
 	// callback
-	CreateClusterCallback(namespace string, name string, result *types.CallBack) error
-	ScaleUpCallback(namespace string, name string, result *types.CallBack) error
-	ScaleDownCallback(namespace string, name string, result *types.CallBack) error
-	DeleteClusterCallback(namespace string, name string, result *types.CallBack) error
+	CreateClusterCallback(region string, namespace string, name string, result *types.CallBack) error
+	ScaleUpCallback(region string, namespace string, name string, result *types.CallBack) error
+	ScaleDownCallback(region string, namespace string, name string, result *types.CallBack) error
+	DeleteClusterCallback(region string, namespace string, name string, result *types.CallBack) error
 }

@@ -9,7 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s *service) CreateClusterCallback(namespace string, name string, result *types.CallBack) error {
+func (s *service) CreateClusterCallback(region string, namespace string, name string, result *types.CallBack) error {
 	// TODO: operation failed callback and check receive error
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
@@ -56,7 +56,7 @@ func (s *service) CreateClusterCallback(namespace string, name string, result *t
 	return nil
 }
 
-func (s *service) ScaleUpCallback(namespace string, name string, result *types.CallBack) error {
+func (s *service) ScaleUpCallback(region string, namespace string, name string, result *types.CallBack) error {
 	// TODO: operation failed callback and check receive error
 	clientset := s.opt.KubernetesClusterClientset
 
@@ -104,8 +104,7 @@ func (s *service) ScaleUpCallback(namespace string, name string, result *types.C
 	return nil
 }
 
-func (s *service) ScaleDownCallback(namespace string, name string, result *types.CallBack) error {
-	// TODO: operation failed callback and check receive error
+func (s *service) ScaleDownCallback(region string, namespace string, name string, result *types.CallBack) error {
 	clientset := s.opt.KubernetesClusterClientset
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
@@ -152,7 +151,7 @@ func (s *service) ScaleDownCallback(namespace string, name string, result *types
 	return nil
 }
 
-func (s *service) DeleteClusterCallback(namespace string, name string, result *types.CallBack) error {
+func (s *service) DeleteClusterCallback(region string, namespace string, name string, result *types.CallBack) error {
 	// TODO: check have running task
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})

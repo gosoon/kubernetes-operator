@@ -30,7 +30,8 @@ type KubernetesClusterSpec struct {
 	ServiceCIDR   string `json:"serviceCIDR,omitempty"`
 	MasterList    []Node `json:"masterList" tag:"required"`
 	NodeList      []Node `json:"nodeList" tag:"required"`
-	EtcdList      []Node `json:"etcdList"`
+	EtcdList      []Node `json:"etcdList,omitempty"`
+	Region        string `json:"region,omitempty"`
 }
 
 // KubernetesClusterStatus defines the observed state of KubernetesCluster

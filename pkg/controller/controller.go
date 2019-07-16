@@ -22,6 +22,7 @@ import (
 	ecsscheme "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned/scheme"
 	informers "github.com/gosoon/kubernetes-operator/pkg/client/informers/externalversions/ecs/v1"
 	listers "github.com/gosoon/kubernetes-operator/pkg/client/listers/ecs/v1"
+	"github.com/gosoon/kubernetes-operator/pkg/enum"
 )
 
 const controllerAgentName = "ecs-controller"
@@ -29,26 +30,8 @@ const controllerAgentName = "ecs-controller"
 //type KubernetesOperatorPhase string
 
 const (
-	// kubernetes cluster phase,"None,Creating,Running,Failed,Scaling"
-	// Active is the create kubernetes job is running
-	None        ecsv1.KubernetesOperatorPhase = ""
-	Creating    ecsv1.KubernetesOperatorPhase = "Creating"
-	Running     ecsv1.KubernetesOperatorPhase = "Running"
-	Failed      ecsv1.KubernetesOperatorPhase = "Failed"
-	Scaling     ecsv1.KubernetesOperatorPhase = "Scaling"
-	Terminating ecsv1.KubernetesOperatorPhase = "Terminating"
-
 	// SuccessSynced is used as part of the Event 'reason' when a KubernetesCluster is synced
 	SuccessSynced = "Synced"
-
-	// MessageResourceSynced is the message used for an Event fired when a KubernetesCluster
-	// is synced successfully
-	MessageResourceSynced = "ecs synced successfully"
-
-	SuccessCreated = "SuccessCreated"
-	FailCreated    = "FailCreated"
-
-	CreateKubernetesClusterJobSuccess = "create kubernetes cluster job success"
 
 	DeleteJobLabelCreated = "created"
 )
@@ -84,7 +67,7 @@ func NewController(
 	// Add sample-controller types to the default Kubernetes Scheme so Events can be
 	// logged for sample-controller types.
 	utilruntime.Must(ecsscheme.AddToScheme(scheme.Scheme))
-	glog.V(4).Info("Creating event broadcaster")
+	glog.Info("Creating event broadcaster")
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartLogging(glog.Infof)
 	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclientset.CoreV1().Events("")})
@@ -232,136 +215,85 @@ func (c *Controller) syncHandler(key string) error {
 	case errors.IsNotFound(err):
 		// The KubernetesCluster resource may no longer exist, in which case we stop
 		// processing.
-		err = c.processKubernetesClusterDeletion(key)
+		err = c.processClusterNotExistInCache(key)
 	case err != nil:
 		runtime.HandleError(fmt.Errorf("Unable to retrieve service %v from store: %v", key, err))
 	default:
-		err = c.processKubernetesClusterCreateOrUpdate(kubernetesCluster, key)
+		err = c.processKubernetesClusterCreateOrUpdate(kubernetesCluster)
 	}
 	return err
 }
 
-func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *ecsv1.KubernetesCluster, key string) error {
-	// Convert the namespace/name string into a distinct namespace and name
-	namespace, name, err := cache.SplitMetaNamespaceKey(key)
-	if err != nil {
-		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
-		return nil
-	}
-	fmt.Println("%+v", *kubernetesCluster)
-
+func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *ecsv1.KubernetesCluster) error {
 	switch kubernetesCluster.Status.Phase {
 	// phase is "" express create new kubernetesCluster
-	case "":
-		curKubernetesCluster := kubernetesCluster.DeepCopy()
-		// create kubernetes cluster
-		createClusterJob := newCreateKubernetesClusterJob(kubernetesCluster)
-		_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(createClusterJob)
+	case enum.New:
+		err := c.processClusterNew(kubernetesCluster)
 		if err != nil {
-			createKubernetesClusterJobFailed := fmt.Sprintf("create kubernetes cluster job failed with:%v", err)
-			c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, FailCreated, createKubernetesClusterJobFailed)
-			glog.Errorf("create %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
 			return err
 		}
-
-		// set finalizers
-		curKubernetesCluster.Finalizers = []string{fmt.Sprintf("kubernetescluster.ecs.yun.com/%v", curKubernetesCluster.Name)}
-		k, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curKubernetesCluster)
-		if err != nil {
-			glog.Errorf("update spec failed with:%v", err)
-			return err
-		}
-
-		// update phase
-		curKubernetesCluster = k.DeepCopy()
-		curKubernetesCluster.Status.Phase = Creating
-		k, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curKubernetesCluster)
-		if err != nil {
-			glog.Errorf("update status failed with:%v", err)
-			return err
-		}
-
-		curKubernetesCluster = k.DeepCopy()
-		c.recorder.Event(curKubernetesCluster, corev1.EventTypeNormal, SuccessCreated, CreateKubernetesClusterJobSuccess)
-
 		// TODO: callback controller to ensure create success
-	case Creating, Running, Scaling, Failed:
-		// delete crd
+	case enum.Creating, enum.Running, enum.Scaling:
 		// 1.delete own job; 2.update finalizers; 3. delete crds
 		if kubernetesCluster.DeletionTimestamp != nil {
-			curKubernetesCluster := kubernetesCluster.DeepCopy()
-
-			deleteClusterJob := newDeleteKubernetesClusterJob(namespace, name)
-			_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterJob)
-			if err != nil {
-				glog.Errorf("create delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
-				return err
+			switch kubernetesCluster.Annotations[enum.Operation] {
+			case enum.KubeTerminating:
+				return c.processClusterTerminating(kubernetesCluster)
 			}
-
-			// update label if delete job created
-			deleteLabel := deleteClusterJob.Name
-			if curKubernetesCluster.Labels == nil {
-				curKubernetesCluster.Labels = map[string]string{}
-			}
-			if _, existed := curKubernetesCluster.Labels[deleteLabel]; !existed {
-				curKubernetesCluster.Labels[deleteLabel] = DeleteJobLabelCreated
-			}
-			k, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curKubernetesCluster)
-			if err != nil {
-				glog.Errorf("update spec failed with:%v", err)
-				return err
-			}
-
-			// update status to Terminating
-			curKubernetesCluster = k.DeepCopy()
-			curKubernetesCluster.Status.Phase = Terminating
-			k, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curKubernetesCluster)
-			if err != nil {
-				glog.Errorf("update status failed with:%v", err)
-				return err
-			}
-			curKubernetesCluster = k.DeepCopy()
-			c.recorder.Event(curKubernetesCluster, corev1.EventTypeNormal, SuccessCreated, fmt.Sprintf("create delete-cluster job success"))
+		}
+		// annotation
+		switch kubernetesCluster.Annotations[enum.Operation] {
+		case enum.KubeCreating:
+			return c.processKubeCreating(kubernetesCluster)
+		case enum.KubeCreateFailed:
+			return c.processOperateFailed(kubernetesCluster)
+		case enum.KubeCreateFinished:
+			return c.processOperateFinished(kubernetesCluster)
+		case enum.KubeScalingUp:
+			return c.processClusterScaleUp(kubernetesCluster)
+		case enum.KubeScaleUpFailed:
+			return c.processOperateFailed(kubernetesCluster)
+		case enum.KubeScaleUpFinished:
+			return c.processOperateFinished(kubernetesCluster)
+		case enum.KubeScalingDown:
+			return c.processClusterScaleDown(kubernetesCluster)
+		case enum.KubeScaleDownFailed:
+			return c.processOperateFailed(kubernetesCluster)
+		case enum.KubeScaleDownFinished:
+			return c.processOperateFinished(kubernetesCluster)
+		default:
+			//
 		}
 
 	// Terminating
-	case Terminating:
+	case enum.Terminating:
+		switch kubernetesCluster.Annotations[enum.Operation] {
+		case enum.KubeTerminateFailed:
+			return c.processOperateFailed(kubernetesCluster)
+		}
+	// Failed
+	case enum.Failed:
+		// delete retry
+		if kubernetesCluster.DeletionTimestamp != nil {
+			switch kubernetesCluster.Annotations[enum.Operation] {
+			case enum.KubeTerminating:
+				return c.processClusterTerminating(kubernetesCluster)
+			}
+		}
+		// retry operate
+		switch kubernetesCluster.Annotations[enum.Operation] {
+		case enum.KubeCreating:
+			return c.processNewOperate(kubernetesCluster)
+		case enum.KubeScalingUp:
+			return c.processClusterScaleUp(kubernetesCluster)
+		case enum.KubeScalingDown:
+			return c.processClusterScaleDown(kubernetesCluster)
+		}
 
-	// update or delete
 	default:
-		c.recorder.Event(kubernetesCluster, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
 
 	}
 
-	return nil
-}
-
-func (c *Controller) processKubernetesClusterDeletion(key string) error {
-	// Convert the namespace/name string into a distinct namespace and name
-	namespace, name, err := cache.SplitMetaNamespaceKey(key)
-	if err != nil {
-		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
-		return nil
-	}
-
-	glog.Warningf("KubernetesCluster: %s/%s does not exist in local cache, will delete it from Neutron ...",
-		namespace, name)
-
-	glog.Infof("[Neutron] Deleting kubernetesCluster: %s/%s ...", namespace, name)
-
-	// FIX ME: call Neutron API to delete this kubernetesCluster by name.
-	//
-	// neutron.Delete(namespace, name)
-	// delete job and kubernetes cluster
-	// update DeletionTimestamp
-	deleteClusterJob := newDeleteKubernetesClusterJob(namespace, name)
-	_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterJob)
-	if err != nil {
-		glog.Errorf("create delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
-		return err
-	}
-
-	// call back and delete deleteJob and createJob
 	return nil
 }
 

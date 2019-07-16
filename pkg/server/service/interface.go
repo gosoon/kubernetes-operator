@@ -1,8 +1,8 @@
 package service
 
 import (
-	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	clientset "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned"
+	"github.com/gosoon/kubernetes-operator/pkg/types"
 )
 
 type Options struct {
@@ -18,7 +18,17 @@ func New(opt *Options) Interface {
 }
 
 type Interface interface {
-	CreateCluster(namespace string, name string, kubernetesCluster *ecsv1.KubernetesCluster) error
-	DeleteCluster(namespace string, name string) error
-	DeleteClusterCallback(namespace string, name string) error
+	// cluster
+	CreateCluster(namespace string, name string, clusterInfo *types.EcsClient) error
+	DeleteCluster(namespace string, name string, clusterInfo *types.EcsClient) error
+
+	// scale
+	ScaleUp(namespace string, name string, clusterInfo *types.EcsClient) error
+	ScaleDown(namespace string, name string, clusterInfo *types.EcsClient) error
+
+	// callback
+	CreateClusterCallback(namespace string, name string, result *types.CallBack) error
+	ScaleUpCallback(namespace string, name string, result *types.CallBack) error
+	ScaleDownCallback(namespace string, name string, result *types.CallBack) error
+	DeleteClusterCallback(namespace string, name string, result *types.CallBack) error
 }

@@ -40,8 +40,6 @@ const (
 
 	// event message
 	EcsSyncSuccess = string("ecs synced successfully")
-	//CreateKubeJobSuccess = string("create kubernetes cluster job success")
-	//DeleteKubeJobSuccess = string("delete kubernetes cluster job success")
 
 	// event reason
 	SyncedSuccess = string("Synced")

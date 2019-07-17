@@ -37,7 +37,7 @@ func (c *cluster) scaleDownCluster(w http.ResponseWriter, r *http.Request) {
 	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.CreateCluster(region, namespace, name, cluster)
+	err = c.opt.Service.ScaleDown(region, namespace, name, cluster)
 	if err != nil {
 		controller.BadRequest(w, r, err)
 		return

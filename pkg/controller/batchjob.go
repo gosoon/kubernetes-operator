@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/gosoon/kubernetes-operator/pkg/apis/ecs"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
@@ -46,7 +47,6 @@ func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 			Completions:           completions,
 			BackoffLimit:          backoffLimit,
 			ActiveDeadlineSeconds: ActiveDeadlineSeconds,
-			//  TTLSecondsAfterFinished :  ,
 			Template: corev1.PodTemplateSpec{
 				Spec: corev1.PodSpec{
 					RestartPolicy: corev1.RestartPolicyNever,
@@ -82,6 +82,47 @@ func newDeleteKubernetesClusterJob(namespace string, name string) *batchv1.Job {
 	completions := pointer.Int32Ptr(1)
 	parallelism := pointer.Int32Ptr(1)
 	backoffLimit := pointer.Int32Ptr(0)
+	// 60 minutes
+	ttlSecondsAfterFinished := pointer.Int32Ptr(60 * 60)
+	// 10 minutes
+	ActiveDeadlineSeconds := pointer.Int64Ptr(10 * 60)
+
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            jobName,
+			Namespace:       namespace,
+			OwnerReferences: []metav1.OwnerReference{},
+		},
+		Spec: batchv1.JobSpec{
+			Parallelism:           parallelism,
+			Completions:           completions,
+			BackoffLimit:          backoffLimit,
+			ActiveDeadlineSeconds: ActiveDeadlineSeconds,
+			// if you want to clean up finished jobs automatically,
+			// enabled with feature gate TTLAfterFinished.
+			TTLSecondsAfterFinished: ttlSecondsAfterFinished,
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					RestartPolicy: corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:  jobName,
+							Image: Image,
+						},
+					},
+				},
+			},
+		},
+	}
+	return job
+}
+
+func newScaleUpClusterJob(namespace string, name string) *batchv1.Job {
+	// diff work node
+	jobName := fmt.Sprintf("scale-up-%v-%v-job-%v", namespace, name, time.Now().Unix())
+	completions := pointer.Int32Ptr(1)
+	parallelism := pointer.Int32Ptr(1)
+	backoffLimit := pointer.Int32Ptr(0)
 	// 10 minutes
 	ActiveDeadlineSeconds := pointer.Int64Ptr(10 * 60)
 
@@ -113,13 +154,39 @@ func newDeleteKubernetesClusterJob(namespace string, name string) *batchv1.Job {
 	return job
 }
 
-func newScaleUpClusterJob(namespace string, name string) *batchv1.Job {
-	// diff work node
-	job := &batchv1.Job{}
-	return job
-}
-
 func newScaleDownClusterJob(namespace string, name string) *batchv1.Job {
-	job := &batchv1.Job{}
+	// diff work node
+	jobName := fmt.Sprintf("scale-down-%v-%v-job-%v", namespace, name, time.Now().Unix())
+	completions := pointer.Int32Ptr(1)
+	parallelism := pointer.Int32Ptr(1)
+	backoffLimit := pointer.Int32Ptr(0)
+	// 10 minutes
+	ActiveDeadlineSeconds := pointer.Int64Ptr(10 * 60)
+
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            jobName,
+			Namespace:       namespace,
+			OwnerReferences: []metav1.OwnerReference{},
+		},
+		Spec: batchv1.JobSpec{
+			Parallelism:           parallelism,
+			Completions:           completions,
+			BackoffLimit:          backoffLimit,
+			ActiveDeadlineSeconds: ActiveDeadlineSeconds,
+			//  TTLSecondsAfterFinished :  ,
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					RestartPolicy: corev1.RestartPolicyNever,
+					Containers: []corev1.Container{
+						{
+							Name:  jobName,
+							Image: Image,
+						},
+					},
+				},
+			},
+		},
+	}
 	return job
 }

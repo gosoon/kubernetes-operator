@@ -5,6 +5,8 @@ name="test-cluster"
 request_body=$(cat<<EOF
 {
   "name": "test-cluster",
+  "namespace": "default",
+  "region": "default",
   "clusterType": "kubernetes",
   "masterList": [
     {
@@ -30,13 +32,13 @@ request_body=$(cat<<EOF
       "ip": "192.168.1.12"
     }
   ],
-  "privateSSHKey": "",
-  "serviceCIDR": "",
-  "retry": false
+  "kubeconfig": "",
+  "success": true,
+  "message": ""
 }
 EOF
 )
 
-curl -s -XDELETE -d "${request_body}" \
-    http://127.0.0.1:8080/api/v1/region/${region}/cluster/${name}/delete
+curl -s -XPOST -d "${request_body}" \
+    http://127.0.0.1:8080/api/v1/region/${region}/cluster/${name}/scale/up/callback
 

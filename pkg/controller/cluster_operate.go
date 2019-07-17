@@ -21,7 +21,7 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(createClusterJob)
 	if err != nil {
 		glog.Errorf("create %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
-		c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.CreateKubeJobFailed, err.Error())
+		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.CreateKubeJobFailed, err.Error())
 		return err
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.CreateKubeJobSuccess, "")
@@ -31,7 +31,7 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 	k, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curCluster)
 	if err != nil {
 		glog.Errorf("update %s/%s spec failed with:%v", err, namespace, name)
-		c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.SetFinalizersFailed, err.Error())
+		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.SetFinalizersFailed, err.Error())
 		return err
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.SetFinalizersSuccess, "")
@@ -48,15 +48,19 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 }
 
 func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) error {
-	curCluster := cluster.DeepCopy()
+	// when status scaling-up + scaling, direct return
+	if cluster.Status.Phase == enum.Scaling {
+		return nil
+	}
 
+	curCluster := cluster.DeepCopy()
 	namespace := curCluster.Namespace
 	name := curCluster.Name
 	scaleUpClusterJob := newScaleUpClusterJob(namespace, name)
 	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(scaleUpClusterJob)
 	if err != nil {
 		glog.Errorf("create %s/%s scale up cluster job failed with:%v", namespace, name, err)
-		c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.CreateScaleUpJobFailed, err.Error())
+		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.CreateScaleUpJobFailed, err.Error())
 		return err
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.CreateScaleUpJobSuccess, "")
@@ -72,6 +76,10 @@ func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) err
 }
 
 func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) error {
+	// when status scaling-down + scaling, direct return
+	if cluster.Status.Phase == enum.Scaling {
+		return nil
+	}
 	curCluster := cluster.DeepCopy()
 
 	namespace := curCluster.Namespace
@@ -80,7 +88,7 @@ func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) e
 	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(scaleDownClusterJob)
 	if err != nil {
 		glog.Errorf("create %s/%s scale up cluster job failed with:%v", namespace, name, err)
-		c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.CreateScaleDownJobFailed, err.Error())
+		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.CreateScaleDownJobFailed, err.Error())
 		return err
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.CreateScaleDownJobSuccess, "")
@@ -104,7 +112,7 @@ func (c *Controller) processClusterTerminating(cluster *ecsv1.KubernetesCluster)
 	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterJob)
 	if err != nil {
 		glog.Errorf("create delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
-		c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.DeleteKubeJobFailed, "")
+		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.DeleteKubeJobFailed, "")
 		return err
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.DeleteKubeJobSuccess, "")
@@ -117,6 +125,7 @@ func (c *Controller) processClusterTerminating(cluster *ecsv1.KubernetesCluster)
 	if _, existed := curCluster.Labels[deleteLabel]; !existed {
 		curCluster.Labels[deleteLabel] = DeleteJobLabelCreated
 	}
+
 	k, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curCluster)
 	if err != nil {
 		glog.Errorf("update %s/%s spec failed with:%v", namespace, name, err)

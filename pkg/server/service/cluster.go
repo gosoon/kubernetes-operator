@@ -40,14 +40,14 @@ func (s *service) CreateCluster(region string, namespace string, name string, cl
 
 		_, err := clientset.EcsV1().KubernetesClusters(namespace).Create(kubernetesCluster)
 		if err != nil {
-			glog.Errorf("create kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+			glog.Errorf("create %s/%s cluster failed with:%v", namespace, name, err)
 			return err
 		}
 	} else {
 		// create retry
 		kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
-			glog.Errorf("get kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+			glog.Errorf("get %s/%s cluster failed with:%v", namespace, name, err)
 			return err
 		}
 
@@ -57,18 +57,19 @@ func (s *service) CreateCluster(region string, namespace string, name string, cl
 
 		_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 		if err != nil {
-			glog.Errorf("create kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+			glog.Errorf("update %s/%s operation to KubeCreating failed with:%v", namespace, name, err)
 			return err
 		}
 	}
 	return nil
 }
 
+// DeleteCluster will tigger twice watch events
 func (s *service) DeleteCluster(region string, namespace string, name string, clusterInfo *types.EcsClient) error {
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
-		glog.Errorf("get kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("get %s/%s cluster failed with:%v", namespace, name, err)
 		return err
 	}
 	// update operation annotations
@@ -76,13 +77,21 @@ func (s *service) DeleteCluster(region string, namespace string, name string, cl
 		kubernetesCluster.Annotations[enum.Operation] = enum.KubeTerminating
 	}
 
-	// set DeletePropagation to Foreground,apiserver first set crd DeletionTimestamp field
-	// ref: https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/
-	p := metav1.DeletePropagationForeground
-	err = clientset.EcsV1().KubernetesClusters(namespace).Delete(name, &metav1.DeleteOptions{PropagationPolicy: &p})
+	_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 	if err != nil {
-		glog.Errorf("delete kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("update %s/%s operation to terminating failed with:%v", namespace, name, err)
 		return err
+	}
+
+	if !clusterInfo.Retry {
+		// set DeletePropagation to Foreground,apiserver first set crd DeletionTimestamp field
+		// ref: https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/
+		p := metav1.DeletePropagationForeground
+		err = clientset.EcsV1().KubernetesClusters(namespace).Delete(name, &metav1.DeleteOptions{PropagationPolicy: &p})
+		if err != nil {
+			glog.Errorf("update %s/%s DeletePropagation failed with:%v", namespace, name, err)
+			return err
+		}
 	}
 	return nil
 }

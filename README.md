@@ -4,7 +4,7 @@ kubernetes-operator is a control plane and manage all kubernetes cluster lifecyc
 
 <img src="doc/images/image-20190708160044358.png"></img>
 
-## introduce
+## Introduce
 
 kubernetes-operator contains several large parts：
 

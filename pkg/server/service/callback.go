@@ -14,7 +14,7 @@ func (s *service) CreateClusterCallback(region string, namespace string, name st
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
-		glog.Errorf("get kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("get %s/%s cluster failed with:%v", namespace, name, err)
 		return err
 	}
 
@@ -26,7 +26,7 @@ func (s *service) CreateClusterCallback(region string, namespace string, name st
 		}
 		_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 		if err != nil {
-			glog.Errorf("create kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+			glog.Errorf("update %s/%s operation to KubeCreateFailed failed with:%v", namespace, name, err)
 			return err
 		}
 		return nil
@@ -49,7 +49,7 @@ func (s *service) CreateClusterCallback(region string, namespace string, name st
 
 	_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 	if err != nil {
-		glog.Errorf("create callback update kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("update %s/%s operation to KubeCreateFinished failed with:%v", namespace, name, err)
 		return err
 	}
 
@@ -62,19 +62,19 @@ func (s *service) ScaleUpCallback(region string, namespace string, name string, 
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
-		glog.Errorf("get kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("get %s/%s cluster failed with:%v", namespace, name, err)
 		return err
 	}
 
-	// if job failed,get the detail log from job's pod
+	// if job failed,get the detail log from job's pod log
 	if !result.Success {
 		// update operation annotations
 		if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {
-			kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleUpFinished
+			kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleUpFailed
 		}
 		_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 		if err != nil {
-			glog.Errorf("scale up kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+			glog.Errorf("update %s/%s operation to KubeScaleUpFailed failed with:%v", namespace, name, err)
 			return err
 		}
 		return nil
@@ -97,7 +97,7 @@ func (s *service) ScaleUpCallback(region string, namespace string, name string, 
 
 	_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 	if err != nil {
-		glog.Errorf("scale up and update kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("update %s/%s operation to KubeScaleUpFinished failed with:%v", namespace, name, err)
 		return err
 	}
 
@@ -109,7 +109,7 @@ func (s *service) ScaleDownCallback(region string, namespace string, name string
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
-		glog.Errorf("get kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("get %s/%s cluster failed with:%v", namespace, name, err)
 		return err
 	}
 
@@ -117,11 +117,11 @@ func (s *service) ScaleDownCallback(region string, namespace string, name string
 	if !result.Success {
 		// update operation annotations
 		if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {
-			kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleDownFinished
+			kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleDownFailed
 		}
 		_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 		if err != nil {
-			glog.Errorf("scale down kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+			glog.Errorf("update %s/%s operation to KubeScaleDownFailed  failed with:%v", namespace, name, err)
 			return err
 		}
 		return nil
@@ -144,7 +144,7 @@ func (s *service) ScaleDownCallback(region string, namespace string, name string
 
 	_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 	if err != nil {
-		glog.Errorf("scale down and update kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("update %s/%s operation to KubeScaleDownFinished failed with:%v", namespace, name, err)
 		return err
 	}
 
@@ -156,7 +156,7 @@ func (s *service) DeleteClusterCallback(region string, namespace string, name st
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
-		glog.Errorf("get kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("get %s/%s cluster failed with:%v", namespace, name, err)
 		return err
 	}
 
@@ -168,7 +168,7 @@ func (s *service) DeleteClusterCallback(region string, namespace string, name st
 		}
 		_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 		if err != nil {
-			glog.Errorf("create kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+			glog.Errorf("update %s/%s operation to KubeTerminateFailed failed with:%v", namespace, name, err)
 			return err
 		}
 		return nil
@@ -178,7 +178,7 @@ func (s *service) DeleteClusterCallback(region string, namespace string, name st
 	// update finalizers to null
 	_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 	if err != nil {
-		glog.Errorf("update kubernetesCluster %v/%v finalizers failed with:%v", namespace, name, err)
+		glog.Errorf("update %s/%s finalizers to nil failed with:%v", namespace, name, err)
 		return err
 	}
 

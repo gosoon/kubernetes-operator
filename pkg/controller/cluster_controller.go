@@ -211,11 +211,11 @@ func (c *Controller) syncHandler(key string) error {
 
 	// Get the KubernetesCluster resource with this namespace/name
 	kubernetesCluster, err := c.kubernetesClusterLister.KubernetesClusters(namespace).Get(name)
+	fmt.Printf("%+v\n", kubernetesCluster)
 	switch {
 	case errors.IsNotFound(err):
 		// The KubernetesCluster resource may no longer exist, in which case we stop
 		// processing.
-		err = c.processClusterNotExistInCache(key)
 	case err != nil:
 		runtime.HandleError(fmt.Errorf("Unable to retrieve service %v from store: %v", key, err))
 	default:
@@ -236,10 +236,10 @@ func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *e
 	case enum.Creating, enum.Running, enum.Scaling:
 		// 1.delete own job; 2.update finalizers; 3. delete crds
 		if kubernetesCluster.DeletionTimestamp != nil {
-			switch kubernetesCluster.Annotations[enum.Operation] {
-			case enum.KubeTerminating:
+			if kubernetesCluster.Annotations[enum.Operation] == enum.KubeTerminating {
 				return c.processClusterTerminating(kubernetesCluster)
 			}
+			return nil
 		}
 		// annotation
 		switch kubernetesCluster.Annotations[enum.Operation] {
@@ -267,16 +267,14 @@ func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *e
 
 	// Terminating
 	case enum.Terminating:
-		switch kubernetesCluster.Annotations[enum.Operation] {
-		case enum.KubeTerminateFailed:
+		if kubernetesCluster.Annotations[enum.Operation] == enum.KubeTerminateFailed {
 			return c.processOperateFailed(kubernetesCluster)
 		}
 	// Failed
 	case enum.Failed:
 		// delete retry
 		if kubernetesCluster.DeletionTimestamp != nil {
-			switch kubernetesCluster.Annotations[enum.Operation] {
-			case enum.KubeTerminating:
+			if kubernetesCluster.Annotations[enum.Operation] == enum.KubeTerminating {
 				return c.processClusterTerminating(kubernetesCluster)
 			}
 		}

@@ -28,7 +28,12 @@ type server struct {
 
 func New(opt Options) Server {
 	// init service
-	opt.CtrlOptions.Service = service.New(&service.Options{KubernetesClusterClientset: opt.CtrlOptions.KubernetesClusterClientset})
+	options := &service.Options{
+		KubernetesClusterClientset: opt.CtrlOptions.KubernetesClusterClientset,
+		KubeClientset:              opt.CtrlOptions.KubeClientset,
+	}
+
+	opt.CtrlOptions.Service = service.New(options)
 
 	router := mux.NewRouter().StrictSlash(true)
 	cluster.New(opt.CtrlOptions).Register(router)

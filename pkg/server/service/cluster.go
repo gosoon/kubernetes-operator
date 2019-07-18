@@ -4,7 +4,9 @@ import (
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
-	"golang.org/x/glog"
+
+	"github.com/gosoon/glog"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -64,7 +66,6 @@ func (s *service) CreateCluster(region string, namespace string, name string, cl
 	return nil
 }
 
-// DeleteCluster will tigger twice watch events
 func (s *service) DeleteCluster(region string, namespace string, name string, clusterInfo *types.EcsClient) error {
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
@@ -72,10 +73,16 @@ func (s *service) DeleteCluster(region string, namespace string, name string, cl
 		glog.Errorf("get %s/%s cluster failed with:%v", namespace, name, err)
 		return err
 	}
-	// update operation annotations
-	if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {
-		kubernetesCluster.Annotations[enum.Operation] = enum.KubeTerminating
+
+	// only in running,failed,finished can delete cluster
+	admit, err := validOperate(kubernetesCluster)
+	if !admit {
+		return errors.Errorf("current operation is [%v],only in running,failed,finished can delete cluster",
+			kubernetesCluster.Annotations[enum.Operation])
 	}
+
+	// update operation annotations
+	kubernetesCluster.Annotations[enum.Operation] = enum.KubeTerminating
 
 	_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 	if err != nil {

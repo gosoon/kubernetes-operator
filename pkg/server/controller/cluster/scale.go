@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/gosoon/kubernetes-operator/pkg/server/controller"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
+
+	"github.com/gorilla/mux"
 )
 
 func (c *cluster) scaleUpCluster(w http.ResponseWriter, r *http.Request) {

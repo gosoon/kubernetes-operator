@@ -1,9 +1,9 @@
 package server
 
 import (
+	"github.com/gosoon/kubernetes-operator/pkg/apis/ecs"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 
-	"github.com/gosoon/kubernetes-operator/pkg/apis/ecs"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

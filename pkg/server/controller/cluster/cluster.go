@@ -49,6 +49,11 @@ func (c *cluster) Register(router *mux.Router) {
 	// delete callback
 	router.Methods("POST").Path("/region/{region}/cluster/{name}/delete/callback").HandlerFunc(
 		(c.deleteClusterCallback))
+
+	// get current operate logs
+	router.Methods("GET").Path("/region/{region}/cluster/{name}/logs").HandlerFunc(
+		(c.getClusterOperationLogs))
+
 }
 
 func (c *cluster) createCluster(w http.ResponseWriter, r *http.Request) {

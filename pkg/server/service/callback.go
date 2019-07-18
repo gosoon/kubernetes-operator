@@ -5,17 +5,23 @@ import (
 
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
-	"golang.org/x/glog"
+
+	"github.com/gosoon/glog"
+	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (s *service) CreateClusterCallback(region string, namespace string, name string, result *types.CallBack) error {
-	// TODO: operation failed callback and check receive error
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
 		glog.Errorf("get %s/%s cluster failed with:%v", namespace, name, err)
 		return err
+	}
+
+	// if already callback and return
+	if kubernetesCluster.Annotations[enum.Operation] != enum.KubeCreating {
+		return errors.New("callback is already done.Current operation not is kubeCreating")
 	}
 
 	// if job failed,get the detail log from job's pod
@@ -57,7 +63,6 @@ func (s *service) CreateClusterCallback(region string, namespace string, name st
 }
 
 func (s *service) ScaleUpCallback(region string, namespace string, name string, result *types.CallBack) error {
-	// TODO: operation failed callback and check receive error
 	clientset := s.opt.KubernetesClusterClientset
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
@@ -66,12 +71,16 @@ func (s *service) ScaleUpCallback(region string, namespace string, name string, 
 		return err
 	}
 
+	// if already callback and return
+	if kubernetesCluster.Annotations[enum.Operation] != enum.KubeScalingUp {
+		return errors.New("callback is already done.current operation not is kubeScalingUp")
+	}
+
 	// if job failed,get the detail log from job's pod log
 	if !result.Success {
 		// update operation annotations
-		if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {
-			kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleUpFailed
-		}
+		kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleUpFailed
+
 		_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 		if err != nil {
 			glog.Errorf("update %s/%s operation to KubeScaleUpFailed failed with:%v", namespace, name, err)
@@ -81,9 +90,7 @@ func (s *service) ScaleUpCallback(region string, namespace string, name string, 
 	}
 
 	// update operation annotations
-	if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {
-		kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleUpFinished
-	}
+	kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleUpFinished
 
 	// update spec annotations
 	if _, existed := kubernetesCluster.Annotations[enum.Spec]; existed {
@@ -113,24 +120,26 @@ func (s *service) ScaleDownCallback(region string, namespace string, name string
 		return err
 	}
 
+	// if already callback and return
+	if kubernetesCluster.Annotations[enum.Operation] != enum.KubeScalingDown {
+		return errors.New("callback is already done.current operation not is kubeScalingDown")
+	}
+
 	// if job failed,get the detail log from job's pod
 	if !result.Success {
 		// update operation annotations
-		if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {
-			kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleDownFailed
-		}
+		kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleDownFailed
+
 		_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 		if err != nil {
-			glog.Errorf("update %s/%s operation to KubeScaleDownFailed  failed with:%v", namespace, name, err)
+			glog.Errorf("update %s/%s operation to KubeScaleDownFailed failed with:%v", namespace, name, err)
 			return err
 		}
 		return nil
 	}
 
 	// update operation annotations
-	if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {
-		kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleDownFinished
-	}
+	kubernetesCluster.Annotations[enum.Operation] = enum.KubeScaleDownFinished
 
 	// update spec annotations
 	if _, existed := kubernetesCluster.Annotations[enum.Spec]; existed {
@@ -152,7 +161,6 @@ func (s *service) ScaleDownCallback(region string, namespace string, name string
 }
 
 func (s *service) DeleteClusterCallback(region string, namespace string, name string, result *types.CallBack) error {
-	// TODO: check have running task
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
@@ -160,12 +168,16 @@ func (s *service) DeleteClusterCallback(region string, namespace string, name st
 		return err
 	}
 
+	// if already callback and return
+	if kubernetesCluster.Annotations[enum.Operation] != enum.KubeTerminating {
+		return errors.New("callback is already done.current operation not is kubeTerminating")
+	}
+
 	// if job failed,get the detail log from job's pod
 	if !result.Success {
 		// update operation annotations
-		if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {
-			kubernetesCluster.Annotations[enum.Operation] = enum.KubeTerminateFailed
-		}
+		kubernetesCluster.Annotations[enum.Operation] = enum.KubeTerminateFailed
+
 		_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 		if err != nil {
 			glog.Errorf("update %s/%s operation to KubeTerminateFailed failed with:%v", namespace, name, err)

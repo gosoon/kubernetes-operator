@@ -3,7 +3,8 @@ package service
 import (
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
-	"golang.org/x/glog"
+
+	"github.com/gosoon/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -12,7 +13,13 @@ func (s *service) ScaleUp(region string, namespace string, name string, clusterI
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
-		glog.Errorf("get kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("get %s/%s cluster failed with:%v", namespace, name, err)
+		return err
+	}
+
+	// if latest task must be finished and start next task
+	admit, err := validOperate(kubernetesCluster)
+	if !admit {
 		return err
 	}
 
@@ -22,13 +29,11 @@ func (s *service) ScaleUp(region string, namespace string, name string, clusterI
 	}
 
 	// update operation annotations
-	if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {
-		kubernetesCluster.Annotations[enum.Operation] = enum.KubeScalingUp
-	}
+	kubernetesCluster.Annotations[enum.Operation] = enum.KubeScalingUp
 
 	_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 	if err != nil {
-		glog.Errorf("create callback update kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("update %s/%s operation to KubeScalingUp failed with:%v", namespace, name, err)
 		return err
 	}
 
@@ -40,7 +45,13 @@ func (s *service) ScaleDown(region string, namespace string, name string, cluste
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
-		glog.Errorf("get kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("get %s/%s cluster failed with:%v", namespace, name, err)
+		return err
+	}
+
+	// if latest task must be finished and start next task
+	admit, err := validOperate(kubernetesCluster)
+	if !admit {
 		return err
 	}
 
@@ -50,13 +61,11 @@ func (s *service) ScaleDown(region string, namespace string, name string, cluste
 	}
 
 	// update operation annotations
-	if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {
-		kubernetesCluster.Annotations[enum.Operation] = enum.KubeScalingDown
-	}
+	kubernetesCluster.Annotations[enum.Operation] = enum.KubeScalingDown
 
 	_, err = clientset.EcsV1().KubernetesClusters(namespace).Update(kubernetesCluster)
 	if err != nil {
-		glog.Errorf("create callback update kubernetesCluster %v/%v failed with:%v", namespace, name, err)
+		glog.Errorf("update %s/%s operation to KubeScalingDown failed with:%v", namespace, name, err)
 		return err
 	}
 

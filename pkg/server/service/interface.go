@@ -3,10 +3,13 @@ package service
 import (
 	clientset "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
+
+	"k8s.io/client-go/kubernetes"
 )
 
 type Options struct {
 	KubernetesClusterClientset clientset.Interface
+	KubeClientset              kubernetes.Interface
 }
 
 type service struct {
@@ -31,4 +34,7 @@ type Interface interface {
 	ScaleUpCallback(region string, namespace string, name string, result *types.CallBack) error
 	ScaleDownCallback(region string, namespace string, name string, result *types.CallBack) error
 	DeleteClusterCallback(region string, namespace string, name string, result *types.CallBack) error
+
+	// logs
+	GetClusterOperationLogs(region string, namespace string, name string) (string, error)
 }

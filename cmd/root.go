@@ -69,11 +69,10 @@ to quickly create a Cobra application.`,
 		}
 		kubernetesClusterClient, err := clientset.NewForConfig(cfg)
 		if err != nil {
-			glog.Fatalf("Error building example clientset: %s", err.Error())
+			glog.Fatalf("Error building kubernetesCluster clientset: %s", err.Error())
 		}
 
-		// add leader elect
-		//
+		// add leader elector
 
 		kubernetesClusterInformerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, time.Second*30)
 

@@ -20,7 +20,7 @@ const (
 )
 
 func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Job {
-	jobName := fmt.Sprintf("create-%v-cluster-job", cluster.Name)
+	jobName := fmt.Sprintf("create-%v-%v-job", cluster.Namespace, cluster.Name)
 	completions := pointer.Int32Ptr(1)
 	parallelism := pointer.Int32Ptr(1)
 	backoffLimit := pointer.Int32Ptr(0)
@@ -78,7 +78,7 @@ func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 }
 
 func newDeleteKubernetesClusterJob(namespace string, name string) *batchv1.Job {
-	jobName := fmt.Sprintf("delete-%v-%v-cluster-job", namespace, name)
+	jobName := fmt.Sprintf("delete-%v-%v-job", namespace, name)
 	completions := pointer.Int32Ptr(1)
 	parallelism := pointer.Int32Ptr(1)
 	backoffLimit := pointer.Int32Ptr(0)
@@ -117,8 +117,10 @@ func newDeleteKubernetesClusterJob(namespace string, name string) *batchv1.Job {
 	return job
 }
 
-func newScaleUpClusterJob(namespace string, name string) *batchv1.Job {
+func newScaleUpClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Job {
 	// diff work node
+	namespace := cluster.Namespace
+	name := cluster.Name
 	jobName := fmt.Sprintf("scale-up-%v-%v-job-%v", namespace, name, time.Now().Unix())
 	completions := pointer.Int32Ptr(1)
 	parallelism := pointer.Int32Ptr(1)
@@ -128,9 +130,18 @@ func newScaleUpClusterJob(namespace string, name string) *batchv1.Job {
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:            jobName,
-			Namespace:       namespace,
-			OwnerReferences: []metav1.OwnerReference{},
+			Name:      jobName,
+			Namespace: namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion:         fmt.Sprintf("%v/v1", ecs.GroupName), // not define and occur invalid error
+					Kind:               "KubernetesCluster",                 // not define and occur invalid error
+					Name:               cluster.Name,
+					UID:                cluster.UID,
+					Controller:         pointer.BoolPtr(true),
+					BlockOwnerDeletion: pointer.BoolPtr(true),
+				},
+			},
 		},
 		Spec: batchv1.JobSpec{
 			Parallelism:           parallelism,
@@ -154,8 +165,10 @@ func newScaleUpClusterJob(namespace string, name string) *batchv1.Job {
 	return job
 }
 
-func newScaleDownClusterJob(namespace string, name string) *batchv1.Job {
+func newScaleDownClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Job {
 	// diff work node
+	namespace := cluster.Namespace
+	name := cluster.Name
 	jobName := fmt.Sprintf("scale-down-%v-%v-job-%v", namespace, name, time.Now().Unix())
 	completions := pointer.Int32Ptr(1)
 	parallelism := pointer.Int32Ptr(1)
@@ -165,9 +178,18 @@ func newScaleDownClusterJob(namespace string, name string) *batchv1.Job {
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:            jobName,
-			Namespace:       namespace,
-			OwnerReferences: []metav1.OwnerReference{},
+			Name:      jobName,
+			Namespace: namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion:         fmt.Sprintf("%v/v1", ecs.GroupName), // not define and occur invalid error
+					Kind:               "KubernetesCluster",                 // not define and occur invalid error
+					Name:               cluster.Name,
+					UID:                cluster.UID,
+					Controller:         pointer.BoolPtr(true),
+					BlockOwnerDeletion: pointer.BoolPtr(true),
+				},
+			},
 		},
 		Spec: batchv1.JobSpec{
 			Parallelism:           parallelism,

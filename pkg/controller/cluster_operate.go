@@ -3,12 +3,11 @@ package controller
 import (
 	"fmt"
 
-	"github.com/gosoon/glog"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
+
+	"github.com/gosoon/glog"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/runtime"
-	"k8s.io/client-go/tools/cache"
 )
 
 func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
@@ -39,6 +38,7 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 	// update phase
 	curCluster = k.DeepCopy()
 	curCluster.Status.Phase = enum.Creating
+	curCluster.Status.JobName = createClusterJob.Name
 	k, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 	if err != nil {
 		glog.Errorf("update status failed with:%v", err)
@@ -56,7 +56,7 @@ func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) err
 	curCluster := cluster.DeepCopy()
 	namespace := curCluster.Namespace
 	name := curCluster.Name
-	scaleUpClusterJob := newScaleUpClusterJob(namespace, name)
+	scaleUpClusterJob := newScaleUpClusterJob(cluster)
 	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(scaleUpClusterJob)
 	if err != nil {
 		glog.Errorf("create %s/%s scale up cluster job failed with:%v", namespace, name, err)
@@ -67,6 +67,7 @@ func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) err
 
 	// update phase to ScalingUp
 	curCluster.Status.Phase = enum.Scaling
+	curCluster.Status.JobName = scaleUpClusterJob.Name
 	_, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 	if err != nil {
 		glog.Errorf("update %s/%s status to ScalingUp failed with:%v", namespace, name, err)
@@ -84,7 +85,7 @@ func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) e
 
 	namespace := curCluster.Namespace
 	name := curCluster.Name
-	scaleDownClusterJob := newScaleDownClusterJob(namespace, name)
+	scaleDownClusterJob := newScaleDownClusterJob(cluster)
 	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(scaleDownClusterJob)
 	if err != nil {
 		glog.Errorf("create %s/%s scale up cluster job failed with:%v", namespace, name, err)
@@ -95,6 +96,7 @@ func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) e
 
 	// update phase to ScalingDown
 	curCluster.Status.Phase = enum.Scaling
+	curCluster.Status.JobName = scaleDownClusterJob.Name
 	_, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 	if err != nil {
 		glog.Errorf("update %s/%s status to ScalingUp failed with:%v", namespace, name, err)
@@ -117,55 +119,13 @@ func (c *Controller) processClusterTerminating(cluster *ecsv1.KubernetesCluster)
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.DeleteKubeJobSuccess, "")
 
-	// update label if delete job created
-	deleteLabel := deleteClusterJob.Name
-	if curCluster.Labels == nil {
-		curCluster.Labels = map[string]string{}
-	}
-	if _, existed := curCluster.Labels[deleteLabel]; !existed {
-		curCluster.Labels[deleteLabel] = DeleteJobLabelCreated
-	}
-
-	k, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curCluster)
-	if err != nil {
-		glog.Errorf("update %s/%s spec failed with:%v", namespace, name, err)
-		return err
-	}
-
 	// update status to Terminating
-	curCluster = k.DeepCopy()
 	curCluster.Status.Phase = enum.Terminating
-	k, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
+	curCluster.Status.JobName = deleteClusterJob.Name
+	_, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 	if err != nil {
 		glog.Errorf("update %s/%s status failed with:%v", namespace, name, err)
 		return err
 	}
-	return nil
-}
-
-func (c *Controller) processClusterNotExistInCache(key string) error {
-	// Convert the namespace/name string into a distinct namespace and name
-	namespace, name, err := cache.SplitMetaNamespaceKey(key)
-	if err != nil {
-		runtime.HandleError(fmt.Errorf("invalid resource key: %s", key))
-		return nil
-	}
-
-	glog.Warningf("KubernetesCluster: %s/%s does not exist in local cache, will delete it from Neutron ...",
-		namespace, name)
-
-	glog.Infof("[Neutron] Deleting kubernetesCluster: %s/%s ...", namespace, name)
-
-	// neutron.Delete(namespace, name)
-	// delete job and kubernetes cluster
-	// update DeletionTimestamp
-	deleteClusterJob := newDeleteKubernetesClusterJob(namespace, name)
-	_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterJob)
-	if err != nil {
-		glog.Errorf("create delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
-		return err
-	}
-
-	// call back and delete deleteJob and createJob
 	return nil
 }

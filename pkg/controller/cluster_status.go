@@ -1,9 +1,10 @@
 package controller
 
 import (
-	"github.com/gosoon/glog"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
+
+	"github.com/gosoon/glog"
 )
 
 func (c *Controller) processOperateFinished(cluster *ecsv1.KubernetesCluster) error {

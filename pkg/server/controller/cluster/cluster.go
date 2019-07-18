@@ -56,6 +56,7 @@ func (c *cluster) Register(router *mux.Router) {
 
 }
 
+// createCluster
 func (c *cluster) createCluster(w http.ResponseWriter, r *http.Request) {
 	cluster := &types.EcsClient{}
 	err := json.NewDecoder(r.Body).Decode(cluster)
@@ -74,6 +75,7 @@ func (c *cluster) createCluster(w http.ResponseWriter, r *http.Request) {
 	controller.OK(w, r, "success")
 }
 
+// deleteCluster
 func (c *cluster) deleteCluster(w http.ResponseWriter, r *http.Request) {
 	cluster := &types.EcsClient{}
 	err := json.NewDecoder(r.Body).Decode(cluster)
@@ -90,4 +92,131 @@ func (c *cluster) deleteCluster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	controller.OK(w, r, "success")
+}
+
+// scaleUpCluster
+func (c *cluster) scaleUpCluster(w http.ResponseWriter, r *http.Request) {
+	cluster := &types.EcsClient{}
+	err := json.NewDecoder(r.Body).Decode(cluster)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	region := mux.Vars(r)["region"]
+	name := mux.Vars(r)["name"]
+
+	err = c.opt.Service.ScaleUp(region, namespace, name, cluster)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	controller.OK(w, r, "success")
+}
+
+// scaleDownCluster
+func (c *cluster) scaleDownCluster(w http.ResponseWriter, r *http.Request) {
+	cluster := &types.EcsClient{}
+	err := json.NewDecoder(r.Body).Decode(cluster)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	region := mux.Vars(r)["region"]
+	name := mux.Vars(r)["name"]
+
+	err = c.opt.Service.ScaleDown(region, namespace, name, cluster)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	controller.OK(w, r, "success")
+}
+
+// createClusterCallback
+func (c *cluster) createClusterCallback(w http.ResponseWriter, r *http.Request) {
+	callback := &types.CallBack{}
+	err := json.NewDecoder(r.Body).Decode(callback)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	region := mux.Vars(r)["region"]
+	name := mux.Vars(r)["name"]
+
+	err = c.opt.Service.CreateClusterCallback(region, namespace, name, callback)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	controller.OK(w, r, "success")
+}
+
+// scaleUpCallback
+func (c *cluster) scaleUpCallback(w http.ResponseWriter, r *http.Request) {
+	callback := &types.CallBack{}
+	err := json.NewDecoder(r.Body).Decode(callback)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	region := mux.Vars(r)["region"]
+	name := mux.Vars(r)["name"]
+
+	err = c.opt.Service.ScaleUpCallback(region, namespace, name, callback)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	controller.OK(w, r, "success")
+}
+
+// scaleDownCallback
+func (c *cluster) scaleDownCallback(w http.ResponseWriter, r *http.Request) {
+	callback := &types.CallBack{}
+	err := json.NewDecoder(r.Body).Decode(callback)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	region := mux.Vars(r)["region"]
+	name := mux.Vars(r)["name"]
+
+	err = c.opt.Service.ScaleDownCallback(region, namespace, name, callback)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	controller.OK(w, r, "success")
+}
+
+// deleteClusterCallback
+func (c *cluster) deleteClusterCallback(w http.ResponseWriter, r *http.Request) {
+	callback := &types.CallBack{}
+	err := json.NewDecoder(r.Body).Decode(callback)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	region := mux.Vars(r)["region"]
+	name := mux.Vars(r)["name"]
+
+	err = c.opt.Service.DeleteClusterCallback(region, namespace, name, callback)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	controller.OK(w, r, "success")
+}
+
+// getClusterOperationLogs
+func (c *cluster) getClusterOperationLogs(w http.ResponseWriter, r *http.Request) {
+	region := mux.Vars(r)["region"]
+	name := mux.Vars(r)["name"]
+
+	logs, err := c.opt.Service.GetClusterOperationLogs(region, namespace, name)
+	if err != nil {
+		controller.BadRequest(w, r, err)
+		return
+	}
+	controller.OK(w, r, logs)
 }

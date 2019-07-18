@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
@@ -56,8 +57,20 @@ func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) err
 	curCluster := cluster.DeepCopy()
 	namespace := curCluster.Namespace
 	name := curCluster.Name
-	scaleUpClusterJob := newScaleUpClusterJob(cluster)
-	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(scaleUpClusterJob)
+
+	// diff work nodes
+	var oldSpec ecsv1.KubernetesClusterSpec
+	oldSpecStr := curCluster.Annotations[enum.Spec]
+	err := json.Unmarshal([]byte(oldSpecStr), &oldSpec)
+	if err != nil {
+		glog.Errorf("get old spec failed with:%v", err)
+		return err
+	}
+	nodeList := diffNodeList(oldSpec.NodeList, cluster.Spec.NodeList, cluster.Annotations[enum.Operation])
+
+	// create job
+	scaleUpClusterJob := newScaleUpClusterJob(curCluster, nodeList)
+	_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(scaleUpClusterJob)
 	if err != nil {
 		glog.Errorf("create %s/%s scale up cluster job failed with:%v", namespace, name, err)
 		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.CreateScaleUpJobFailed, err.Error())
@@ -81,12 +94,24 @@ func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) e
 	if cluster.Status.Phase == enum.Scaling {
 		return nil
 	}
-	curCluster := cluster.DeepCopy()
 
+	curCluster := cluster.DeepCopy()
 	namespace := curCluster.Namespace
 	name := curCluster.Name
-	scaleDownClusterJob := newScaleDownClusterJob(cluster)
-	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(scaleDownClusterJob)
+
+	// diff work nodes
+	var oldSpec ecsv1.KubernetesClusterSpec
+	oldSpecStr := curCluster.Annotations[enum.Spec]
+	err := json.Unmarshal([]byte(oldSpecStr), &oldSpec)
+	if err != nil {
+		glog.Errorf("get old spec failed with:%v", err)
+		return err
+	}
+	nodeList := diffNodeList(oldSpec.NodeList, cluster.Spec.NodeList, cluster.Annotations[enum.Operation])
+
+	// create job
+	scaleDownClusterJob := newScaleDownClusterJob(curCluster, nodeList)
+	_, err = c.kubeclientset.BatchV1().Jobs(namespace).Create(scaleDownClusterJob)
 	if err != nil {
 		glog.Errorf("create %s/%s scale up cluster job failed with:%v", namespace, name, err)
 		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.CreateScaleDownJobFailed, err.Error())
@@ -110,7 +135,7 @@ func (c *Controller) processClusterTerminating(cluster *ecsv1.KubernetesCluster)
 
 	namespace := curCluster.Namespace
 	name := curCluster.Name
-	deleteClusterJob := newDeleteKubernetesClusterJob(namespace, name)
+	deleteClusterJob := newDeleteKubernetesClusterJob(curCluster)
 	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterJob)
 	if err != nil {
 		glog.Errorf("create delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)

@@ -82,7 +82,7 @@ to quickly create a Cobra application.`,
 		go kubernetesClusterInformerFactory.Start(stopCh)
 
 		go func() {
-			opt := &ctrl.Options{KubernetesClusterClientset: kubernetesClusterClient}
+			opt := &ctrl.Options{KubernetesClusterClientset: kubernetesClusterClient, KubeClientset: kubeClient}
 			server := server.New(server.Options{CtrlOptions: opt, ListenAddr: ":8080"})
 
 			if err := server.ListenAndServe(); err != nil {

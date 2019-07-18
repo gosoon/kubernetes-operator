@@ -75,7 +75,7 @@ func (s *service) DeleteCluster(region string, namespace string, name string, cl
 	}
 
 	// only in running,failed,finished can delete cluster
-	admit, err := validOperate(kubernetesCluster)
+	admit, _ := validOperate(kubernetesCluster)
 	if !admit {
 		return errors.Errorf("current operation is [%v],only in running,failed,finished can delete cluster",
 			kubernetesCluster.Annotations[enum.Operation])

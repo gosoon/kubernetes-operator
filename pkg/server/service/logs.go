@@ -35,7 +35,7 @@ func (s *service) GetClusterOperationLogs(region string, namespace string, name 
 	listOptions := metav1.ListOptions{LabelSelector: labelSelector}
 	podList, err := kubeClientset.CoreV1().Pods(namespace).List(listOptions)
 	if err != nil {
-		glog.Errorf("list [%v=%v] lable pod failed with:%v", err)
+		glog.Errorf("list [%v=%v] lable pod failed with:%v", jobLabelKey, jobName, err)
 		return logs, errors.Errorf("get job %v logs failed with:%v", jobName, err)
 	}
 

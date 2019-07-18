@@ -7,6 +7,11 @@ import (
 	"github.com/gosoon/glog"
 )
 
+type commResp struct {
+	Code    string      `json:"code"`
+	Message interface{} `json:"message"`
+}
+
 // OK reply
 func OK(w http.ResponseWriter, r *http.Request, message string) {
 	Response(w, r, http.StatusOK, message)
@@ -53,10 +58,15 @@ func NotAcceptable(w http.ResponseWriter, r *http.Request, err error) {
 }
 
 // Response : http response func (no return http code)
-func Response(w http.ResponseWriter, r *http.Request, httpCode int, data interface{}) {
-	jsonByte, err := json.Marshal(data)
+func Response(w http.ResponseWriter, r *http.Request, httpCode int, message interface{}) {
+	resp := commResp{
+		Code:    http.StatusText(httpCode),
+		Message: message,
+	}
+
+	jsonByte, err := json.Marshal(resp)
 	if err != nil {
-		glog.Errorf("marshal [%v] failed with err [%v]", data, err)
+		glog.Errorf("marshal [%v] failed with err [%v]", resp, err)
 	}
 	_, err = r.Cookie("WriteHeader")
 	// if no WriteHeader

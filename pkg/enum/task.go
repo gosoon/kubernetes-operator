@@ -19,16 +19,17 @@ const (
 	KubeScalingDown       = string("scaling-down")
 	KubeScaleDownFailed   = string("scale-down-failed")
 	KubeScaleDownFinished = string("scale-down-finished")
-
-	KubeUpdating          = string("updating")
-	KubeUpdateFailed      = string("update-failed")
-	KubeUpdateFinished    = string("update-finished")
-	KubeRollbacking       = string("rollbacking")
-	KubeRollbackFailed    = string("rollback-failed")
-	KubeRollbackFinished  = string("rollback-finished")
 	KubeTerminating       = string("terminating")
 	KubeTerminateFinished = string("terminate-finished")
 	KubeTerminateFailed   = string("terminate-failed")
+
+	// TODO:to do it
+	KubeUpdating         = string("updating")
+	KubeUpdateFailed     = string("update-failed")
+	KubeUpdateFinished   = string("update-finished")
+	KubeRollbacking      = string("rollbacking")
+	KubeRollbackFailed   = string("rollback-failed")
+	KubeRollbackFinished = string("rollback-finished")
 
 	// phase
 	New         = ecsv1.KubernetesOperatorPhase("")

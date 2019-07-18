@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang/mock/gomock"
-	"github.com/gorilla/mux"
 	"github.com/gosoon/kubernetes-operator/pkg/server/controller"
 	"github.com/gosoon/kubernetes-operator/pkg/server/controller/cluster"
 	"github.com/gosoon/kubernetes-operator/pkg/test/mock_service"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
 
+	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 )
 

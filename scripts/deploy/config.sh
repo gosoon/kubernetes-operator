@@ -26,7 +26,7 @@ MASTER_HOSTS="10.0.4.15"
 LOCAL_IP="10.0.4.15"
 
 # deploy home  
-DEPLOY_HOME_DIR="/home/kube"
+DEPLOY_HOME_DIR="/home"
 
 # export certs bin
 CERTS_BIN_DIR="kubernetes-operator/scripts/bin/certs"

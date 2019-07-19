@@ -26,22 +26,22 @@ func (c *cluster) Register(router *mux.Router) {
 	router = router.PathPrefix("/api/v1").Subrouter()
 
 	// create
-	router.Methods("POST").Path("/region/{region}/cluster/{name}/create").HandlerFunc(
+	router.Methods("POST").Path("/region/{region}/cluster/{name}").HandlerFunc(
 		(c.createCluster))
 	// scale up
-	router.Methods("POST").Path("/region/{region}/cluster/{name}/scale/up").HandlerFunc(
+	router.Methods("POST").Path("/region/{region}/cluster/{name}/scaleup").HandlerFunc(
 		(c.scaleUpCluster))
 	// scale down
-	router.Methods("POST").Path("/region/{region}/cluster/{name}/scale/down").HandlerFunc(
+	router.Methods("POST").Path("/region/{region}/cluster/{name}/scaledown").HandlerFunc(
 		(c.scaleDownCluster))
 	// scale up callback
-	router.Methods("POST").Path("/region/{region}/cluster/{name}/scale/up/callback").HandlerFunc(
+	router.Methods("POST").Path("/region/{region}/cluster/{name}/scaleup/callback").HandlerFunc(
 		(c.scaleUpCallback))
 	// scale down callback
-	router.Methods("POST").Path("/region/{region}/cluster/{name}/scale/down/callback").HandlerFunc(
+	router.Methods("POST").Path("/region/{region}/cluster/{name}/scaledown/callback").HandlerFunc(
 		(c.scaleDownCallback))
 	// delete
-	router.Methods("DELETE").Path("/region/{region}/cluster/{name}/delete").HandlerFunc(
+	router.Methods("DELETE").Path("/region/{region}/cluster/{name}").HandlerFunc(
 		(c.deleteCluster))
 	// create callback
 	router.Methods("POST").Path("/region/{region}/cluster/{name}/create/callback").HandlerFunc(

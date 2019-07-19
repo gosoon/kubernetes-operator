@@ -24,6 +24,6 @@ KUBELET_ARGS="--config=/etc/kubernetes/config.yaml \
 --tls-private-key-file=/etc/kubernetes/ssl/ca-key.pem \
 --stderrthreshold=3 \
 --log-dir=/var/log/kubernetes \
+--network-plugin=cni \
 --allowed-unsafe-sysctls=net.*,kernel.shm*,kernel.msg*,kernel.sem,fs.mqueue.*"
 #--cert-dir=/etc/kubernetes/ssl \
-#--network-plugin=cni"

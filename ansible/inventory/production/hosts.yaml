@@ -1,20 +1,20 @@
 all:
   hosts:
-    192.168.73.93:
-      ansible_host: 192.168.73.93
-      ip: 192.168.73.93
-      access_ip: 192.168.73.93
+    192.168.75.104:
+      ansible_host: 192.168.75.104
+      ip: 192.168.75.104
+      access_ip: 192.168.75.104
       node_lable:
   children:
     kube-master:
       hosts:
-        192.168.73.93:
+        192.168.75.104:
     kube-node:
       hosts:
-        192.168.73.93:
+        192.168.75.104:
     etcd:
       hosts:
-        192.168.73.93:
+        192.168.75.104:
     k8s-cluster:
       children:
         kube-master:

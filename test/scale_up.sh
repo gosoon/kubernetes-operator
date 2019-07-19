@@ -38,5 +38,5 @@ EOF
 )
 
 curl -s -XPOST -d "${request_body}" \
-    http://127.0.0.1:8080/api/v1/region/${region}/cluster/${name}/scale/up
+    http://127.0.0.1:8080/api/v1/region/${region}/cluster/${name}/scaleup
 

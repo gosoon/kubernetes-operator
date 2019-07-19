@@ -16,4 +16,3 @@
 - name: Disable swap
   command: /sbin/swapoff -a
   when: swapon.stdout
-

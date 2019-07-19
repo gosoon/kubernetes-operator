@@ -51,7 +51,8 @@ cp ${KUBE_PROXY_BIN_DIR}/kube-proxy /usr/bin/
 
 cp ${KUBE_PROXY_SYSTEMD_CONFIG_DIR}/kube-proxy.service  ${DEST_SYSTEMD_DIR}
 
-cp ${KUBE_PROXY_CONFIG_DIR}/kube-proxy /etc/kubernetes/
+[ -d ${DEST_CONFIG_DIR} ] || mkdir ${DEST_CONFIG_DIR}
+cp ${KUBE_PROXY_CONFIG_DIR}/kube-proxy ${DEST_CONFIG_DIR}/
 
 # cp kubeconfig 
 cp ${KUBECONFIG_DIR}/output/kube-proxy.kubeconfig  ${DEST_CONFIG_DIR}/

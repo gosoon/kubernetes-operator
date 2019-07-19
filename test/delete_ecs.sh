@@ -38,5 +38,5 @@ EOF
 )
 
 curl -s -XDELETE -d "${request_body}" \
-    http://127.0.0.1:8080/api/v1/region/${region}/cluster/${name}/delete
+    http://127.0.0.1:8080/api/v1/region/${region}/cluster/${name}
 

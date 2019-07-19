@@ -37,7 +37,7 @@ func TestCreateCluster(t *testing.T) {
 	}{
 		{
 			method:       "POST",
-			url:          "/api/v1/region/default/cluster/test-cluster/create",
+			url:          "/api/v1/region/default/cluster/test-cluster",
 			body:         "",
 			expectStatus: http.StatusOK,
 		},
@@ -77,7 +77,7 @@ func TestDeleteCluster(t *testing.T) {
 		// delete
 		{
 			method:       "DELETE",
-			url:          "/api/v1/region/default/cluster/test-cluster/delete",
+			url:          "/api/v1/region/default/cluster/test-cluster",
 			expectStatus: http.StatusOK,
 		},
 	}
@@ -113,7 +113,7 @@ func TestScaleUpCluster(t *testing.T) {
 	}{
 		{
 			method:       "POST",
-			url:          "/api/v1/region/default/cluster/test-cluster/scale/up",
+			url:          "/api/v1/region/default/cluster/test-cluster/scaleup",
 			expectStatus: http.StatusOK,
 		},
 	}
@@ -149,7 +149,7 @@ func TestScaleDownCluster(t *testing.T) {
 	}{
 		{
 			method:       "POST",
-			url:          "/api/v1/region/default/cluster/test-cluster/scale/down",
+			url:          "/api/v1/region/default/cluster/test-cluster/scaledown",
 			expectStatus: http.StatusOK,
 		},
 	}
@@ -257,7 +257,7 @@ func TestScaleUpClusterCallback(t *testing.T) {
 	}{
 		{
 			method:       "POST",
-			url:          "/api/v1/region/default/cluster/test-cluster/scale/up/callback",
+			url:          "/api/v1/region/default/cluster/test-cluster/scaleup/callback",
 			expectStatus: http.StatusOK,
 		},
 	}
@@ -293,7 +293,7 @@ func TestScaleDownClusterCallback(t *testing.T) {
 	}{
 		{
 			method:       "POST",
-			url:          "/api/v1/region/default/cluster/test-cluster/scale/down/callback",
+			url:          "/api/v1/region/default/cluster/test-cluster/scaledown/callback",
 			expectStatus: http.StatusOK,
 		},
 	}

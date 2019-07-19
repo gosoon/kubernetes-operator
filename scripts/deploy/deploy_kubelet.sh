@@ -20,7 +20,8 @@ cp ${KUBE_NODE_BIN_DIR}/kubelet /usr/bin/
 
 cp ${KUBE_NODE_SYSTEMD_CONFIG_DIR}/kubelet.service  ${DEST_SYSTEMD_DIR}
 
-cp ${KUBE_NODE_CONFIG_DIR}/{config,config.yaml,kubelet} /etc/kubernetes/
+[ -d ${DEST_CONFIG_DIR} ] || mkdir ${DEST_CONFIG_DIR}
+cp ${KUBE_NODE_CONFIG_DIR}/{config,config.yaml,kubelet} ${DEST_CONFIG_DIR}/
 
 
 # update config master ip
@@ -32,7 +33,9 @@ sed -i -e "s#hostnameOverride: <node_ip>#hostnameOverride: ${LOCAL_IP}#g" ${DEST
 cd ${GENERATE_CERTS_FILE} && bash gen_cert.sh
 [ $? -eq 0 ] && echo "generate certs success" || exit 1
 cd -
-cp ${GENERATE_CERTS_FILE}/output/{kube-proxy-key.pem,kube-proxy.pem,kubelet-client-key.pem,kubelet-client.pem} ${DEST_CERTS_DIR}/
+[ -d ${DEST_CERTS_DIR} ] || mkdir ${DEST_CERTS_DIR}
+cp ${GENERATE_CERTS_FILE}/output/{ca.pem,ca-key.pem,kube-proxy-key.pem,kube-proxy.pem,kubelet-client-key.pem, \
+kubelet-client.pem} ${DEST_CERTS_DIR}/
 
 # generate kubeconfig
 cp ${GENERATE_KUBECONFIG_FILE}/output/{kubelet.kubeconfig,bootstrap.kubeconfig} ${DEST_CONFIG_DIR}/

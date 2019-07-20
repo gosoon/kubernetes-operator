@@ -28,7 +28,7 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 
 	// set finalizers
 	curCluster.Finalizers = []string{fmt.Sprintf("kubernetescluster.ecs.yun.com/%v", curCluster.Name)}
-	k, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curCluster)
+	curCluster, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curCluster)
 	if err != nil {
 		glog.Errorf("update %s/%s spec failed with:%v", err, namespace, name)
 		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.SetFinalizersFailed, err.Error())
@@ -36,11 +36,19 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.SetFinalizersSuccess, "")
 
+	// configmap is record the crd operation
+	configMap := newConfigMap(curCluster, createClusterJob.Name)
+	_, err = c.kubeclientset.CoreV1().ConfigMaps(namespace).Create(configMap)
+	if err != nil {
+		glog.Errorf("create %s/%s kubeCreating configMap failed with:%v", namespace, name, err)
+		return err
+	}
+
 	// update phase
-	curCluster = k.DeepCopy()
+	curCluster = curCluster.DeepCopy()
 	curCluster.Status.Phase = enum.Creating
 	curCluster.Status.JobName = createClusterJob.Name
-	k, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
+	_, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 	if err != nil {
 		glog.Errorf("update status failed with:%v", err)
 		return err
@@ -77,6 +85,14 @@ func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) err
 		return err
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.CreateScaleUpJobSuccess, "")
+
+	// configmap is record the crd operation
+	configMap := newConfigMap(curCluster, scaleUpClusterJob.Name)
+	_, err = c.kubeclientset.CoreV1().ConfigMaps(namespace).Create(configMap)
+	if err != nil {
+		glog.Errorf("create %s/%s scaleUp configMap failed with:%v", namespace, name, err)
+		return err
+	}
 
 	// update phase to ScalingUp
 	curCluster.Status.Phase = enum.Scaling
@@ -119,6 +135,14 @@ func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) e
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.CreateScaleDownJobSuccess, "")
 
+	// configmap is record the crd operation
+	configMap := newConfigMap(curCluster, scaleDownClusterJob.Name)
+	_, err = c.kubeclientset.CoreV1().ConfigMaps(namespace).Create(configMap)
+	if err != nil {
+		glog.Errorf("create %s/%s scaleDown configMap failed with:%v", namespace, name, err)
+		return err
+	}
+
 	// update phase to ScalingDown
 	curCluster.Status.Phase = enum.Scaling
 	curCluster.Status.JobName = scaleDownClusterJob.Name
@@ -135,6 +159,8 @@ func (c *Controller) processClusterTerminating(cluster *ecsv1.KubernetesCluster)
 
 	namespace := curCluster.Namespace
 	name := curCluster.Name
+
+	// create job
 	deleteClusterJob := newDeleteKubernetesClusterJob(curCluster)
 	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterJob)
 	if err != nil {
@@ -143,6 +169,14 @@ func (c *Controller) processClusterTerminating(cluster *ecsv1.KubernetesCluster)
 		return err
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.DeleteKubeJobSuccess, "")
+
+	// configmap is record the crd operation
+	configMap := newConfigMap(curCluster, deleteClusterJob.Name)
+	_, err = c.kubeclientset.CoreV1().ConfigMaps(namespace).Create(configMap)
+	if err != nil {
+		glog.Errorf("create %s/%s delete configMap failed with:%v", namespace, name, err)
+		return err
+	}
 
 	// update status to Terminating
 	curCluster.Status.Phase = enum.Terminating

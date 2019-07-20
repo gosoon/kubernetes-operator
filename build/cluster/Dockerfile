@@ -1,7 +1,4 @@
-FROM centos
+FROM nginx
 
-RUN mkdir -p /home/kube
-ADD ./kubernetes-operator /home/kubernetes-operator
-ADD ./control.sh /home/kubernetes-operator
-WORKDIR /home/kubernetes-operator
-ENTRYPOINT ["/bin/bash","control.sh","start"]
+RUN mkdir -p /home/kubernetes-operator
+ADD ./scripts/ /home/kubernetes-operator/scripts

@@ -12,5 +12,8 @@ require (
 	github.com/resouer/k8s-controller-custom-resource v0.0.0-20180915125134-dbc1c9320e34
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/viper v1.4.0
-	github.com/stretchr/testify v1.2.2
+	github.com/stretchr/testify v1.3.0
+	k8s.io/api v0.0.0-20190718062839-c8a0b81cb10e
+	k8s.io/apimachinery v0.0.0-20190717022731-0bb8574e0887
+	k8s.io/client-go v12.0.0+incompatible
 )

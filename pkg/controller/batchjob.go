@@ -15,9 +15,10 @@ import (
 )
 
 const (
-	Image                 string = "busybox:latest"
-	RestartPolicy         string = "Never"
-	ActiveDeadlineSeconds int32  = 10 * 60
+	Image                 = string("busybox:latest")
+	RestartPolicy         = string("Never")
+	ActiveDeadlineSeconds = int32(10 * 60)
+	Kind                  = string("KubernetesCluster")
 )
 
 func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Job {
@@ -35,7 +36,7 @@ func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion:         fmt.Sprintf("%v/v1", ecs.GroupName), // not define and occur invalid error
-					Kind:               "KubernetesCluster",                 // not define and occur invalid error
+					Kind:               Kind,                                // not define and occur invalid error
 					Name:               cluster.Name,
 					UID:                cluster.UID,
 					Controller:         pointer.BoolPtr(true),
@@ -158,7 +159,7 @@ func newScaleUpClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecsv1
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion:         fmt.Sprintf("%v/v1", ecs.GroupName),
-					Kind:               "KubernetesCluster",
+					Kind:               Kind,
 					Name:               cluster.Name,
 					UID:                cluster.UID,
 					Controller:         pointer.BoolPtr(true),
@@ -224,7 +225,7 @@ func newScaleDownClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecs
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion:         fmt.Sprintf("%v/v1", ecs.GroupName), // not define and occur invalid error
-					Kind:               "KubernetesCluster",                 // not define and occur invalid error
+					Kind:               Kind,
 					Name:               cluster.Name,
 					UID:                cluster.UID,
 					Controller:         pointer.BoolPtr(true),

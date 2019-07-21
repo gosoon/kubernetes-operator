@@ -1,5 +1,7 @@
 ## kubernetes-operator 
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/gosoon/kubernetes-operator)](https://goreportcard.com/report/github.com/gosoon/kubernetes-operator)
+
 kubernetes-operator is a control plane and manage all kubernetes cluster lifecycle(Kubernetes on Kubernetes).
 
 <img src="doc/images/image-20190708160044358.png"></img>

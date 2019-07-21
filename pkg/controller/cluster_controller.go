@@ -25,9 +25,7 @@ import (
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
 )
 
-const controllerAgentName = "ecs-controller"
-
-//type KubernetesOperatorPhase string
+const componentName = "kubernetes-operator"
 
 const (
 	// SuccessSynced is used as part of the Event 'reason' when a KubernetesCluster is synced
@@ -71,7 +69,7 @@ func NewController(
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartLogging(glog.Infof)
 	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclientset.CoreV1().Events("")})
-	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: controllerAgentName})
+	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: componentName})
 
 	controller := &Controller{
 		kubeclientset:              kubeclientset,

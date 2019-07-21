@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/signal"
@@ -22,6 +23,7 @@ import (
 	"time"
 
 	clientset "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned"
+	"github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned/scheme"
 	informers "github.com/gosoon/kubernetes-operator/pkg/client/informers/externalversions"
 	"github.com/gosoon/kubernetes-operator/pkg/controller"
 	"github.com/gosoon/kubernetes-operator/pkg/server"
@@ -32,9 +34,17 @@ import (
 	"github.com/resouer/k8s-controller-custom-resource/pkg/signals"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/client-go/kubernetes"
+	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/leaderelection"
+	"k8s.io/client-go/tools/leaderelection/resourcelock"
+	"k8s.io/client-go/tools/record"
 )
+
+const ComponentName = "kubernetes-operator"
 
 var (
 	cfgFile    string
@@ -67,44 +77,84 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			glog.Fatalf("Error building kubernetes clientset: %s", err.Error())
 		}
-		kubernetesClusterClient, err := clientset.NewForConfig(cfg)
-		if err != nil {
-			glog.Fatalf("Error building kubernetesCluster clientset: %s", err.Error())
-		}
+
+		// init eventRecorder
+		eventBroadcaster := record.NewBroadcaster()
+		eventRecorder := eventBroadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: ComponentName})
+		eventBroadcaster.StartLogging(glog.Infof)
+		eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")})
 
 		// add leader elector
-
-		kubernetesClusterInformerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, time.Second*30)
-
-		controller := controller.NewController(kubeClient, kubernetesClusterClient,
-			kubernetesClusterInformerFactory.Ecs().V1().KubernetesClusters())
-
-		go kubernetesClusterInformerFactory.Start(stopCh)
-
-		go func() {
-			opt := &ctrl.Options{KubernetesClusterClientset: kubernetesClusterClient, KubeClientset: kubeClient}
-			server := server.New(server.Options{CtrlOptions: opt, ListenAddr: ":8080"})
-
-			if err := server.ListenAndServe(); err != nil {
-				glog.Errorf("Failed to listen and serve admission webhook server: %v", err)
+		run := func(ctx context.Context) {
+			kubernetesClusterClient, err := clientset.NewForConfig(cfg)
+			if err != nil {
+				glog.Fatalf("Error building kubernetesCluster clientset: %s", err.Error())
 			}
-		}()
+			kubernetesClusterInformerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, time.Second*30)
+			controller := controller.NewController(kubeClient, kubernetesClusterClient,
+				kubernetesClusterInformerFactory.Ecs().V1().KubernetesClusters())
 
-		glog.Info("Server started")
+			go kubernetesClusterInformerFactory.Start(stopCh)
 
-		go func() {
-			if err = controller.Run(2, stopCh); err != nil {
-				glog.Fatalf("Error running controller: %s", err.Error())
-			}
-		}()
+			go func() {
+				opt := &ctrl.Options{KubernetesClusterClientset: kubernetesClusterClient, KubeClientset: kubeClient}
+				server := server.New(server.Options{CtrlOptions: opt, ListenAddr: ":8080"})
+				if err := server.ListenAndServe(); err != nil {
+					glog.Fatalf("Failed to listen and serve admission webhook server: %v", err)
+				}
+			}()
 
-		// listening OS shutdown singal
-		signalChan := make(chan os.Signal, 1)
-		signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-		<-signalChan
+			glog.Info("Server started")
+			go func() {
+				if err = controller.Run(2, stopCh); err != nil {
+					glog.Fatalf("Error running controller: %s", err.Error())
+				}
+			}()
 
-		glog.Infof("Got OS shutdown signal, shutting down webhook server gracefully...")
-		//server.Shutdown(context.Background())
+			// listening OS shutdown singal
+			signalChan := make(chan os.Signal, 1)
+			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+			<-signalChan
+
+			glog.Infof("Got OS shutdown signal, shutting down webhook server gracefully...")
+			//server.Shutdown(context.Background())
+		}
+
+		// init host identity
+		id, err := os.Hostname()
+		if err != nil {
+			glog.Fatalf("get hostname error: %v", err)
+		}
+		id = id + "_" + string(uuid.NewUUID())
+
+		rl, err := resourcelock.New("endpoints",
+			"kube-system",
+			ComponentName,
+			kubeClient.CoreV1(),
+			kubeClient.CoordinationV1(),
+			resourcelock.ResourceLockConfig{
+				Identity:      id,
+				EventRecorder: eventRecorder,
+			})
+
+		if err != nil {
+			glog.Fatalf("error creating lock: %v", err)
+		}
+
+		leaderelection.RunOrDie(context.TODO(), leaderelection.LeaderElectionConfig{
+			Lock:          rl,
+			LeaseDuration: 15 * time.Second,
+			RenewDeadline: 10 * time.Second,
+			RetryPeriod:   2 * time.Second,
+			Callbacks: leaderelection.LeaderCallbacks{
+				OnStartedLeading: run,
+				OnStoppedLeading: func() {
+					glog.Info("leaderelection lost")
+				},
+			},
+			Name: ComponentName,
+		})
+
 	},
 }
 

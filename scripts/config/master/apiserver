@@ -16,7 +16,7 @@ KUBE_ETCD_SERVERS="--etcd-servers=<etcd_cluster>"
 KUBE_SERVICE_ADDRESSES="--service-cluster-ip-range=192.168.0.0/16 --secure-port=6443 --bind-address=0.0.0.0 --insecure-bind-address=0.0.0.0"
 
 # default admission control policies
-KUBE_ADMISSION_CONTROL="--enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,Priority,ResourceQuota"
+KUBE_ADMISSION_CONTROL="--enable-admission-plugins=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,Priority,ResourceQuota,NodeRestriction"
 
 # Add your own! 
 KUBE_API_ARGS=" --storage-backend=etcd3 --storage-media-type=application/json \
@@ -26,6 +26,7 @@ KUBE_API_ARGS=" --storage-backend=etcd3 --storage-media-type=application/json \
 --authorization-mode=Node,RBAC \
 --kubelet-https=true \
 --enable-bootstrap-token-auth=true \
+--service-cluster-ip-range=10.250.0.0/24 \
 --service-account-key-file=/etc/kubernetes/ssl/ca.pem \
 --tls-cert-file=/etc/kubernetes/ssl/kube-apiserver.pem \
 --tls-private-key-file=/etc/kubernetes/ssl/kube-apiserver-key.pem \
@@ -34,5 +35,5 @@ KUBE_API_ARGS=" --storage-backend=etcd3 --storage-media-type=application/json \
 --etcd-certfile=/etc/etcd/ssl/etcd-server.pem \
 --etcd-keyfile=/etc/etcd/ssl/etcd-server-key.pem \
 --etcd-compaction-interval=0s \
---kubelet-client-certificate=/etc/kubernetes/ssl/kubelet-api-admin.pem \
---kubelet-client-key=/etc/kubernetes/ssl/kubelet-api-admin-key.pem"
+--kubelet-client-certificate=/etc/kubernetes/ssl/apiserver-kubelet-client.pem \
+--kubelet-client-key=/etc/kubernetes/ssl/apiserver-kubelet-client-key.pem"

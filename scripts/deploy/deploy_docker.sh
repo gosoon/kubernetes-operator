@@ -1,22 +1,33 @@
 #!/bin/bash
 
 # docker releases download docs:  https://kubernetes.io/docs/setup/production-environment/container-runtimes/
-
-[ -e /etc/init.d/functions ] && . /etc/init.d/functions || exit
 [ -e ./config.sh ] && . ./config.sh || exit
 
-# Install Docker CE
-## Set up the repository
-### Install required packages.
-yum install yum-utils device-mapper-persistent-data lvm2
+DOCKER_BIN_DIR="../bin/${DOCKER_VER}"
+DOCKER_SYSTEMD_CONFIG_DIR="../systemd"
+DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
 
-### Add docker repository.
-yum-config-manager \
-    --add-repo \
-    https://download.docker.com/linux/centos/docker-ce.repo
+install_docker() {
+    # Install Docker CE
+    ## Set up the repository
+    ### Install required packages.
+    yum install yum-utils device-mapper-persistent-data lvm2
 
-## Install docker ce.
-yum update && yum install ${DOCKER_VER}
+    ### Add docker repository.
+    yum-config-manager \
+        --add-repo \
+        https://download.docker.com/linux/centos/docker-ce.repo
+
+    ## Install docker ce.
+    yum update && yum install ${DOCKER_VER}
+}
+
+if [ -f ${DOCKER_BIN_DIR}/dockerd ];then 
+    cp ${DOCKER_BIN_DIR}/* /usr/bin/
+    cp ${DOCKER_SYSTEMD_CONFIG_DIR}/docker.service  ${DEST_SYSTEMD_DIR}/
+else
+    install_docker  
+fi
 
 ## Create /etc/docker directory.
 mkdir /etc/docker
@@ -36,15 +47,11 @@ cat > /etc/docker/daemon.json <<EOF
 }
 EOF
 
-mkdir -p /etc/systemd/system/docker.service.d
-
 # Restart docker.
 systemctl daemon-reload
 systemctl restart docker
 systemctl status docker
 
-if [ $? -eq 0 ];then  
-    action "install ${DOCKER_VER} failed !!!" /bin/false
-else
-    action "install ${DOCKER_VER} success !" /bin/true
+if [ $? -ne 0 ];then  
+    echo "install ${DOCKER_VER} failed !!!" && exit 1
 fi

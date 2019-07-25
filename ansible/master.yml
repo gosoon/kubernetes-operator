@@ -16,6 +16,11 @@
 - hosts: kube-master
   gather_facts: false 
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment:
+    MASTER_HOSTS: ${MASTER_HOSTS}
+    MASTER_VIP: ${MASTER_VIP}
+    NODE_HOSTS: ${NODE_HOSTS}
+    ETCD_HOSTS: ${ETCD_HOSTS}
   roles:
     - { role: kubernetes/preinstall, tags: preinstall }
     - { role: kubernetes/master, tags: master }

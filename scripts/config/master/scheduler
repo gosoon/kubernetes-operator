@@ -6,6 +6,4 @@
 # Add your own!
 KUBE_SCHEDULER_ARGS="--bind-address=127.0.0.1 \
 --kubeconfig=/etc/kubernetes/kube-scheduler.kubeconfig \
---tls-cert-file=/etc/kubernetes/ssl/kube-scheduler.pem \
---tls-private-key-file=/etc/kubernetes/ssl/kube-scheduler-key.pem \
 --leader-elect=true"

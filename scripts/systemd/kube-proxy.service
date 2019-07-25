@@ -12,6 +12,7 @@ ExecStart=/usr/bin/kube-proxy \
 	    $KUBE_MASTER \
 	    $KUBE_PROXY_ARGS
 Restart=on-failure
+RestartSec=5
 LimitNOFILE=65536
 
 [Install]

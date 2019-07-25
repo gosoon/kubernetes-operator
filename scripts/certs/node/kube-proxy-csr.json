@@ -1,17 +1,16 @@
 {
-    "CN": "system:kube-proxy",
-    "hosts": [""],
-    "key": {
-        "algo": "rsa",
-        "size": 2048
-    },
-    "names": [
-        {
-            "C": "CN",
-            "ST": "BeiJing",
-            "L": "BeiJing",
-            "O": "system:kube-proxy",
-            "OU": "System"
-        }
-    ]
+  "CN": "system:kube-proxy",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "China",
+      "L": "Shanghai",
+      "O": "system:node-proxier",
+      "OU": "Kubernetes",
+      "ST": "Shanghai"
+    }
+  ]
 }

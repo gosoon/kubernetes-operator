@@ -1,0 +1,16 @@
+{
+  "CN": "system:kubelet-api-admin",
+  "key": {
+      "algo": "rsa",
+      "size": 2048
+  },
+  "names": [
+    {
+      "C": "China",
+      "L": "Shanghai",
+      "O": "system:masters",
+      "OU": "Kubernetes",
+      "ST": "Shanghai"
+    }
+  ]
+}

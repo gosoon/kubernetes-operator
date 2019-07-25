@@ -1,0 +1,16 @@
+{
+  "CN": "system:node:10.0.2.15",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "China",
+      "L": "Shanghai",
+      "O": "system:nodes",
+      "OU": "Kubernetes",
+      "ST": "Shanghai"
+    }
+  ]
+}

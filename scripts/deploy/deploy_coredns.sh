@@ -14,3 +14,6 @@ download_coredns(){
 COERDNS_CONFIG="../yaml/coredns_${COREDNS_VER}/coredns.yaml"
 
 kubectl apply -f ${COERDNS_CONFIG}
+if [ $? -ne 0 ];then  
+    echo "deploy coredns failed !!!" && exit 1
+fi

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-set -x
-
-#TODO : check os version and use root exec
-
+# disable swap
 swapoff -a
-sed -i 's/SELINUX=permissive/SELINUX=disabled/' /etc/sysconfig/selinux 
-setenforce 0
 
+# Set SELinux in permissive mode (effectively disabling it)
+setenforce 0
+sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+# disable firewall
 systemctl disable firewalld.service && systemctl stop firewalld.service
 
 # use aliyun kubernetes yum source
@@ -21,5 +21,14 @@ repo_gpgcheck=1
 gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
 EOF
 
-# add kube use 
-[ -d "/home/kube" ] || useradd kube
+cat <<EOF >  /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sysctl --system &> /dev/null  
+
+# install scp 
+if [ ! -f /usr/bin/scp ];then 
+    yum install openssh-clients -y
+    [ $? -eq 0 ] || { echo "install scp failed"; exit 1; }
+fi

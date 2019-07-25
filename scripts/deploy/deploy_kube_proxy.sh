@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# author: tianfeiyu
-
-[ -e /etc/init.d/functions ] && . /etc/init.d/functions || exit
 [ -e ./config.sh ] && . ./config.sh || exit
 
 
@@ -47,6 +44,7 @@ EOF
 }
 
 pre_ipvs
+
 cp ${KUBE_PROXY_BIN_DIR}/kube-proxy /usr/bin/
 
 cp ${KUBE_PROXY_SYSTEMD_CONFIG_DIR}/kube-proxy.service  ${DEST_SYSTEMD_DIR}
@@ -66,3 +64,7 @@ systemctl daemon-reload
 systemctl enable kube-proxy
 systemctl start kube-proxy
 systemctl status kube-proxy
+
+if [ $? -ne 0 ];then  
+    echo "deploy kube-proxy failed !!!" && exit 1
+fi

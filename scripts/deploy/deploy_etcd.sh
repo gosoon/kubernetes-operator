@@ -79,3 +79,7 @@ systemctl daemon-reload
 systemctl enable etcd
 systemctl start etcd
 systemctl status etcd
+
+if [ $? -ne 0 ];then  
+    echo "deploy etcd failed !!!" && exit 1
+fi

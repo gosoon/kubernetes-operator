@@ -1,17 +1,16 @@
 {
-    "CN": "system:masters",
-    "hosts": [""],
-    "key": {
-        "algo": "rsa",
-        "size": 2048
-    },
-    "names": [
-        {
-            "C": "CN",
-            "ST": "BeiJing",
-            "L": "BeiJing",
-            "O": "system:masters",
-            "OU": "System"
-        }
-    ]
+  "CN": "admin",
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "China",
+      "L": "Shanghai",
+      "O": "system:masters",
+      "OU": "Kubernetes",
+      "ST": "Shanghai"
+    }
+  ]
 }

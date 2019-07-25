@@ -58,15 +58,19 @@ func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 							Image: Image,
 							Env: []corev1.EnvVar{
 								{
-									Name:  "CLUSTER_MASTER_LIST",
+									Name:  "MASTER_HOSTS",
 									Value: convertNodesToString(cluster.Spec.MasterList),
 								},
 								{
-									Name:  "CLUSTER_NODE_LIST",
+									Name:  "MASTER_VIP",
+									Value: convertNodesToString(cluster.Spec.MasterVIP),
+								},
+								{
+									Name:  "NODE_HOSTS",
 									Value: convertNodesToString(cluster.Spec.NodeList),
 								},
 								{
-									Name:  "CLUSTER_ETCD_LIST",
+									Name:  "ETCD_HOSTS",
 									Value: convertNodesToString(cluster.Spec.EtcdList),
 								},
 								{

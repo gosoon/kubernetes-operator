@@ -1,17 +1,16 @@
 {
   "CN": "system:kube-controller-manager",
-  "hosts": [""],
   "key": {
     "algo": "rsa",
     "size": 2048
   },
   "names": [
     {
-      "C": "CN",
-      "ST": "BeiJing",
-      "L": "BeiJing",
+      "C": "China",
+      "L": "Shanghai",
       "O": "system:kube-controller-manager",
-      "OU": "System"
+      "OU": "Kubernetes",
+      "ST": "Shanghai"
     }
   ]
 }

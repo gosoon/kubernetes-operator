@@ -16,5 +16,9 @@
 - hosts: kube-node
   gather_facts: false 
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment:
+    MASTER_HOSTS: ${MASTER_HOSTS}
+    MASTER_VIP: ${MASTER_VIP}
+    NODE_HOSTS: ${NODE_HOSTS}
   roles:
     - { role: kubernetes/remove-node, tags: remove-node }

@@ -12,9 +12,5 @@
             "C": "CN"
         }
     ],
-    "CN": "etcd",
-    "hosts": [
-        "127.0.0.1",
-        "localhost"
-    ]
+    "CN": "etcd"
 }

@@ -15,6 +15,10 @@
 
 - hosts: kube-node
   gather_facts: false 
+  environment:
+    MASTER_HOSTS: ${MASTER_HOSTS}
+    MASTER_VIP: ${MASTER_VIP}
+    NODE_HOSTS: ${NODE_HOSTS}
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
   roles:
     - { role: kubernetes/preinstall, tags: preinstall }

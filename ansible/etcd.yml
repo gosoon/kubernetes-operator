@@ -16,6 +16,8 @@
 - hosts: etcd
   gather_facts: false 
   any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  environment:
+    ETCD_HOSTS: ${ETCD_HOSTS}
   roles:
     - { role: kubernetes/preinstall, tags: preinstall }
     - { role: kubernetes/etcd, tags: etcd }

@@ -18,6 +18,7 @@ ExecStart=/usr/bin/kubelet \
 	    $KUBE_ALLOW_PRIV \
 	    $KUBELET_ARGS
 Restart=on-failure
+RestartSec=5
 KillMode=process
 
 [Install]

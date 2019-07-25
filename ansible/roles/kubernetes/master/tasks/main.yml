@@ -1,8 +1,4 @@
 ---
-#- name: clone deploy script
-  #command: git clone https://github.com/gosoon/kubernetes-operator /home/kube/kubernetes-operator
-  #ignore_errors: "{{ ignore_assert_errors }}"
-
 - name: Copy master deploy config 
   copy:
     src: /home/kubernetes-operator/scripts
@@ -13,3 +9,4 @@
   command: bash deploy.sh master
   args:
     chdir: /home/kubernetes-operator/scripts/deploy
+

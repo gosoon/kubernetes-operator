@@ -134,7 +134,7 @@ func (c *cluster) scaleDownCluster(w http.ResponseWriter, r *http.Request) {
 
 // createClusterCallback
 func (c *cluster) createClusterCallback(w http.ResponseWriter, r *http.Request) {
-	callback := &types.CallBack{}
+	callback := &types.Callback{}
 	err := json.NewDecoder(r.Body).Decode(callback)
 	if err != nil {
 		controller.BadRequest(w, r, err)
@@ -153,7 +153,7 @@ func (c *cluster) createClusterCallback(w http.ResponseWriter, r *http.Request) 
 
 // scaleUpCallback
 func (c *cluster) scaleUpCallback(w http.ResponseWriter, r *http.Request) {
-	callback := &types.CallBack{}
+	callback := &types.Callback{}
 	err := json.NewDecoder(r.Body).Decode(callback)
 	if err != nil {
 		controller.BadRequest(w, r, err)
@@ -172,7 +172,7 @@ func (c *cluster) scaleUpCallback(w http.ResponseWriter, r *http.Request) {
 
 // scaleDownCallback
 func (c *cluster) scaleDownCallback(w http.ResponseWriter, r *http.Request) {
-	callback := &types.CallBack{}
+	callback := &types.Callback{}
 	err := json.NewDecoder(r.Body).Decode(callback)
 	if err != nil {
 		controller.BadRequest(w, r, err)
@@ -191,7 +191,7 @@ func (c *cluster) scaleDownCallback(w http.ResponseWriter, r *http.Request) {
 
 // deleteClusterCallback
 func (c *cluster) deleteClusterCallback(w http.ResponseWriter, r *http.Request) {
-	callback := &types.CallBack{}
+	callback := &types.Callback{}
 	err := json.NewDecoder(r.Body).Decode(callback)
 	if err != nil {
 		controller.BadRequest(w, r, err)

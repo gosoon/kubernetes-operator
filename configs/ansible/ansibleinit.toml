@@ -1,0 +1,12 @@
+# config
+title = "dockerinit"
+
+[config]
+  timeout = 600
+  server = "http://192.168.75.179:8000"
+  region = "default"
+  token = ""
+  creatingCallbackPath    = "/api/v1/region/{region}/cluster/{name}/create/callback"
+  scalingUpCallbackPath   = "/api/v1/region/{region}/cluster/{name}/scaleup/callback"
+  scalingDownCallbackPath = "/api/v1/region/{region}/cluster/{name}/scaledown/callback"
+  terminatingCallbackPath = "/api/v1/region/{region}/cluster/{name}/delete/callback"

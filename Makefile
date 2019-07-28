@@ -1,6 +1,9 @@
 GOFILES := $(shell find . -name '*.go' | grep -v -E '(./vendor)')
 BIN := $(shell basename $(CURDIR))
-PLATFORM := $(shell go env GOOS)
+# PLATFORM := $(shell go env GOOS)
+PLATFORM := linux
+AnsibleinitPath := cmd/ansible/ansibleinit.go
+OperatorPath := cmd/operator/app.go
 
 # ifneq (PLATFORM, "windows")
 # 	PLATFORM = linux
@@ -16,9 +19,14 @@ linux: output/$(BIN)
 darwin: output/$(BIN)
 windows: output/$(BIN)
 
-images: linux
-	docker build --no-cache -f build/cluster/Dockerfile -t kubernetes-cluster .
+images: 
+	mkdir -p output
+	GO111MODULE=on GOPROXY=https://mirrors.aliyun.com/goproxy/ GOOS=$(PLATFORM) GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o output/ansibleinit $(AnsibleinitPath)
+	docker build --no-cache -f build/ansible/Dockerfile -t ansibleinit .
+	
+	GO111MODULE=on GOPROXY=https://mirrors.aliyun.com/goproxy/ GOOS=$(PLATFORM) GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o output/kubernetes-operator $(OperatorPath)
 	docker build --no-cache -f build/operator/Dockerfile -t kubernetes-operator .
+	@rm -rf output 
 
 check:
 	@find . -name vendor -prune -o -name '*.go' -exec gofmt -s -d {} +

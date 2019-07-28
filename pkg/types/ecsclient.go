@@ -17,8 +17,8 @@ type EcsClient struct {
 	Retry         bool         `json:"retry"`
 }
 
-// CallBack xxx
-type CallBack struct {
+// Callback xxx
+type Callback struct {
 	Name       string       `json:"name"`
 	Namespace  string       `json:"namespace"`
 	Region     string       `json:"region"`

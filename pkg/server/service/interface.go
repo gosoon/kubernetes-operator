@@ -30,10 +30,10 @@ type Interface interface {
 	ScaleDown(region string, namespace string, name string, clusterInfo *types.EcsClient) error
 
 	// callback
-	CreateClusterCallback(region string, namespace string, name string, result *types.CallBack) error
-	ScaleUpCallback(region string, namespace string, name string, result *types.CallBack) error
-	ScaleDownCallback(region string, namespace string, name string, result *types.CallBack) error
-	DeleteClusterCallback(region string, namespace string, name string, result *types.CallBack) error
+	CreateClusterCallback(region string, namespace string, name string, result *types.Callback) error
+	ScaleUpCallback(region string, namespace string, name string, result *types.Callback) error
+	ScaleDownCallback(region string, namespace string, name string, result *types.Callback) error
+	DeleteClusterCallback(region string, namespace string, name string, result *types.Callback) error
 
 	// logs
 	GetClusterOperationLogs(region string, namespace string, name string) (string, error)

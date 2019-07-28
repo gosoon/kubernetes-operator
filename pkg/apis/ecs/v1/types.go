@@ -29,6 +29,7 @@ type KubernetesClusterSpec struct {
 	ContainerCIDR string `json:"containerCIDR,omitempty"`
 	ServiceCIDR   string `json:"serviceCIDR,omitempty"`
 	MasterList    []Node `json:"masterList" tag:"required"`
+	MasterVIP     string `json:"masterVIP,omitempty"`
 	NodeList      []Node `json:"nodeList" tag:"required"`
 	EtcdList      []Node `json:"etcdList,omitempty"`
 	Region        string `json:"region,omitempty"`

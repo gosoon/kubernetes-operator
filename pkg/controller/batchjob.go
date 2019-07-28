@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 gosoon.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package controller
 
 import (
@@ -21,6 +37,7 @@ const (
 	Kind                  = string("KubernetesCluster")
 )
 
+// TODO:mount host.yaml
 func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Job {
 	jobName := fmt.Sprintf("create-%v-%v-job", cluster.Namespace, cluster.Name)
 	completions := pointer.Int32Ptr(1)
@@ -28,6 +45,9 @@ func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 	backoffLimit := pointer.Int32Ptr(0)
 	// 10 minutes
 	ActiveDeadlineSeconds := pointer.Int64Ptr(10 * 60)
+
+	// pack envs
+	envs := compressEnvs(cluster, enum.KubeCreating)
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -56,34 +76,20 @@ func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 						{
 							Name:  jobName,
 							Image: Image,
-							Env: []corev1.EnvVar{
-								{
-									Name:  "MASTER_HOSTS",
-									Value: convertNodesToString(cluster.Spec.MasterList),
-								},
-								{
-									Name:  "MASTER_VIP",
-									Value: convertNodesToString(cluster.Spec.MasterVIP),
-								},
-								{
-									Name:  "NODE_HOSTS",
-									Value: convertNodesToString(cluster.Spec.NodeList),
-								},
-								{
-									Name:  "ETCD_HOSTS",
-									Value: convertNodesToString(cluster.Spec.EtcdList),
-								},
-								{
-									Name:  "OPERATION",
-									Value: enum.KubeCreating,
-								},
-							},
+							Env:   envs,
 						},
 					},
 				},
 			},
 		},
 	}
+
+	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{
+			Name:  "NODE_HOSTS",
+			Value: convertNodesToString(cluster.Spec.NodeList),
+		})
+
 	return job
 }
 
@@ -96,6 +102,9 @@ func newDeleteKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 	ttlSecondsAfterFinished := pointer.Int32Ptr(60 * 60)
 	// 10 minutes
 	ActiveDeadlineSeconds := pointer.Int64Ptr(10 * 60)
+
+	// pack envs
+	envs := compressEnvs(cluster, enum.KubeTerminating)
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -118,30 +127,20 @@ func newDeleteKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 						{
 							Name:  jobName,
 							Image: Image,
-							Env: []corev1.EnvVar{
-								{
-									Name:  "CLUSTER_MASTER_LIST",
-									Value: convertNodesToString(cluster.Spec.MasterList),
-								},
-								{
-									Name:  "CLUSTER_NODE_LIST",
-									Value: convertNodesToString(cluster.Spec.NodeList),
-								},
-								{
-									Name:  "CLUSTER_ETCD_LIST",
-									Value: convertNodesToString(cluster.Spec.EtcdList),
-								},
-								{
-									Name:  "OPERATION",
-									Value: enum.KubeTerminating,
-								},
-							},
+							Env:   envs,
 						},
 					},
 				},
 			},
 		},
 	}
+
+	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{
+			Name:  "NODE_HOSTS",
+			Value: convertNodesToString(cluster.Spec.NodeList),
+		})
+
 	return job
 }
 
@@ -155,6 +154,9 @@ func newScaleUpClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecsv1
 	backoffLimit := pointer.Int32Ptr(0)
 	// 10 minutes
 	ActiveDeadlineSeconds := pointer.Int64Ptr(10 * 60)
+
+	// pack envs
+	envs := compressEnvs(cluster, enum.KubeScalingUp)
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -184,30 +186,19 @@ func newScaleUpClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecsv1
 						{
 							Name:  jobName,
 							Image: Image,
-							Env: []corev1.EnvVar{
-								{
-									Name:  "CLUSTER_MASTER_LIST",
-									Value: convertNodesToString(cluster.Spec.MasterList),
-								},
-								{
-									Name:  "CLUSTER_NODE_LIST",
-									Value: convertNodesToString(diffNodeList),
-								},
-								{
-									Name:  "CLUSTER_ETCD_LIST",
-									Value: convertNodesToString(cluster.Spec.EtcdList),
-								},
-								{
-									Name:  "OPERATION",
-									Value: enum.KubeScalingUp,
-								},
-							},
+							Env:   envs,
 						},
 					},
 				},
 			},
 		},
 	}
+
+	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{
+			Name:  "NODE_HOSTS",
+			Value: convertNodesToString(diffNodeList),
+		})
 	return job
 }
 
@@ -221,6 +212,9 @@ func newScaleDownClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecs
 	backoffLimit := pointer.Int32Ptr(0)
 	// 10 minutes
 	ActiveDeadlineSeconds := pointer.Int64Ptr(10 * 60)
+
+	// pack envs
+	envs := compressEnvs(cluster, enum.KubeScalingDown)
 
 	job := &batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
@@ -250,29 +244,56 @@ func newScaleDownClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecs
 						{
 							Name:  jobName,
 							Image: Image,
-							Env: []corev1.EnvVar{
-								{
-									Name:  "CLUSTER_MASTER_LIST",
-									Value: convertNodesToString(cluster.Spec.MasterList),
-								},
-								{
-									Name:  "CLUSTER_NODE_LIST",
-									Value: convertNodesToString(diffNodeList),
-								},
-								{
-									Name:  "CLUSTER_ETCD_LIST",
-									Value: convertNodesToString(cluster.Spec.EtcdList),
-								},
-								{
-									Name:  "OPERATION",
-									Value: enum.KubeScalingDown,
-								},
-							},
+							Env:   envs,
 						},
 					},
 				},
 			},
 		},
 	}
+
+	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env,
+		corev1.EnvVar{
+			Name:  "NODE_HOSTS",
+			Value: convertNodesToString(diffNodeList),
+		})
 	return job
+}
+
+func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.EnvVar {
+	envs := []corev1.EnvVar{
+		{
+			Name:  "MASTER_HOSTS",
+			Value: convertNodesToString(cluster.Spec.MasterList),
+		},
+		{
+			Name:  "MASTER_VIP",
+			Value: cluster.Spec.MasterVIP,
+		},
+		{
+			Name:  "ETCD_HOSTS",
+			Value: convertNodesToString(cluster.Spec.EtcdList),
+		},
+		{
+			Name:  "OPERATION",
+			Value: operation,
+		},
+		{
+			Name: "CLUSTER_NAME",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.name",
+				},
+			},
+		},
+		{
+			Name: "CLUSTER_NAMESPACE",
+			ValueFrom: &corev1.EnvVarSource{
+				FieldRef: &corev1.ObjectFieldSelector{
+					FieldPath: "metadata.namespace",
+				},
+			},
+		},
+	}
+	return envs
 }

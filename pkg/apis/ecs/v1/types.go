@@ -24,15 +24,23 @@ type KubernetesClusterSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	TimeoutMins   string `json:"timeout_mins,omitempty"`
-	ClusterType   string `json:"clusterType,omitempty"`
-	ContainerCIDR string `json:"containerCIDR,omitempty"`
-	ServiceCIDR   string `json:"serviceCIDR,omitempty"`
-	MasterList    []Node `json:"masterList" tag:"required"`
-	MasterVIP     string `json:"masterVIP,omitempty"`
-	NodeList      []Node `json:"nodeList" tag:"required"`
-	EtcdList      []Node `json:"etcdList,omitempty"`
-	Region        string `json:"region,omitempty"`
+	TimeoutMins   string     `json:"timeout_mins,omitempty"`
+	ClusterType   string     `json:"clusterType,omitempty"`
+	ContainerCIDR string     `json:"containerCIDR,omitempty"`
+	ServiceCIDR   string     `json:"serviceCIDR,omitempty"`
+	MasterList    []Node     `json:"masterList" tag:"required"`
+	MasterVIP     string     `json:"masterVIP,omitempty"`
+	NodeList      []Node     `json:"nodeList" tag:"required"`
+	EtcdList      []Node     `json:"etcdList,omitempty"`
+	Region        string     `json:"region,omitempty"`
+	AuthConfig    AuthConfig `json:"authConfig,omitempty"`
+}
+
+// AuthConfig defines the nodes peer authentication
+type AuthConfig struct {
+	Username      string `json:"username,omitempty"`
+	Password      string `json:"password,omitempty"`
+	PrivateSSHKey string `json:"privateSSHKey,omitempty"`
 }
 
 // KubernetesClusterStatus defines the observed state of KubernetesCluster

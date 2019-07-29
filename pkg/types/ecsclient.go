@@ -30,6 +30,7 @@ type EcsClient struct {
 	MasterList    []ecsv1.Node `json:"masterList"`
 	NodeList      []ecsv1.Node `json:"nodeList"`
 	EtcdList      []ecsv1.Node `json:"etcdList"`
+	PrivateSSHKey string       `json:"privateSSHKey"`
 	Retry         bool         `json:"retry"`
 }
 

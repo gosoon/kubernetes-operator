@@ -47,6 +47,9 @@ func (s *service) CreateCluster(region string, namespace string, name string, cl
 				NodeList:      clusterInfo.NodeList,
 				EtcdList:      clusterInfo.EtcdList,
 				Region:        region,
+				AuthConfig: ecsv1.AuthConfig{
+					PrivateSSHKey: clusterInfo.PrivateSSHKey,
+				},
 			},
 		}
 

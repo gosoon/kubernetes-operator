@@ -17,8 +17,12 @@
 package controller
 
 import (
+	"encoding/json"
+
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
+	"github.com/gosoon/kubernetes-operator/pkg/types"
+	"sigs.k8s.io/yaml"
 
 	mapset "github.com/deckarep/golang-set"
 )
@@ -64,4 +68,79 @@ func setToEcsV1Node(set mapset.Set) []ecsv1.Node {
 		nodeList = append(nodeList, node)
 	}
 	return nodeList
+}
+
+// hosts yaml by ansible used,it is like:
+/*
+all:
+  children:
+    calico-rr:
+      hosts: {}
+    etcd:
+      hosts: {}
+    kube-master:
+      hosts:
+        192.168.1.1:
+    kube-node:
+      hosts: {}
+  hosts:
+    192.168.1.1:
+      access_ip: 192.168.1.1
+      ansible_host: 192.168.1.1
+      ip: 192.168.1.1
+*/
+func compressHostsYAML(cluster *ecsv1.KubernetesCluster) string {
+	masterList := map[string]*types.Host{}
+	nodeList := map[string]*types.Host{}
+	etcdList := map[string]*types.Host{}
+	hostList := map[string]*types.Host{}
+
+	for _, node := range cluster.Spec.MasterList {
+		ip := node.IP
+		masterList[ip] = nil
+		hostList[ip] = &types.Host{
+			AnsibleHost: ip,
+			IP:          ip,
+			AccessIP:    ip,
+		}
+	}
+
+	for _, node := range cluster.Spec.NodeList {
+		ip := node.IP
+		nodeList[ip] = nil
+		hostList[ip] = &types.Host{
+			AnsibleHost: ip,
+			IP:          ip,
+			AccessIP:    ip,
+		}
+	}
+
+	for _, node := range cluster.Spec.EtcdList {
+		ip := node.IP
+		etcdList[ip] = nil
+		hostList[ip] = &types.Host{
+			AnsibleHost: ip,
+			IP:          ip,
+			AccessIP:    ip,
+		}
+	}
+
+	config := types.HostsYamlFormat{
+		All: types.AllHosts{
+			Hosts: hostList,
+			Children: types.Children{
+				KubeMaster: map[string]map[string]*types.Host{"hosts": masterList},
+				KubeNode:   map[string]map[string]*types.Host{"hosts": nodeList},
+				Etcd:       map[string]map[string]*types.Host{"hosts": etcdList},
+				Calico:     map[string]map[string]*types.Host{"hosts": map[string]*types.Host{}},
+			},
+		},
+	}
+
+	var configBytes []byte
+	configJSON, _ := json.MarshalIndent(config, "", "")
+
+	configBytes, _ = yaml.JSONToYAML(configJSON)
+
+	return string(configBytes)
 }

@@ -1,15 +1,11 @@
 ---
-- name: install git cmd
-  command: yum install git -y
-  ignore_errors: "{{ ignore_assert_errors }}"
-
-- name: Copy etcd deploy config 
+- name: Copy private key
   copy:
-    src: /home/kubernetes-operator/scripts
-    dest: /home/kubernetes-operator/
+    src: /home/kubernetes-operator/private-key
+    dest: /home/kubernetes-operator/private-key
     force: yes
 
-- name: deploy master
+- name: remove node
   command: bash remove_node.sh
   args:
     chdir: /home/kube/kubernetes-operator/scripts/remove

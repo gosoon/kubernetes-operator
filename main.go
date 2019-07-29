@@ -16,8 +16,8 @@
 
 package main
 
-import "github.com/gosoon/kubernetes-operator/cmd"
+import "github.com/gosoon/kubernetes-operator/cmd/operator"
 
 func main() {
-	cmd.Execute()
+	operator.Execute()
 }

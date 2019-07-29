@@ -18,8 +18,10 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
+	"github.com/gosoon/kubernetes-operator/pkg/kuberesource"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
 
 	"github.com/gosoon/glog"
@@ -54,7 +56,15 @@ func (s *service) CreateClusterCallback(region string, namespace string, name st
 		return nil
 	}
 
-	// TODO:update config and patch kubeconfig
+	// save kubeconfig to configmap
+	configmap := kuberesource.NewEcsConfigMap(kubernetesCluster)
+	configmap.Name = fmt.Sprintf("%v-%v-kubeconfig", namespace, name)
+	configmap.Data = map[string]string{"kubeconfig": result.KubeConfig}
+	_, err = s.opt.KubeClientset.CoreV1().ConfigMaps(namespace).Create(configmap)
+	if err != nil {
+		glog.Errorf("create %s/%s kubeconfig configMap failed with:%v", namespace, name, err)
+		return err
+	}
 
 	// update operation annotations
 	if _, existed := kubernetesCluster.Annotations[enum.Operation]; existed {

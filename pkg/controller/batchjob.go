@@ -37,7 +37,6 @@ const (
 	Kind                  = string("KubernetesCluster")
 )
 
-// TODO:mount host.yaml
 func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Job {
 	jobName := fmt.Sprintf("create-%v-%v-job", cluster.Namespace, cluster.Name)
 	completions := pointer.Int32Ptr(1)
@@ -261,6 +260,9 @@ func newScaleDownClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecs
 }
 
 func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.EnvVar {
+	// pack hostsYAML
+	hostsYAML := compressHostsYAML(cluster)
+
 	envs := []corev1.EnvVar{
 		{
 			Name:  "MASTER_HOSTS",
@@ -277,6 +279,14 @@ func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.E
 		{
 			Name:  "OPERATION",
 			Value: operation,
+		},
+		{
+			Name:  "HOSTS_YAML",
+			Value: hostsYAML,
+		},
+		{
+			Name:  "PRIVATE_KEY",
+			Value: cluster.Spec.AuthConfig.PrivateSSHKey,
 		},
 		{
 			Name: "CLUSTER_NAME",

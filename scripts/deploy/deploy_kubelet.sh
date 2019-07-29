@@ -30,7 +30,7 @@ sed -i -e "s#hostnameOverride: <node_ip>#hostnameOverride: ${LOCAL_IP}#g" ${DEST
 
 # scp ssl from master
 for master in `echo ${MASTER_HOSTS} | tr ',' ' '`;do
-    scp root@${master}:${DEST_CERTS_DIR}/{ca.pem,ca-key.pem} ${DEST_CERTS_DIR}/
+    scp -i ${DEPLOY_HOME_DIR}/private-key root@${master}:${DEST_CERTS_DIR}/{ca.pem,ca-key.pem} ${DEST_CERTS_DIR}/
     [ $? -eq 0 ] && break
 done
 
@@ -44,7 +44,8 @@ done
 
 # scp kubeconfig from master
 for master in `echo ${MASTER_HOSTS} | tr ',' ' '`;do
-    scp root@${master}:/home/kubernetes-operator/scripts/kubeconfig/output/kubelet-${LOCAL_IP}.kubeconfig \
+    scp -i ${DEPLOY_HOME_DIR}/private-key \
+    root@${master}:/home/kubernetes-operator/scripts/kubeconfig/output/kubelet-${LOCAL_IP}.kubeconfig \
     ${DEST_CONFIG_DIR}/kubelet.kubeconfig
     [ $? -eq 0 ] && break
 done

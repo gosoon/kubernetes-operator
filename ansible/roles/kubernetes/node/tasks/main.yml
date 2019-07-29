@@ -13,6 +13,11 @@
     dest: /home/kubernetes-operator/
     force: yes
 
+- name: Copy private key
+  copy:
+    src: /home/kubernetes-operator/private-key
+    dest: /home/kubernetes-operator/private-key
+    force: yes
 
 - name: deploy node
   command: bash deploy.sh node

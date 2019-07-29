@@ -42,7 +42,7 @@ sed -i -e "s#--master=https://<apiserver_ip>:6443#--master=https://${LOCAL_IP}:6
 # scp etcd ssl
 [ -d ${ETCD_CERTS_DIR} ] || mkdir -pv ${ETCD_CERTS_DIR}
 for etcd in `echo ${ETCD_HOSTS} | tr ',' ' '`;do
-    scp root@${etcd}:${ETCD_CERTS_DIR}/{ca.pem,etcd-server.pem,etcd-server-key.pem} ${ETCD_CERTS_DIR}/
+    scp -i ${DEPLOY_HOME_DIR}/private-key root@${etcd}:${ETCD_CERTS_DIR}/{ca.pem,etcd-server.pem,etcd-server-key.pem} ${ETCD_CERTS_DIR}/
     [ $? -eq 0 ] && break
 done
 

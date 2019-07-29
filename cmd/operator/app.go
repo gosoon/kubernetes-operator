@@ -80,6 +80,21 @@ to quickly create a Cobra application.`,
 			glog.Fatalf("Error building kubernetes clientset: %s", err.Error())
 		}
 
+		kubernetesClusterClient, err := clientset.NewForConfig(cfg)
+		if err != nil {
+			glog.Fatalf("Error building kubernetesCluster clientset: %s", err.Error())
+		}
+
+		// start http server
+		go func() {
+			opt := &ctrl.Options{KubernetesClusterClientset: kubernetesClusterClient, KubeClientset: kubeClient}
+			server := server.New(server.Options{CtrlOptions: opt, ListenAddr: ":8080"})
+			if err := server.ListenAndServe(); err != nil {
+				glog.Fatalf("Failed to listen and serve admission webhook server: %v", err)
+			}
+		}()
+		glog.Info("Server started")
+
 		// init eventRecorder
 		eventBroadcaster := record.NewBroadcaster()
 		eventRecorder := eventBroadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: ComponentName})
@@ -88,25 +103,12 @@ to quickly create a Cobra application.`,
 
 		// add leader elector
 		run := func(ctx context.Context) {
-			kubernetesClusterClient, err := clientset.NewForConfig(cfg)
-			if err != nil {
-				glog.Fatalf("Error building kubernetesCluster clientset: %s", err.Error())
-			}
 			kubernetesClusterInformerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, time.Second*30)
 			controller := controller.NewController(kubeClient, kubernetesClusterClient,
 				kubernetesClusterInformerFactory.Ecs().V1().KubernetesClusters())
 
 			go kubernetesClusterInformerFactory.Start(stopCh)
 
-			go func() {
-				opt := &ctrl.Options{KubernetesClusterClientset: kubernetesClusterClient, KubeClientset: kubeClient}
-				server := server.New(server.Options{CtrlOptions: opt, ListenAddr: ":8080"})
-				if err := server.ListenAndServe(); err != nil {
-					glog.Fatalf("Failed to listen and serve admission webhook server: %v", err)
-				}
-			}()
-
-			glog.Info("Server started")
 			go func() {
 				if err = controller.Run(2, stopCh); err != nil {
 					glog.Fatalf("Error running controller: %s", err.Error())

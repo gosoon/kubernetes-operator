@@ -27,7 +27,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func NewEcsConfigMap(cluster *ecsv1.KubernetesCluster) *corev1.ConfigMap {
+func NewConfigMap(cluster *ecsv1.KubernetesCluster) *corev1.ConfigMap {
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "",

@@ -25,9 +25,9 @@ import (
 	"time"
 
 	clientset "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned"
-	"github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned/scheme"
 	informers "github.com/gosoon/kubernetes-operator/pkg/client/informers/externalversions"
 	"github.com/gosoon/kubernetes-operator/pkg/controller"
+	"github.com/gosoon/kubernetes-operator/pkg/kuberesource"
 	"github.com/gosoon/kubernetes-operator/pkg/server"
 	ctrl "github.com/gosoon/kubernetes-operator/pkg/server/controller"
 
@@ -36,17 +36,10 @@ import (
 	"github.com/resouer/k8s-controller-custom-resource/pkg/signals"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/uuid"
 	"k8s.io/client-go/kubernetes"
-	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/leaderelection"
-	"k8s.io/client-go/tools/leaderelection/resourcelock"
-	"k8s.io/client-go/tools/record"
 )
-
-const ComponentName = "kubernetes-operator"
 
 var (
 	cfgFile    string
@@ -92,14 +85,14 @@ to quickly create a Cobra application.`,
 			if err := server.ListenAndServe(); err != nil {
 				glog.Fatalf("Failed to listen and serve admission webhook server: %v", err)
 			}
+			glog.Info("Server started")
 		}()
-		glog.Info("Server started")
 
-		// init eventRecorder
-		eventBroadcaster := record.NewBroadcaster()
-		eventRecorder := eventBroadcaster.NewRecorder(scheme.Scheme, v1.EventSource{Component: ComponentName})
-		eventBroadcaster.StartLogging(glog.Infof)
-		eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeClient.CoreV1().Events("")})
+		// new resourcelock
+		rl, err := kuberesource.NewResourceLock(kubeClient)
+		if err != nil {
+			glog.Fatalf("new resourcelock failed with:%s", err.Error())
+		}
 
 		// add leader elector
 		run := func(ctx context.Context) {
@@ -108,7 +101,6 @@ to quickly create a Cobra application.`,
 				kubernetesClusterInformerFactory.Ecs().V1().KubernetesClusters())
 
 			go kubernetesClusterInformerFactory.Start(stopCh)
-
 			go func() {
 				if err = controller.Run(2, stopCh); err != nil {
 					glog.Fatalf("Error running controller: %s", err.Error())
@@ -124,27 +116,6 @@ to quickly create a Cobra application.`,
 			//server.Shutdown(context.Background())
 		}
 
-		// init host identity
-		id, err := os.Hostname()
-		if err != nil {
-			glog.Fatalf("get hostname error: %v", err)
-		}
-		id = id + "_" + string(uuid.NewUUID())
-
-		rl, err := resourcelock.New("endpoints",
-			"kube-system",
-			ComponentName,
-			kubeClient.CoreV1(),
-			kubeClient.CoordinationV1(),
-			resourcelock.ResourceLockConfig{
-				Identity:      id,
-				EventRecorder: eventRecorder,
-			})
-
-		if err != nil {
-			glog.Fatalf("error creating lock: %v", err)
-		}
-
 		leaderelection.RunOrDie(context.TODO(), leaderelection.LeaderElectionConfig{
 			Lock:          rl,
 			LeaseDuration: 15 * time.Second,
@@ -156,7 +127,7 @@ to quickly create a Cobra application.`,
 					glog.Info("leaderelection lost")
 				},
 			},
-			Name: ComponentName,
+			Name: controller.ComponentName,
 		})
 
 	},

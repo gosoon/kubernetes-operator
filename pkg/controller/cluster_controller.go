@@ -41,9 +41,9 @@ import (
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
 )
 
-const componentName = "kubernetes-operator"
-
 const (
+	ComponentName = "kubernetes-operator"
+
 	// SuccessSynced is used as part of the Event 'reason' when a KubernetesCluster is synced
 	SuccessSynced = "Synced"
 
@@ -85,7 +85,7 @@ func NewController(
 	eventBroadcaster := record.NewBroadcaster()
 	eventBroadcaster.StartLogging(glog.Infof)
 	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclientset.CoreV1().Events("")})
-	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: componentName})
+	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: ComponentName})
 
 	controller := &Controller{
 		kubeclientset:              kubeclientset,

@@ -57,7 +57,7 @@ func (s *service) CreateClusterCallback(region string, namespace string, name st
 	}
 
 	// save kubeconfig to configmap
-	configmap := kuberesource.NewEcsConfigMap(kubernetesCluster)
+	configmap := kuberesource.NewConfigMap(kubernetesCluster)
 	configmap.Name = fmt.Sprintf("%v-%v-kubeconfig", namespace, name)
 	configmap.Data = map[string]string{"kubeconfig": result.KubeConfig}
 	_, err = s.opt.KubeClientset.CoreV1().ConfigMaps(namespace).Create(configmap)

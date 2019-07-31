@@ -28,7 +28,7 @@ type FakeEcsV1 struct {
 	*testing.Fake
 }
 
-func (c *FakeEcsV1) KubernetesClusters() v1.KubernetesClusterInterface {
+func (c *FakeEcsV1) KubernetesClusters(namespace string) v1.KubernetesClusterInterface {
 	return &FakeKubernetesClusters{c}
 }
 

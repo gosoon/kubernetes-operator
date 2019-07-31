@@ -32,7 +32,7 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 
 	namespace := curCluster.Namespace
 	name := curCluster.Name
-	// create kubernetes cluster
+	// create kubernetes cluster job
 	createClusterJob := newCreateKubernetesClusterJob(curCluster)
 	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(createClusterJob)
 	if err != nil {
@@ -69,12 +69,20 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 		glog.Errorf("update status failed with:%v", err)
 		return err
 	}
+
+	go c.jobTTLControl(curCluster)
 	return nil
 }
 
 func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) error {
 	// when status scaling-up + scaling, direct return
 	if cluster.Status.Phase == enum.Scaling {
+		return nil
+	}
+
+	// if the reason filed is not null,indicating that the job failed,the reason have the job create failed,
+	// job timeout...
+	if cluster.Status.Reason != "" {
 		return nil
 	}
 
@@ -118,12 +126,20 @@ func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) err
 		glog.Errorf("update %s/%s status to ScalingUp failed with:%v", namespace, name, err)
 		return err
 	}
+
+	go c.jobTTLControl(curCluster)
 	return nil
 }
 
 func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) error {
 	// when status scaling-down + scaling, direct return
 	if cluster.Status.Phase == enum.Scaling {
+		return nil
+	}
+
+	// if the reason filed is not null,indicating that the job failed,the reason have the job create failed,
+	// job timeout...
+	if cluster.Status.Reason != "" {
 		return nil
 	}
 
@@ -167,6 +183,8 @@ func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) e
 		glog.Errorf("update %s/%s status to ScalingUp failed with:%v", namespace, name, err)
 		return err
 	}
+
+	go c.jobTTLControl(curCluster)
 	return nil
 }
 
@@ -180,7 +198,7 @@ func (c *Controller) processClusterTerminating(cluster *ecsv1.KubernetesCluster)
 	deleteClusterJob := newDeleteKubernetesClusterJob(curCluster)
 	_, err := c.kubeclientset.BatchV1().Jobs(namespace).Create(deleteClusterJob)
 	if err != nil {
-		glog.Errorf("create delete %s/%s kubernetes cluster job failed with:%v", namespace, name, err)
+		glog.Errorf("create delete-%s/%s-kubernetes cluster job failed with:%v", namespace, name, err)
 		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.DeleteKubeJobFailed, "")
 		return err
 	}
@@ -202,5 +220,7 @@ func (c *Controller) processClusterTerminating(cluster *ecsv1.KubernetesCluster)
 		glog.Errorf("update %s/%s status failed with:%v", namespace, name, err)
 		return err
 	}
+
+	go c.jobTTLControl(curCluster)
 	return nil
 }

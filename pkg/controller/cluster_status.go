@@ -67,13 +67,21 @@ func (c *Controller) processKubeCreating(cluster *ecsv1.KubernetesCluster) error
 }
 
 func (c *Controller) processNewOperate(cluster *ecsv1.KubernetesCluster) error {
+	// if the reason filed is not null,indicating that the job failed,the reason have the job create failed,
+	// job timeout...
+	if cluster.Status.Reason != "" {
+		return nil
+	}
+
 	// if kubeCreateFailed and retry,the status is new
-	curCluster := cluster.DeepCopy()
-	curCluster.Status.Phase = enum.New
-	_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(cluster.Namespace).UpdateStatus(curCluster)
-	if err != nil {
-		glog.Errorf("update finished cluster status failed with:%v", err)
-		return err
+	if cluster.Status.Phase != enum.New {
+		curCluster := cluster.DeepCopy()
+		curCluster.Status.Phase = enum.New
+		_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(cluster.Namespace).UpdateStatus(curCluster)
+		if err != nil {
+			glog.Errorf("update finished cluster status failed with:%v", err)
+			return err
+		}
 	}
 	return nil
 }

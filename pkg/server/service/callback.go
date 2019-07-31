@@ -17,6 +17,7 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -29,7 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s *service) CreateClusterCallback(region string, namespace string, name string, result *types.Callback) error {
+func (s *service) CreateClusterCallback(ctx context.Context, region string, namespace string, name string, result *types.Callback) error {
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
@@ -90,7 +91,7 @@ func (s *service) CreateClusterCallback(region string, namespace string, name st
 	return nil
 }
 
-func (s *service) ScaleUpCallback(region string, namespace string, name string, result *types.Callback) error {
+func (s *service) ScaleUpCallback(ctx context.Context, region string, namespace string, name string, result *types.Callback) error {
 	clientset := s.opt.KubernetesClusterClientset
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
@@ -139,7 +140,7 @@ func (s *service) ScaleUpCallback(region string, namespace string, name string, 
 	return nil
 }
 
-func (s *service) ScaleDownCallback(region string, namespace string, name string, result *types.Callback) error {
+func (s *service) ScaleDownCallback(ctx context.Context, region string, namespace string, name string, result *types.Callback) error {
 	clientset := s.opt.KubernetesClusterClientset
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
@@ -188,7 +189,7 @@ func (s *service) ScaleDownCallback(region string, namespace string, name string
 	return nil
 }
 
-func (s *service) DeleteClusterCallback(region string, namespace string, name string, result *types.Callback) error {
+func (s *service) DeleteClusterCallback(ctx context.Context, region string, namespace string, name string, result *types.Callback) error {
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {

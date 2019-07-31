@@ -83,7 +83,7 @@ func (c *cluster) createCluster(w http.ResponseWriter, r *http.Request) {
 	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.CreateCluster(region, namespace, name, cluster)
+	err = c.opt.Service.CreateCluster(r.Context(), region, namespace, name, cluster)
 	if err != nil {
 		controller.BadRequest(w, r, err)
 		return
@@ -102,7 +102,7 @@ func (c *cluster) deleteCluster(w http.ResponseWriter, r *http.Request) {
 	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.DeleteCluster(region, namespace, name, cluster)
+	err = c.opt.Service.DeleteCluster(r.Context(), region, namespace, name, cluster)
 	if err != nil {
 		controller.BadRequest(w, r, err)
 		return
@@ -121,7 +121,7 @@ func (c *cluster) scaleUpCluster(w http.ResponseWriter, r *http.Request) {
 	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.ScaleUp(region, namespace, name, cluster)
+	err = c.opt.Service.ScaleUp(r.Context(), region, namespace, name, cluster)
 	if err != nil {
 		controller.BadRequest(w, r, err)
 		return
@@ -140,7 +140,7 @@ func (c *cluster) scaleDownCluster(w http.ResponseWriter, r *http.Request) {
 	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.ScaleDown(region, namespace, name, cluster)
+	err = c.opt.Service.ScaleDown(r.Context(), region, namespace, name, cluster)
 	if err != nil {
 		controller.BadRequest(w, r, err)
 		return
@@ -159,7 +159,7 @@ func (c *cluster) createClusterCallback(w http.ResponseWriter, r *http.Request) 
 	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.CreateClusterCallback(region, namespace, name, callback)
+	err = c.opt.Service.CreateClusterCallback(r.Context(), region, namespace, name, callback)
 	if err != nil {
 		controller.BadRequest(w, r, err)
 		return
@@ -178,7 +178,7 @@ func (c *cluster) scaleUpCallback(w http.ResponseWriter, r *http.Request) {
 	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.ScaleUpCallback(region, namespace, name, callback)
+	err = c.opt.Service.ScaleUpCallback(r.Context(), region, namespace, name, callback)
 	if err != nil {
 		controller.BadRequest(w, r, err)
 		return
@@ -197,7 +197,7 @@ func (c *cluster) scaleDownCallback(w http.ResponseWriter, r *http.Request) {
 	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.ScaleDownCallback(region, namespace, name, callback)
+	err = c.opt.Service.ScaleDownCallback(r.Context(), region, namespace, name, callback)
 	if err != nil {
 		controller.BadRequest(w, r, err)
 		return
@@ -216,7 +216,7 @@ func (c *cluster) deleteClusterCallback(w http.ResponseWriter, r *http.Request) 
 	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	err = c.opt.Service.DeleteClusterCallback(region, namespace, name, callback)
+	err = c.opt.Service.DeleteClusterCallback(r.Context(), region, namespace, name, callback)
 	if err != nil {
 		controller.BadRequest(w, r, err)
 		return
@@ -229,7 +229,7 @@ func (c *cluster) getClusterOperationLogs(w http.ResponseWriter, r *http.Request
 	region := mux.Vars(r)["region"]
 	name := mux.Vars(r)["name"]
 
-	logs, err := c.opt.Service.GetClusterOperationLogs(region, namespace, name)
+	logs, err := c.opt.Service.GetClusterOperationLogs(r.Context(), region, namespace, name)
 	if err != nil {
 		controller.BadRequest(w, r, err)
 		return

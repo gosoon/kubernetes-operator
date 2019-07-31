@@ -18,6 +18,7 @@ package service
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 
@@ -31,7 +32,7 @@ const (
 	jobLabelKey = "job-name"
 )
 
-func (s *service) GetClusterOperationLogs(region string, namespace string, name string) (string, error) {
+func (s *service) GetClusterOperationLogs(ctx context.Context, region string, namespace string, name string) (string, error) {
 	clusterClientset := s.opt.KubernetesClusterClientset
 	var logs string
 	kubernetesCluster, err := clusterClientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})

@@ -17,6 +17,8 @@
 package service
 
 import (
+	"context"
+
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
@@ -26,7 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s *service) CreateCluster(region string, namespace string, name string, clusterInfo *types.EcsClient) error {
+func (s *service) CreateCluster(ctx context.Context, region string, namespace string, name string, clusterInfo *types.EcsClient) error {
 	clientset := s.opt.KubernetesClusterClientset
 	if !clusterInfo.Retry {
 		kubernetesCluster := &ecsv1.KubernetesCluster{
@@ -85,7 +87,7 @@ func (s *service) CreateCluster(region string, namespace string, name string, cl
 	return nil
 }
 
-func (s *service) DeleteCluster(region string, namespace string, name string, clusterInfo *types.EcsClient) error {
+func (s *service) DeleteCluster(ctx context.Context, region string, namespace string, name string, clusterInfo *types.EcsClient) error {
 	clientset := s.opt.KubernetesClusterClientset
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 	if err != nil {

@@ -26,7 +26,7 @@ import (
 
 	clientset "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned"
 	informers "github.com/gosoon/kubernetes-operator/pkg/client/informers/externalversions"
-	"github.com/gosoon/kubernetes-operator/pkg/controller"
+	ecsv1controller "github.com/gosoon/kubernetes-operator/pkg/controller"
 	"github.com/gosoon/kubernetes-operator/pkg/kuberesource"
 	"github.com/gosoon/kubernetes-operator/pkg/server"
 	ctrl "github.com/gosoon/kubernetes-operator/pkg/server/controller"
@@ -39,6 +39,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/leaderelection"
+	"k8s.io/kubernetes/pkg/controller"
 )
 
 var (
@@ -96,13 +97,13 @@ to quickly create a Cobra application.`,
 
 		// add leader elector
 		run := func(ctx context.Context) {
-			kubernetesClusterInformerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, time.Second*30)
-			controller := controller.NewController(kubeClient, kubernetesClusterClient,
+			kubernetesClusterInformerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, controller.NoResyncPeriodFunc())
+			ecsv1Controller := ecsv1controller.NewController(kubeClient, kubernetesClusterClient,
 				kubernetesClusterInformerFactory.Ecs().V1().KubernetesClusters())
 
 			go kubernetesClusterInformerFactory.Start(stopCh)
 			go func() {
-				if err = controller.Run(2, stopCh); err != nil {
+				if err = ecsv1Controller.Run(2, stopCh); err != nil {
 					glog.Fatalf("Error running controller: %s", err.Error())
 				}
 			}()
@@ -127,7 +128,7 @@ to quickly create a Cobra application.`,
 					glog.Info("leaderelection lost")
 				},
 			},
-			Name: controller.ComponentName,
+			Name: ecsv1controller.ComponentName,
 		})
 
 	},

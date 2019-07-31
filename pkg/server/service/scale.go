@@ -17,6 +17,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
 
@@ -24,7 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (s *service) ScaleUp(region string, namespace string, name string, clusterInfo *types.EcsClient) error {
+func (s *service) ScaleUp(ctx context.Context, region string, namespace string, name string, clusterInfo *types.EcsClient) error {
 	clientset := s.opt.KubernetesClusterClientset
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
@@ -56,7 +58,7 @@ func (s *service) ScaleUp(region string, namespace string, name string, clusterI
 	return nil
 }
 
-func (s *service) ScaleDown(region string, namespace string, name string, clusterInfo *types.EcsClient) error {
+func (s *service) ScaleDown(ctx context.Context, region string, namespace string, name string, clusterInfo *types.EcsClient) error {
 	clientset := s.opt.KubernetesClusterClientset
 
 	kubernetesCluster, err := clientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})

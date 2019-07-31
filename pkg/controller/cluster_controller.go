@@ -238,6 +238,7 @@ func (c *Controller) syncHandler(key string) error {
 	return err
 }
 
+// processKubernetesClusterCreateOrUpdate is handle all status in kubernetesCluster.
 func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *ecsv1.KubernetesCluster) error {
 	switch kubernetesCluster.Status.Phase {
 	// phase is "" express create new kubernetesCluster
@@ -246,9 +247,9 @@ func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *e
 		if err != nil {
 			return err
 		}
-		// TODO: callback controller to ensure create success
+
+	// TODO: callback controller to ensure create success
 	case enum.Creating, enum.Running, enum.Scaling:
-		// 1.delete own job; 2.update finalizers; 3. delete crds
 		if kubernetesCluster.DeletionTimestamp != nil {
 			if kubernetesCluster.Annotations[enum.Operation] == enum.KubeTerminating {
 				return c.processClusterTerminating(kubernetesCluster)

@@ -26,7 +26,6 @@ import (
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
-	autoscaling "k8s.io/kubernetes/pkg/apis/autoscaling"
 )
 
 // FakeKubernetesClusters implements KubernetesClusterInterface
@@ -132,21 +131,21 @@ func (c *FakeKubernetesClusters) Patch(name string, pt types.PatchType, data []b
 }
 
 // GetScale takes name of the kubernetesCluster, and returns the corresponding scale object, and an error if there is any.
-func (c *FakeKubernetesClusters) GetScale(kubernetesClusterName string, options v1.GetOptions) (result *autoscaling.Scale, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewRootGetSubresourceAction(kubernetesclustersResource, "scale", kubernetesClusterName), &autoscaling.Scale{})
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*autoscaling.Scale), err
-}
+//func (c *FakeKubernetesClusters) GetScale(kubernetesClusterName string, options v1.GetOptions) (result *autoscaling.Scale, err error) {
+//obj, err := c.Fake.
+//Invokes(testing.NewRootGetSubresourceAction(kubernetesclustersResource, "scale", kubernetesClusterName), &autoscaling.Scale{})
+//if obj == nil {
+//return nil, err
+//}
+//return obj.(*autoscaling.Scale), err
+//}
 
-// UpdateScale takes the representation of a scale and updates it. Returns the server's representation of the scale, and an error, if there is any.
-func (c *FakeKubernetesClusters) UpdateScale(kubernetesClusterName string, scale *autoscaling.Scale) (result *autoscaling.Scale, err error) {
-	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateSubresourceAction(kubernetesclustersResource, "scale", scale), &autoscaling.Scale{})
-	if obj == nil {
-		return nil, err
-	}
-	return obj.(*autoscaling.Scale), err
-}
+//// UpdateScale takes the representation of a scale and updates it. Returns the server's representation of the scale, and an error, if there is any.
+//func (c *FakeKubernetesClusters) UpdateScale(kubernetesClusterName string, scale *autoscaling.Scale) (result *autoscaling.Scale, err error) {
+//obj, err := c.Fake.
+//Invokes(testing.NewRootUpdateSubresourceAction(kubernetesclustersResource, "scale", scale), &autoscaling.Scale{})
+//if obj == nil {
+//return nil, err
+//}
+//return obj.(*autoscaling.Scale), err
+//}

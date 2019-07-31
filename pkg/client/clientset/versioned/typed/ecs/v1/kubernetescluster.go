@@ -193,7 +193,7 @@ func (c *kubernetesClusters) Patch(name string, pt types.PatchType, data []byte,
 	return
 }
 
-// GetScale takes name of the kubernetesCluster, and returns the corresponding autoscaling.Scale object, and an error if there is any.
+//GetScale takes name of the kubernetesCluster, and returns the corresponding autoscaling.Scale object, and an error if there is any.
 //func (c *kubernetesClusters) GetScale(kubernetesClusterName string, options metav1.GetOptions) (result *autoscaling.Scale, err error) {
 //result = &autoscaling.Scale{}
 //err = c.client.Get().

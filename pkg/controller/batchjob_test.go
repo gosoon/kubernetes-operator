@@ -14,19 +14,28 @@
  * limitations under the License.
  */
 
-package service
+package controller
 
 import (
+	"testing"
+
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// valid operate
-func validPhase(kubernetesCluster *ecsv1.KubernetesCluster) bool {
-	phase := kubernetesCluster.Status.Phase
-	if phase == enum.New || phase == enum.Creating || phase == enum.Scaling ||
-		phase == enum.Terminating {
-		return false
+func TestNewCreateKubernetesClusterJob(t *testing.T) {
+	testCases := []*ecsv1.KubernetesCluster{
+		&ecsv1.KubernetesCluster{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-1",
+			},
+			Status: ecsv1.KubernetesClusterStatus{
+				Phase: enum.Running,
+			},
+		},
 	}
-	return true
+	for _, test := range testCases {
+		_ = newCreateKubernetesClusterJob(test)
+	}
 }

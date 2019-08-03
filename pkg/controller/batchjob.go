@@ -18,7 +18,6 @@ package controller
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/gosoon/kubernetes-operator/pkg/apis/ecs"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
@@ -28,17 +27,18 @@ import (
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/uuid"
 )
 
 const (
-	Image                 = string("busybox:latest")
+	Image                 = string("ansibleinit:latest")
 	RestartPolicy         = string("Never")
 	ActiveDeadlineSeconds = int32(10 * 60)
 	Kind                  = string("KubernetesCluster")
 )
 
 func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Job {
-	jobName := fmt.Sprintf("create-%v-%v-job", cluster.Namespace, cluster.Name)
+	jobName := fmt.Sprintf("create-%v-%v-job-%v", cluster.Namespace, cluster.Name, string(uuid.NewUUID())[0:5])
 	completions := pointer.Int32Ptr(1)
 	parallelism := pointer.Int32Ptr(1)
 	backoffLimit := pointer.Int32Ptr(0)
@@ -73,9 +73,10 @@ func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 					RestartPolicy: corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
 						{
-							Name:  jobName,
-							Image: Image,
-							Env:   envs,
+							Name:            jobName,
+							Image:           Image,
+							ImagePullPolicy: "IfNotPresent",
+							Env:             envs,
 						},
 					},
 				},
@@ -93,7 +94,7 @@ func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 }
 
 func newDeleteKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Job {
-	jobName := fmt.Sprintf("delete-%v-%v-job", cluster.Namespace, cluster.Name)
+	jobName := fmt.Sprintf("delete-%v-%v-job-%v", cluster.Namespace, cluster.Name, string(uuid.NewUUID())[0:5])
 	completions := pointer.Int32Ptr(1)
 	parallelism := pointer.Int32Ptr(1)
 	backoffLimit := pointer.Int32Ptr(0)
@@ -124,9 +125,10 @@ func newDeleteKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 					RestartPolicy: corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
 						{
-							Name:  jobName,
-							Image: Image,
-							Env:   envs,
+							Name:            jobName,
+							Image:           Image,
+							ImagePullPolicy: "IfNotPresent",
+							Env:             envs,
 						},
 					},
 				},
@@ -147,7 +149,7 @@ func newScaleUpClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecsv1
 	// diff work node
 	namespace := cluster.Namespace
 	name := cluster.Name
-	jobName := fmt.Sprintf("scale-up-%v-%v-job-%v", namespace, name, time.Now().Unix())
+	jobName := fmt.Sprintf("scale-up-%v-%v-job-%v", namespace, name, string(uuid.NewUUID())[0:5])
 	completions := pointer.Int32Ptr(1)
 	parallelism := pointer.Int32Ptr(1)
 	backoffLimit := pointer.Int32Ptr(0)
@@ -183,9 +185,10 @@ func newScaleUpClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecsv1
 					RestartPolicy: corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
 						{
-							Name:  jobName,
-							Image: Image,
-							Env:   envs,
+							Name:            jobName,
+							Image:           Image,
+							ImagePullPolicy: "IfNotPresent",
+							Env:             envs,
 						},
 					},
 				},
@@ -205,7 +208,7 @@ func newScaleDownClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecs
 	// diff work node
 	namespace := cluster.Namespace
 	name := cluster.Name
-	jobName := fmt.Sprintf("scale-down-%v-%v-job-%v", namespace, name, time.Now().Unix())
+	jobName := fmt.Sprintf("scale-down-%v-%v-job-%v", namespace, name, string(uuid.NewUUID())[0:5])
 	completions := pointer.Int32Ptr(1)
 	parallelism := pointer.Int32Ptr(1)
 	backoffLimit := pointer.Int32Ptr(0)
@@ -241,9 +244,10 @@ func newScaleDownClusterJob(cluster *ecsv1.KubernetesCluster, diffNodeList []ecs
 					RestartPolicy: corev1.RestartPolicyNever,
 					Containers: []corev1.Container{
 						{
-							Name:  jobName,
-							Image: Image,
-							Env:   envs,
+							Name:            jobName,
+							Image:           Image,
+							ImagePullPolicy: "IfNotPresent",
+							Env:             envs,
 						},
 					},
 				},
@@ -289,20 +293,12 @@ func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.E
 			Value: cluster.Spec.AuthConfig.PrivateSSHKey,
 		},
 		{
-			Name: "CLUSTER_NAME",
-			ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.name",
-				},
-			},
+			Name:  "CLUSTER_NAME",
+			Value: cluster.Name,
 		},
 		{
-			Name: "CLUSTER_NAMESPACE",
-			ValueFrom: &corev1.EnvVarSource{
-				FieldRef: &corev1.ObjectFieldSelector{
-					FieldPath: "metadata.namespace",
-				},
-			},
+			Name:  "CLUSTER_NAMESPACE",
+			Value: cluster.Namespace,
 		},
 	}
 	return envs

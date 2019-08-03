@@ -21,6 +21,7 @@ import (
 
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
+	"github.com/pkg/errors"
 
 	"github.com/gosoon/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,9 +37,10 @@ func (s *service) ScaleUp(ctx context.Context, region string, namespace string, 
 	}
 
 	// if latest task must be finished and start next task
-	admit, err := validOperate(kubernetesCluster)
+	admit := validPhase(kubernetesCluster)
 	if !admit {
-		return err
+		return errors.Errorf("current operation is [%v],only in running,failed can be start next task",
+			kubernetesCluster.Status.Phase)
 	}
 
 	if !clusterInfo.Retry {
@@ -68,9 +70,10 @@ func (s *service) ScaleDown(ctx context.Context, region string, namespace string
 	}
 
 	// if latest task must be finished and start next task
-	admit, err := validOperate(kubernetesCluster)
+	admit := validPhase(kubernetesCluster)
 	if !admit {
-		return err
+		return errors.Errorf("current operation is [%v],only in running,failed can be start next task",
+			kubernetesCluster.Status.Phase)
 	}
 
 	if !clusterInfo.Retry {

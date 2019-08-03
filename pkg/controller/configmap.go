@@ -32,7 +32,7 @@ import (
 // newConfigMap is record all operate for echo kubernetes cluster.
 // TODO: set ttl for operate
 func newConfigMap(cluster *ecsv1.KubernetesCluster, jobName string) *corev1.ConfigMap {
-	name := fmt.Sprintf("kube-%s-%s", cluster.Annotations[enum.Operation], string(uuid.NewUUID()))
+	name := fmt.Sprintf("kube-%s-%s", cluster.Annotations[enum.Operation], string(uuid.NewUUID())[0:5])
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

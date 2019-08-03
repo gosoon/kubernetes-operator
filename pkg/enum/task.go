@@ -49,8 +49,8 @@ const (
 
 	// phase
 	New         = ecsv1.KubernetesOperatorPhase("")
-	Scaling     = ecsv1.KubernetesOperatorPhase("Scaling")
 	Creating    = ecsv1.KubernetesOperatorPhase("Creating")
+	Scaling     = ecsv1.KubernetesOperatorPhase("Scaling")
 	Running     = ecsv1.KubernetesOperatorPhase("Running")
 	Failed      = ecsv1.KubernetesOperatorPhase("Failed")
 	Terminating = ecsv1.KubernetesOperatorPhase("Terminating")

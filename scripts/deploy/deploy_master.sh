@@ -16,7 +16,8 @@ DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
 DEST_CERTS_DIR="/etc/kubernetes/ssl"
 KUBE_MASTER_LOG="/var/log/kubernetes"
 
-cp ${KUBE_MASTER_BIN_DIR}/{kube-apiserver,kube-controller-manager,kube-scheduler,kubectl} /usr/bin/
+cp ${KUBE_MASTER_BIN_DIR}/{kube-apiserver,kube-controller-manager,kube-scheduler,kubectl} /usr/bin/ && \
+    chmod +x /usr/bin/{kube-apiserver,kube-controller-manager,kube-scheduler,kubectl}
 cp ${KUBE_MASTER_SYSTEMD_CONFIG_DIR}/{kube-apiserver.service,kube-controller-manager.service,kube-scheduler.service} ${DEST_SYSTEMD_DIR}/
 
 # cp config, apiserver config controller-manager scheduler 

@@ -25,6 +25,7 @@ import (
 
 	"github.com/gosoon/glog"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
@@ -42,16 +43,6 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 	}
 	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.CreateKubeJobSuccess, "")
 
-	// set finalizers
-	curCluster.Finalizers = []string{fmt.Sprintf("kubernetescluster.ecs.yun.com/%v", curCluster.Name)}
-	curCluster, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curCluster)
-	if err != nil {
-		glog.Errorf("update %s/%s spec failed with:%v", err, namespace, name)
-		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.SetFinalizersFailed, err.Error())
-		return err
-	}
-	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.SetFinalizersSuccess, "")
-
 	// configmap is record the crd operation
 	configMap := newConfigMap(curCluster, createClusterJob.Name)
 	_, err = c.kubeclientset.CoreV1().ConfigMaps(namespace).Create(configMap)
@@ -61,28 +52,34 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 	}
 
 	// update phase
-	curCluster = curCluster.DeepCopy()
 	curCluster.Status.Phase = enum.Creating
+	curCluster.Status.LastTransitionTime = metav1.Now()
 	curCluster.Status.JobName = createClusterJob.Name
-	_, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
+	curCluster, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 	if err != nil {
 		glog.Errorf("update status failed with:%v", err)
 		return err
 	}
+
+	// set finalizers
+	curCluster = curCluster.DeepCopy()
+	curCluster.Finalizers = []string{fmt.Sprintf("kubernetescluster.ecs.yun.com/%v", curCluster.Name)}
+	curCluster, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curCluster)
+	if err != nil {
+		glog.Errorf("update %s/%s spec failed with:%v", err, namespace, name)
+		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.SetFinalizersFailed, err.Error())
+		return err
+	}
+	c.recorder.Event(curCluster, corev1.EventTypeNormal, enum.SetFinalizersSuccess, "")
 
 	go c.jobTTLControl(curCluster)
 	return nil
 }
 
 func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) error {
-	// when status scaling-up + scaling, direct return
-	if cluster.Status.Phase == enum.Scaling {
-		return nil
-	}
-
 	// if the reason filed is not null,indicating that the job failed,the reason have the job create failed,
-	// job timeout...
-	if cluster.Status.Reason != "" {
+	//job timeout...
+	if cluster.Status.Phase == enum.Scaling && cluster.Status.Reason != "" {
 		return nil
 	}
 
@@ -120,8 +117,10 @@ func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) err
 
 	// update phase to ScalingUp
 	curCluster.Status.Phase = enum.Scaling
+	curCluster.Status.LastTransitionTime = metav1.Now()
+	curCluster.Status.Reason = ""
 	curCluster.Status.JobName = scaleUpClusterJob.Name
-	_, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
+	curCluster, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 	if err != nil {
 		glog.Errorf("update %s/%s status to ScalingUp failed with:%v", namespace, name, err)
 		return err
@@ -132,14 +131,9 @@ func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) err
 }
 
 func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) error {
-	// when status scaling-down + scaling, direct return
-	if cluster.Status.Phase == enum.Scaling {
-		return nil
-	}
-
-	// if the reason filed is not null,indicating that the job failed,the reason have the job create failed,
-	// job timeout...
-	if cluster.Status.Reason != "" {
+	//if the reason filed is not null,indicating that the job failed,the reason have the job create failed,
+	//job timeout...
+	if cluster.Status.Phase == enum.Scaling && cluster.Status.Reason != "" {
 		return nil
 	}
 
@@ -177,8 +171,10 @@ func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) e
 
 	// update phase to ScalingDown
 	curCluster.Status.Phase = enum.Scaling
+	curCluster.Status.LastTransitionTime = metav1.Now()
+	curCluster.Status.Reason = ""
 	curCluster.Status.JobName = scaleDownClusterJob.Name
-	_, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
+	curCluster, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 	if err != nil {
 		glog.Errorf("update %s/%s status to ScalingUp failed with:%v", namespace, name, err)
 		return err
@@ -189,8 +185,13 @@ func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) e
 }
 
 func (c *Controller) processClusterTerminating(cluster *ecsv1.KubernetesCluster) error {
-	curCluster := cluster.DeepCopy()
+	// if the reason filed is not null,indicating that the last terminating job failed,the reason have the job create failed,
+	// job timeout...
+	if cluster.Status.Phase == enum.Terminating && cluster.Status.Reason != "" {
+		return nil
+	}
 
+	curCluster := cluster.DeepCopy()
 	namespace := curCluster.Namespace
 	name := curCluster.Name
 
@@ -214,8 +215,10 @@ func (c *Controller) processClusterTerminating(cluster *ecsv1.KubernetesCluster)
 
 	// update status to Terminating
 	curCluster.Status.Phase = enum.Terminating
+	curCluster.Status.LastTransitionTime = metav1.Now()
+	curCluster.Status.Reason = ""
 	curCluster.Status.JobName = deleteClusterJob.Name
-	_, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
+	curCluster, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 	if err != nil {
 		glog.Errorf("update %s/%s status failed with:%v", namespace, name, err)
 		return err

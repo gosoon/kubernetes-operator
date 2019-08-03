@@ -17,6 +17,7 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
@@ -33,7 +34,7 @@ func convertNodesToString(nodes []ecsv1.Node) string {
 	for i, node := range nodes {
 		nodeStr += node.IP
 		if i != l-1 {
-			nodeStr += " "
+			nodeStr += ","
 		}
 	}
 	return nodeStr
@@ -141,6 +142,8 @@ func compressHostsYAML(cluster *ecsv1.KubernetesCluster) string {
 	configJSON, _ := json.MarshalIndent(config, "", "")
 
 	configBytes, _ = yaml.JSONToYAML(configJSON)
+
+	configBytes = bytes.Replace(configBytes, []byte("null"), []byte(""), -1)
 
 	return string(configBytes)
 }

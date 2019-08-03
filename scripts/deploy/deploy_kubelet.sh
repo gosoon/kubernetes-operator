@@ -16,8 +16,8 @@ DEST_SYSTEMD_DIR="/usr/lib/systemd/system"
 DEST_CONFIG_DIR="/etc/kubernetes"
 KUBE_MASTER_LOG="/var/log/kubernetes"
 
-cp ${KUBE_NODE_BIN_DIR}/kubelet /usr/bin/
-
+cp ${KUBE_NODE_BIN_DIR}/kubelet /usr/bin/ && \
+    chmod +x /usr/bin/kubelet
 cp ${KUBE_NODE_SYSTEMD_CONFIG_DIR}/kubelet.service  ${DEST_SYSTEMD_DIR}
 
 [ -d ${DEST_CONFIG_DIR} ] || mkdir ${DEST_CONFIG_DIR}

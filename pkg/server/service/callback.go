@@ -39,8 +39,8 @@ func (s *service) CreateClusterCallback(ctx context.Context, region string, name
 	}
 
 	// if already callback and return
-	if kubernetesCluster.Annotations[enum.Operation] != enum.KubeCreating {
-		return errors.New("callback is already done.Current operation not is kubeCreating")
+	if kubernetesCluster.Status.Phase != enum.Creating {
+		return errors.Errorf("job timeout or callback is already done.Current phase(%v) not is creating", kubernetesCluster.Status.Phase)
 	}
 
 	// if job failed,get the detail log from job's pod
@@ -100,9 +100,9 @@ func (s *service) ScaleUpCallback(ctx context.Context, region string, namespace 
 		return err
 	}
 
-	// if already callback and return
-	if kubernetesCluster.Annotations[enum.Operation] != enum.KubeScalingUp {
-		return errors.New("callback is already done.current operation not is kubeScalingUp")
+	// if already callback or job failed ... and return
+	if kubernetesCluster.Status.Phase != enum.Scaling {
+		return errors.Errorf("job timeout or callback is already done.Current phase(%v) not is scaling", kubernetesCluster.Status.Phase)
 	}
 
 	// if job failed,get the detail log from job's pod log
@@ -149,9 +149,9 @@ func (s *service) ScaleDownCallback(ctx context.Context, region string, namespac
 		return err
 	}
 
-	// if already callback and return
-	if kubernetesCluster.Annotations[enum.Operation] != enum.KubeScalingDown {
-		return errors.New("callback is already done.current operation not is kubeScalingDown")
+	// if already callback or job failed ... and return
+	if kubernetesCluster.Status.Phase != enum.Scaling {
+		return errors.Errorf("job timeout or callback is already done.Current phase(%v) not is scaling", kubernetesCluster.Status.Phase)
 	}
 
 	// if job failed,get the detail log from job's pod
@@ -197,9 +197,9 @@ func (s *service) DeleteClusterCallback(ctx context.Context, region string, name
 		return err
 	}
 
-	// if already callback and return
-	if kubernetesCluster.Annotations[enum.Operation] != enum.KubeTerminating {
-		return errors.New("callback is already done.current operation not is kubeTerminating")
+	// if already callback or job failed ... and return
+	if kubernetesCluster.Status.Phase != enum.Terminating {
+		return errors.Errorf("job timeout or callback is already done.Current phase(%v) not is terminating", kubernetesCluster.Status.Phase)
 	}
 
 	// if job failed,get the detail log from job's pod

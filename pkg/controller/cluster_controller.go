@@ -287,7 +287,7 @@ func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *e
 		}
 	// Failed
 	case enum.Failed:
-		// delete retry
+		// delete retry or last job failed
 		if kubernetesCluster.DeletionTimestamp != nil {
 			if kubernetesCluster.Annotations[enum.Operation] == enum.KubeTerminating {
 				return c.processClusterTerminating(kubernetesCluster)

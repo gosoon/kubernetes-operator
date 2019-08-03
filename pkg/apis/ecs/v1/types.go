@@ -21,8 +21,6 @@ type KubernetesCluster struct {
 
 // KubernetesClusterSpec defines the desired state of KubernetesCluster
 type KubernetesClusterSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	TimeoutMins   string     `json:"timeout_mins,omitempty"`
 	ClusterType   string     `json:"clusterType,omitempty"`
@@ -45,12 +43,17 @@ type AuthConfig struct {
 
 // KubernetesClusterStatus defines the observed state of KubernetesCluster
 type KubernetesClusterStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	Phase   KubernetesOperatorPhase `json:"phase,omitempty"`
-	Reason  string                  `json:"reason,omitempty"`
-	JobName string                  `json:"jobName,omitempty"`
+	Phase KubernetesOperatorPhase `json:"phase,omitempty"`
+
+	// when job failed callback or job timeout used
+	Reason string `json:"reason,omitempty"`
+
+	// JobName is store each job name
+	JobName string `json:"jobName,omitempty"`
+
+	// Last time the condition transitioned from one status to another.
+	LastTransitionTime metav1.Time `json:"lastTransitionTime,omitempty"`
 }
 
 // +genclient:nonNamespaced

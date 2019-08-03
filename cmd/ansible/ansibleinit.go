@@ -142,28 +142,39 @@ func main() {
 	// save env to file and use ansible copy to all hosts specified dir
 	success := envSaveFile()
 	if !success {
+		fmt.Println("save env failed")
 		os.Exit(1)
 	}
+	fmt.Println("save env success")
 
 	//save hosts.yaml
-	success = stringSaveFile(HostsYAMLVal, HostsYAMLFileName)
+	success = stringSaveFile(HostsYAMLVal, HostsYAMLFileName, os.ModePerm)
 	if !success {
+		fmt.Println("save hosts.yaml failed")
 		os.Exit(1)
 	}
+	fmt.Println("save hosts.yaml success")
 
 	//save private.key
-	success = saveFile(PrivateKeyVal, PrivateKeyFileName)
+	success = stringSaveFile(PrivateKeyVal, PrivateKeyFileName, os.FileMode(0600))
 	if !success {
+		fmt.Println("save private.key failed")
 		os.Exit(1)
 	}
+	fmt.Println("save private.key success")
 
 	switch OperationVal {
 	case enum.KubeCreating:
-		deployEtcdCmd := exec.Command("/bin/bash", "-c", `df -lh`)
-		go execCmd(deployEtcdCmd, cmdStdout, cmdError)
-		//go func() { execKubeCreatingCmds(cmdStdout, cmdError) }()
+		go func() { execKubeCreatingCmds(cmdStdout, cmdError) }()
 	case enum.KubeScalingUp:
-		go func() { execKubeScalingUpCmds(cmdStdout, cmdError) }()
+		go func() {
+			deployEtcdCmd := exec.Command("/bin/bash", "-c", `df -lh`)
+			s := execCmd(deployEtcdCmd, cmdError)
+			fmt.Println("case:", s)
+			cmdStdout <- "asda"
+			fmt.Println("cmdStdout <- s ")
+		}()
+		//go func() { execKubeScalingUpCmds(cmdStdout, cmdError) }()
 	case enum.KubeScalingDown:
 		go func() { execKubeScalingDownCmds(cmdStdout, cmdError) }()
 	case enum.KubeTerminating:
@@ -175,11 +186,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	// default timeout is ten minutes
 	timeout := viper.GetInt(timeout)
 	select {
 	case <-time.After(time.Duration(timeout) * time.Second):
-		callback("", errors.Errorf("the operation is timeout(%v)", timeout))
+		wrapErr := errors.Errorf("the operation is timeout(%v)", timeout)
+		fmt.Println(wrapErr)
+		callback("", wrapErr)
 	case err := <-cmdError:
+		fmt.Println(err)
 		callback("", err)
 	case stdout := <-cmdStdout:
 		callback(stdout, nil)
@@ -187,6 +202,8 @@ func main() {
 }
 
 func callback(stdout string, err error) {
+	fmt.Println("-------callback")
+
 	resp := types.Callback{
 		Name:       ClusterNameVal,
 		Namespace:  ClusterNamespaceVal,
@@ -204,13 +221,15 @@ func callback(stdout string, err error) {
 	var path string
 	switch OperationVal {
 	case enum.KubeCreating:
-		// get kubeconfig if deploy success
-		cmdError := make(chan error, 1)
-		kubeconfig := execGetKubeconfig(cmdError)
-		if kubeconfig == "" {
-			os.Exit(1)
+		if err == nil {
+			// get kubeconfig if deploy success
+			cmdError := make(chan error, 1)
+			kubeconfig := execGetKubeconfig(cmdError)
+			if kubeconfig == "" {
+				os.Exit(1)
+			}
+			resp.KubeConfig = kubeconfig
 		}
-		resp.Kubeconfig = kubeconfig
 		path = viper.GetString(creatingCallbackPath)
 	case enum.KubeScalingUp:
 		path = viper.GetString(scalingUpCallbackPath)
@@ -226,6 +245,8 @@ func callback(stdout string, err error) {
 
 // sendRequest is send request to controller
 func sendRequest(path string) {
+	fmt.Println("----------sendRequest")
+
 	c, err := rest.RESTClientFor(&rest.Config{
 		Host: viper.GetString(server),
 		ContentConfig: rest.ContentConfig{
@@ -237,7 +258,7 @@ func sendRequest(path string) {
 	})
 
 	if err != nil {
-		fmt.Println("new restclient failed with:", err)
+		fmt.Printf("new restclient failed with:%v \n", err)
 		return
 	}
 
@@ -246,58 +267,66 @@ func sendRequest(path string) {
 		Raw()
 
 	if err != nil {
-		fmt.Println("response failed with:", err)
+		fmt.Printf("response failed with:%v \n", err)
 		return
 	}
 
-	fmt.Println("response result is:", string(resp))
+	fmt.Printf("response result is:%v \n", string(resp))
 }
 
 func execKubeCreatingCmds(cmdStdout chan<- string, cmdError chan<- error) {
-	deployEtcdCmd := exec.Command("/bin/bash", "-c", DeployEtcdCmd)
-	execCmd(deployEtcdCmd, cmdStdout, cmdError)
+	deployEtcdCmd := exec.Command("sh", "-c", DeployEtcdCmd)
+	execCmd(deployEtcdCmd, cmdError)
 	if len(cmdError) != 0 {
+		fmt.Println("exec deployEtcdCmd failed")
 		return
 	}
+	fmt.Println("exec deployEtcdCmd success")
 
-	deployMasterCmd := exec.Command("/bin/bash", "-c", DeployMasterCmd)
-	execCmd(deployMasterCmd, cmdStdout, cmdError)
+	deployMasterCmd := exec.Command("sh", "-c", DeployMasterCmd)
+	execCmd(deployMasterCmd, cmdError)
 	if len(cmdError) != 0 {
+		fmt.Println("exec deployMasterCmd failed")
 		return
 	}
+	fmt.Println("exec deployMasterCmd success")
 
-	deployNodeCmd := exec.Command("/bin/bash", "-c", DeployNodeCmd)
-	stdout := execCmd(deployNodeCmd, cmdStdout, cmdError)
+	deployNodeCmd := exec.Command("sh", "-c", DeployNodeCmd)
+	stdout := execCmd(deployNodeCmd, cmdError)
 	if len(cmdError) != 0 {
+		fmt.Println("exec deployNodeCmd failed")
 		return
 	}
+	fmt.Println("exec deployNodeCmd success")
 	// the job is finished
 	cmdStdout <- stdout
 }
 
 func execKubeScalingUpCmds(cmdStdout chan<- string, cmdError chan<- error) {
-	scaleUpCmd := exec.Command("/bin/bash", "-c", ScaleUpCmd)
+	scaleUpCmd := exec.Command("sh", "-c", ScaleUpCmd)
 	stdout := execCmd(scaleUpCmd, cmdError)
 	cmdStdout <- stdout
 }
 
 func execKubeScalingDownCmds(cmdStdout chan<- string, cmdError chan<- error) {
-	scaleDownCmd := exec.Command("/bin/bash", "-c", ScaleDownCmd)
+	scaleDownCmd := exec.Command("sh", "-c", ScaleDownCmd)
 	stdout := execCmd(scaleDownCmd, cmdError)
 	cmdStdout <- stdout
 }
 
 func execKubeTerminatingCmds(cmdStdout chan<- string, cmdError chan<- error) {
-	terminatingCmd := exec.Command("/bin/bash", "-c", TerminatingCmd)
+	terminatingCmd := exec.Command("sh", "-c", TerminatingCmd)
 	stdout := execCmd(terminatingCmd, cmdError)
 	cmdStdout <- stdout
 }
 
 func execGetKubeconfig(cmdError chan<- error) string {
+	fmt.Println("---------start get kubeconfig")
+
 	var kubeconfig string
 	for _, master := range strings.Split(MasterHostsVal, ",") {
 		packKubeconfigCmd := fmt.Sprintf(KubeconfigCmd, master)
-		getKubeconfigCmd := exec.Command("/bin/bash", "-c", packKubeconfigCmd)
+		getKubeconfigCmd := exec.Command("sh", "-c", packKubeconfigCmd)
 		kubeconfig = execCmd(getKubeconfigCmd, cmdError)
 		if kubeconfig != "" {
 			break
@@ -310,27 +339,31 @@ func execCmd(cmd *exec.Cmd, cmdError chan<- error) string {
 	// create command pipe
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		cmdError <- errors.Errorf("obtain stdout pipe for command failed with:%v\n", err)
-		return
+		wrapErr := errors.Errorf("obtain %v stdout pipe for command failed with:%v", cmd.Args, err)
+		cmdError <- wrapErr
+		return ""
 	}
 
 	// exec command
-	if err := cmd.Start(); err != nil {
-		cmdError <- errors.Errorf("command start failed with:%v", err)
-		return
+	if err = cmd.Start(); err != nil {
+		wrapErr := errors.Errorf("command %v start failed with:%v", cmd.Args, err)
+		cmdError <- wrapErr
+		return ""
 	}
 
 	// read all stdout
 	bytes, err := ioutil.ReadAll(stdout)
 	if err != nil {
-		cmdError <- errors.Errorf("read stdout failed with:%v", err)
-		return
+		wrapErr := errors.Errorf("read %v stdout failed with:%v", cmd.Args, err)
+		cmdError <- wrapErr
+		return ""
 	}
 
 	// wait cmd exec finished
-	if err := cmd.Wait(); err != nil {
-		cmdError <- errors.Errorf("wait cmd exec finished failed with:%v", err)
-		return
+	if err = cmd.Wait(); err != nil {
+		wrapErr := errors.Errorf("wait cmd %v exec finished failed with:%v", cmd.Args, err)
+		cmdError <- wrapErr
+		return ""
 	}
 
 	// print logs in job's pod
@@ -338,11 +371,11 @@ func execCmd(cmd *exec.Cmd, cmdError chan<- error) string {
 	return string(bytes)
 }
 
-func stringSaveFile(env string, fileName string) bool {
+func stringSaveFile(env string, fileName string, perm os.FileMode) bool {
 	// create hosts.yaml or overrite it
-	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
+	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, perm)
 	if err != nil {
-		fmt.Errorf("open file %v failed with:%v", fileName, err)
+		fmt.Printf("open file %v failed with:%v \n", fileName, err)
 		return false
 	}
 	defer f.Close()
@@ -350,16 +383,16 @@ func stringSaveFile(env string, fileName string) bool {
 
 	_, err = f.WriteString(env)
 	if err != nil {
-		fmt.Errorf("write file %v failed with:%v", fileName, err)
+		fmt.Printf("write file %v failed with:%v \n", fileName, err)
 		return false
 	}
 	return true
 }
 
 func envSaveFile() bool {
-	f, err := os.OpenFile(EnvFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	f, err := os.OpenFile(EnvFileName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
 	if err != nil {
-		fmt.Errorf("open file %v failed with:%v", EnvFileName, err)
+		fmt.Printf("open file %v failed with:%v \n", EnvFileName, err)
 		return false
 	}
 
@@ -383,7 +416,7 @@ func envSaveFile() bool {
 
 	_, err = f.WriteString(envsStr)
 	if err != nil {
-		fmt.Errorf("write file %v failed with:%v", EnvFileName, err)
+		fmt.Printf("write file %v failed with:%v \n", EnvFileName, err)
 		return false
 	}
 	return true

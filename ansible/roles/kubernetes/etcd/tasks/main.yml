@@ -8,9 +8,10 @@
 #  ignore_errors: "{{ ignore_assert_errors }}"
 
 - name: Copy etcd deploy config 
-  copy:
+  file:
     src: /home/kubernetes-operator/scripts
     dest: /home/kubernetes-operator/
+    follow: yes
     force: yes
 
 - name: Copy private key
@@ -18,6 +19,7 @@
     src: /home/kubernetes-operator/private-key
     dest: /home/kubernetes-operator/private-key
     force: yes
+    mode: 0600
 
 - name: Deploy etcd
   command: bash deploy.sh etcd

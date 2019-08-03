@@ -33,7 +33,7 @@ const (
 	period = 10 * time.Second
 
 	// ten minutes timeout
-	timeout = int64(10 * 60)
+	timeout = int64(1 * 60)
 )
 
 // jobTTLControl is handle job create failed or job running timeout.
@@ -61,13 +61,14 @@ func (c *Controller) jobTTLControl(cluster *ecsv1.KubernetesCluster) {
 		}
 
 		// if job running timeout and set operation status to failed
-		createTime := cluster.CreationTimestamp.Unix()
+		lastTransitionTime := cluster.Status.LastTransitionTime.Unix()
 		nowTime := time.Now().Unix()
-		if nowTime-createTime > timeout {
+		if nowTime-lastTransitionTime > timeout {
 			curCluster = curCluster.DeepCopy()
 			// update kubernetesCluster annotation operation and status
 			curCluster.Status.Reason = fmt.Sprintf("the [%v] job running timeout(>%vs)", oldOperation, timeout)
 			curCluster.Status.Phase = enum.Failed
+			curCluster.Status.LastTransitionTime = metav1.Now()
 			_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 			if err != nil {
 				glog.Errorf("jobTTLTimeout update %s/%s cluster status failed with:%v", namespace, name, err)

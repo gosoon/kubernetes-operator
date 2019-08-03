@@ -21,6 +21,7 @@ import (
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
 
 	"github.com/gosoon/glog"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (c *Controller) processOperateFinished(cluster *ecsv1.KubernetesCluster) error {
@@ -28,6 +29,7 @@ func (c *Controller) processOperateFinished(cluster *ecsv1.KubernetesCluster) er
 		// update status
 		curCluster := cluster.DeepCopy()
 		curCluster.Status.Phase = enum.Running
+		curCluster.Status.LastTransitionTime = metav1.Now()
 		_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(cluster.Namespace).UpdateStatus(curCluster)
 		if err != nil {
 			glog.Errorf("update finished cluster status failed with:%v", err)
@@ -42,6 +44,7 @@ func (c *Controller) processOperateFailed(cluster *ecsv1.KubernetesCluster) erro
 		// update status
 		curCluster := cluster.DeepCopy()
 		curCluster.Status.Phase = enum.Failed
+		curCluster.Status.LastTransitionTime = metav1.Now()
 		_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(cluster.Namespace).UpdateStatus(curCluster)
 		if err != nil {
 			glog.Errorf("update finished cluster status failed with:%v", err)
@@ -57,6 +60,7 @@ func (c *Controller) processKubeCreating(cluster *ecsv1.KubernetesCluster) error
 		// update status
 		curCluster := cluster.DeepCopy()
 		curCluster.Status.Phase = enum.Creating
+		curCluster.Status.LastTransitionTime = metav1.Now()
 		_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(cluster.Namespace).UpdateStatus(curCluster)
 		if err != nil {
 			glog.Errorf("update finished cluster status failed with:%v", err)
@@ -77,6 +81,7 @@ func (c *Controller) processNewOperate(cluster *ecsv1.KubernetesCluster) error {
 	if cluster.Status.Phase != enum.New {
 		curCluster := cluster.DeepCopy()
 		curCluster.Status.Phase = enum.New
+		curCluster.Status.LastTransitionTime = metav1.Now()
 		_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(cluster.Namespace).UpdateStatus(curCluster)
 		if err != nil {
 			glog.Errorf("update finished cluster status failed with:%v", err)

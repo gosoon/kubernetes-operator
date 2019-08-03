@@ -45,8 +45,8 @@ EOF
 
 pre_ipvs
 
-cp ${KUBE_PROXY_BIN_DIR}/kube-proxy /usr/bin/
-
+cp ${KUBE_PROXY_BIN_DIR}/kube-proxy /usr/bin/ && \
+    chmod +x /usr/bin/kube-proxy
 cp ${KUBE_PROXY_SYSTEMD_CONFIG_DIR}/kube-proxy.service  ${DEST_SYSTEMD_DIR}
 
 [ -d ${DEST_CONFIG_DIR} ] || mkdir ${DEST_CONFIG_DIR}

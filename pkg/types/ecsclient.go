@@ -28,6 +28,7 @@ type EcsClient struct {
 	ContainerCIDR string       `json:"containerCIDR"`
 	ServiceCIDR   string       `json:"serviceCIDR"`
 	MasterList    []ecsv1.Node `json:"masterList"`
+	MasterVIP     string       `json:"masterVIP"`
 	NodeList      []ecsv1.Node `json:"nodeList"`
 	EtcdList      []ecsv1.Node `json:"etcdList"`
 	PrivateSSHKey string       `json:"privateSSHKey"`

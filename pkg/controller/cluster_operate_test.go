@@ -17,6 +17,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"testing"
 
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
@@ -30,9 +31,7 @@ import (
 	"k8s.io/kubernetes/pkg/controller"
 )
 
-var alwaysReady = func() bool { return true }
-
-func TestProcessOperateFinished(t *testing.T) {
+func TestProcessClusterNew(t *testing.T) {
 	fakeClient := fake.NewSimpleClientset()
 	kubernetesClusterClient := ecsfake.NewSimpleClientset()
 	informerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, controller.NoResyncPeriodFunc())
@@ -64,15 +63,14 @@ func TestProcessOperateFinished(t *testing.T) {
 		if err != nil {
 			t.Fatalf("error injecting ecs add: %v", err)
 		}
-
-		err = ecsv1Controller.processOperateFinished(test)
+		err = ecsv1Controller.processClusterNew(test)
 		if !assert.Equal(t, nil, err) {
 			t.Fatalf("expected: %v but get %v", nil, err)
 		}
 	}
 }
 
-func TestProcessOperateFailed(t *testing.T) {
+func TestProcessClusterScaleUp(t *testing.T) {
 	fakeClient := fake.NewSimpleClientset()
 	kubernetesClusterClient := ecsfake.NewSimpleClientset()
 	informerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, controller.NoResyncPeriodFunc())
@@ -86,135 +84,70 @@ func TestProcessOperateFailed(t *testing.T) {
 				Name: "test-1",
 			},
 			Status: ecsv1.KubernetesClusterStatus{
-				Phase: enum.Running,
-			},
-		},
-		&ecsv1.KubernetesCluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-2",
-			},
-			Status: ecsv1.KubernetesClusterStatus{
-				Phase: enum.Failed,
-			},
-		},
-	}
-
-	for _, test := range testCases {
-		_, err := kubernetesClusterClient.EcsV1().KubernetesClusters("").Create(test)
-		if err != nil {
-			t.Fatalf("error injecting ecs add: %v", err)
-		}
-
-		err = ecsv1Controller.processOperateFailed(test)
-		if !assert.Equal(t, nil, err) {
-			t.Fatalf("expected: %v but get %v", nil, err)
-		}
-	}
-}
-
-func TestProcessKubeCreating(t *testing.T) {
-	fakeClient := fake.NewSimpleClientset()
-	kubernetesClusterClient := ecsfake.NewSimpleClientset()
-	informerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, controller.NoResyncPeriodFunc())
-	ecsv1Controller := NewController(fakeClient, kubernetesClusterClient,
-		informerFactory.Ecs().V1().KubernetesClusters())
-	ecsv1Controller.kubernetesClusterSynced = alwaysReady
-
-	testCases := []*ecsv1.KubernetesCluster{
-		&ecsv1.KubernetesCluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-1",
-			},
-			Status: ecsv1.KubernetesClusterStatus{
-				Phase: enum.Running,
-			},
-		},
-		&ecsv1.KubernetesCluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-2",
-			},
-			Status: ecsv1.KubernetesClusterStatus{
-				Phase: enum.Failed,
-			},
-		},
-		&ecsv1.KubernetesCluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-3",
-			},
-			Status: ecsv1.KubernetesClusterStatus{
-				Phase: enum.Creating,
-			},
-		},
-	}
-
-	for _, test := range testCases {
-		//informerFactory.Ecs().V1().KubernetesClusters().Informer().GetIndexer().Add(test)
-		//ecsv1Controller.enqueueKubernetesCluster(test)
-		//ecsv1Controller.workqueue.AddRateLimited(test.Namespace + "/" + test.Name)
-		_, err := kubernetesClusterClient.EcsV1().KubernetesClusters("").Create(test)
-		if err != nil {
-			t.Fatalf("error injecting ecs add: %v", err)
-		}
-		err = ecsv1Controller.processKubeCreating(test)
-		if !assert.Equal(t, nil, err) {
-			t.Fatalf("expected: %v but get %v", nil, err)
-		}
-	}
-}
-
-func TestProcessNewOperate(t *testing.T) {
-	fakeClient := fake.NewSimpleClientset()
-	kubernetesClusterClient := ecsfake.NewSimpleClientset()
-	informerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, controller.NoResyncPeriodFunc())
-	ecsv1Controller := NewController(fakeClient, kubernetesClusterClient,
-		informerFactory.Ecs().V1().KubernetesClusters())
-	ecsv1Controller.kubernetesClusterSynced = alwaysReady
-
-	testCases := []*ecsv1.KubernetesCluster{
-		&ecsv1.KubernetesCluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-1",
-			},
-			Status: ecsv1.KubernetesClusterStatus{
-				Phase:  enum.New,
-				Reason: "...",
-			},
-		},
-		&ecsv1.KubernetesCluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-2",
-			},
-			Status: ecsv1.KubernetesClusterStatus{
-				Phase:  enum.New,
+				Phase:  enum.Scaling,
 				Reason: "",
 			},
 		},
 		&ecsv1.KubernetesCluster{
 			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-3",
+				Name: "test-2",
 			},
 			Status: ecsv1.KubernetesClusterStatus{
-				Phase:  enum.Creating,
-				Reason: "",
-			},
-		},
-		&ecsv1.KubernetesCluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-4",
-			},
-			Status: ecsv1.KubernetesClusterStatus{
-				Phase:  enum.Creating,
+				Phase:  enum.Scaling,
 				Reason: "...",
 			},
 		},
 	}
 
+	//fakeClient.AddReactor("create", "jobs", func(action core.Action) (bool, runtime.Object, error) {
+	//return true, nil, nil
+	//})
+
 	for _, test := range testCases {
+		testJSON, _ := json.Marshal(test)
+		test.Annotations = map[string]string{enum.Spec: string(testJSON)}
+		err := ecsv1Controller.processClusterScaleUp(test)
+		if !assert.Equal(t, nil, err) {
+			t.Fatalf("expected: %v but get %v", nil, err)
+		}
+	}
+}
+
+func TestProcessClusterScaleDown(t *testing.T) {
+	fakeClient := fake.NewSimpleClientset()
+	kubernetesClusterClient := ecsfake.NewSimpleClientset()
+	informerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, controller.NoResyncPeriodFunc())
+	ecsv1Controller := NewController(fakeClient, kubernetesClusterClient,
+		informerFactory.Ecs().V1().KubernetesClusters())
+	ecsv1Controller.kubernetesClusterSynced = alwaysReady
+
+	testCases := []*ecsv1.KubernetesCluster{
+		&ecsv1.KubernetesCluster{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-1",
+			},
+			Status: ecsv1.KubernetesClusterStatus{
+				Phase: enum.Scaling,
+			},
+		},
+		&ecsv1.KubernetesCluster{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-2",
+			},
+			Status: ecsv1.KubernetesClusterStatus{
+				Phase: enum.Scaling,
+			},
+		},
+	}
+
+	for _, test := range testCases {
+		testJSON, _ := json.Marshal(test)
+		test.Annotations = map[string]string{enum.Spec: string(testJSON)}
 		_, err := kubernetesClusterClient.EcsV1().KubernetesClusters("").Create(test)
 		if err != nil {
 			t.Fatalf("error injecting ecs add: %v", err)
 		}
-		err = ecsv1Controller.processNewOperate(test)
+		err = ecsv1Controller.processClusterScaleDown(test)
 		if !assert.Equal(t, nil, err) {
 			t.Fatalf("expected: %v but get %v", nil, err)
 		}

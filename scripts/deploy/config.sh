@@ -26,7 +26,10 @@ CALICO_VER="v3.7"
 # coredns version 
 COREDNS_VER="v1.4.0"
 
+LOCAL_IP=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1')
+
 # if in docker and use env
+ENV_FILE="${DEPLOY_HOME_DIR}/scripts/deploy/hosts_env"
 if ! grep docker /proc/1/cgroup -qa; then
-    [ -f hosts_env ] && source hosts_env || exit 1
+    [ -f ${ENV_FILE} ] && source ${ENV_FILE} || exit 1
 fi

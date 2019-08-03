@@ -35,7 +35,7 @@ download_etcd(){
 }
 
 # cp etcd config
-cp ${ETCD_BIN_DIR}/{etcd,etcdctl} /usr/bin/
+cp ${ETCD_BIN_DIR}/{etcd,etcdctl} /usr/bin/ && chmod +x /usr/bin/{etcd,etcdctl}
 cp ${ETCD_SYSTEMD_CONFIG_DIR}/etcd.service  ${DEST_SYSTEMD_DIR}/
 [ -d ${DEST_CONFIG_DIR} ] || mkdir ${DEST_CONFIG_DIR}
 cp ${ETCD_CONFIG_DIR}/* ${DEST_CONFIG_DIR}/
@@ -62,6 +62,7 @@ for i in `seq 1 ${etcd_num}`;do
     etcd_cluster="${etcd_cluster}${cluster}"
     if [ "X${ip}" == "X${LOCAL_IP}" ];then
         sed -i -e "s@\(ETCD_NAME=\).*@\1\"node${i}\"@g" ${DEST_CONFIG_DIR}/etcd.conf
+        break
     fi
 done
 

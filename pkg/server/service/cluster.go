@@ -46,6 +46,7 @@ func (s *service) CreateCluster(ctx context.Context, region string, namespace st
 				ContainerCIDR: clusterInfo.ContainerCIDR,
 				ServiceCIDR:   clusterInfo.ServiceCIDR,
 				MasterList:    clusterInfo.MasterList,
+				MasterVIP:     clusterInfo.MasterVIP,
 				NodeList:      clusterInfo.NodeList,
 				EtcdList:      clusterInfo.EtcdList,
 				Region:        region,
@@ -96,10 +97,10 @@ func (s *service) DeleteCluster(ctx context.Context, region string, namespace st
 	}
 
 	// only in running,failed,finished can delete cluster
-	admit, _ := validOperate(kubernetesCluster)
+	admit := validPhase(kubernetesCluster)
 	if !admit {
-		return errors.Errorf("current operation is [%v],only in running,failed,finished can delete cluster",
-			kubernetesCluster.Annotations[enum.Operation])
+		return errors.Errorf("current operation is [%v],only in running,failed can be delete cluster",
+			kubernetesCluster.Status.Phase)
 	}
 
 	// update operation annotations

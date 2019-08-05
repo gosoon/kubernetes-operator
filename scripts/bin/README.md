@@ -1,0 +1,1 @@
+Since the files are too large, here are the mock files.If you need to use these file in this directory,please to [https://github.com/gosoon/kubernetes-utils/tree/master/scripts/bin](https://github.com/gosoon/kubernetes-utils/tree/master/scripts/bin)

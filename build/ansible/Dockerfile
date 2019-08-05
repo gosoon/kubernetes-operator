@@ -1,14 +1,14 @@
-#FROM golang:1.12-alpine
+FROM golang:1.12-alpine
 
-#RUN apk add --no-cache \
-    #wget \
-    #make \
-    #git \
-    #openssh-client \
-    #ansible \
-    #openssh \
-    #vim
-FROM golang:alpine
+RUN apk add --no-cache \
+    wget \
+    make \
+    git \
+    openssh-client \
+    ansible \
+    openssh \
+    vim
+#FROM golang:alpine
 
 RUN mkdir -p /home/kubernetes-operator \
     && mkdir -p /home/kubernetes-operator/configs/ansible

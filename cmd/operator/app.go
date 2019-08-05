@@ -37,6 +37,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/leaderelection"
 	"k8s.io/kubernetes/pkg/controller"
@@ -65,10 +66,17 @@ to quickly create a Cobra application.`,
 		// set up signals so we handle the first shutdown signal gracefully
 		stopCh := signals.SetupSignalHandler()
 
-		cfg, err := clientcmd.BuildConfigFromFlags(masterURL, kubeconfig)
-		if err != nil {
-			glog.Fatalf("Error building kubeconfig: %s", err.Error())
+		var cfg *rest.Config
+		var err error
+		if kubeconfig == "" {
+			cfg, err = rest.InClusterConfig()
+		} else {
+			cfg, err = clientcmd.BuildConfigFromFlags(masterURL, kubeconfig)
+			if err != nil {
+				glog.Fatalf("Error building kubeconfig: %s", err.Error())
+			}
 		}
+
 		kubeClient, err := kubernetes.NewForConfig(cfg)
 		if err != nil {
 			glog.Fatalf("Error building kubernetes clientset: %s", err.Error())

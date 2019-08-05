@@ -5,7 +5,7 @@
 
 kubernetes-operator is a control plane and manage all kubernetes cluster lifecycle (kube-on-kube-operator).
 
-<img src="doc/images/image-20190804152312149.png"></img>
+![](http://cdn.tianfeiyu.com/image-20190804152312149.png)
 
 ## Introduce
 
@@ -45,6 +45,6 @@ $ bash test/create_ecs.sh
 
 ## Detailed instructions
 
-[kube-on-kube-operator 开发(一)](http://blog.tianfeiyu.com/2019/08/05/kube_on_kube_operator_1/)
+- [kube-on-kube-operator 开发(一)](http://blog.tianfeiyu.com/2019/08/05/kube_on_kube_operator_1/)
 
 

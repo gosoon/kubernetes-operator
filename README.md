@@ -1,7 +1,6 @@
-## kubernetes-operator
+# kubernetes-operator
 
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
-
 [![Go Report Card](https://goreportcard.com/badge/github.com/gosoon/kubernetes-operator)](https://goreportcard.com/report/github.com/gosoon/kubernetes-operator)
 
 kubernetes-operator is a control plane and manage all kubernetes cluster lifecycle (kube-on-kube-operator).
@@ -44,7 +43,7 @@ $ bash test/create_ecs.sh
 4. development node-operator 
 5. support admission control
 
-###Detailed instructions
+## Detailed instructions
 
 [kube-on-kube-operator 开发(一)](http://blog.tianfeiyu.com/2019/08/05/kube_on_kube_operator_1/)
 

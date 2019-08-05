@@ -33,7 +33,7 @@ const (
 	period = 10 * time.Second
 
 	// ten minutes timeout
-	timeout = int64(1 * 60)
+	timeout = int64(10 * 60)
 )
 
 // jobTTLControl is handle job create failed or job running timeout.

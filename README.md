@@ -5,7 +5,7 @@
 
 kubernetes-operator is a control plane and manage all kubernetes cluster lifecycle (kube-on-kube-operator).
 
-![](http://cdn.tianfeiyu.com/image-20190804152312149.png)
+![](http://cdn.tianfeiyu.com/image-20190805195135765.png)
 
 ## Introduce
 
@@ -29,8 +29,16 @@ $ kubectl create -f deploy/crds/ecs_v1_kubernetescluster_crd.yaml
 // update your image address and deploy kubernetes-operator
 $ kubectl create -f deploy/operator.yaml
 
+$ kubectl get crd
+NAME                                  CREATED AT
+kubernetesclusters.ecs.yun.com        2019-08-05T12:23:52Z
+
 // update operator server in create_ecs.sh and create a cluster
-$ bash test/create_ecs.sh
+$ bash test/create_ecs.sh  
+
+$ kubectl get ecs
+NAME           AGE
+test-cluster   1h
 ```
 
 

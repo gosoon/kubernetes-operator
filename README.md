@@ -13,8 +13,7 @@ kubernetes-operator contains several large parts：
 
 - Kubernetes-proxy: is a proxy and all requests pass through，look like a gateway
 - Operator: is a kubernetes operator deploy in meta kubernetes and manage all kubernetes clusters(create、scale、delete、upgrade、Fault self-healing...)
-- Cluster deploy: Deploy kubernetes use ansible
-- kubernetes proxy : manage the lifecycle of all kubernetes cluster applications, eg: metric-server、 promethus、log-polit...
+- Cluster deploy: use ansible deploy kubernetes cluster and multiple kubernetes cluster applications, eg: metric-server、 promethus、log-polit、helm...
 
 ## Getting started
 

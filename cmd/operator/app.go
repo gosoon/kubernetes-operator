@@ -72,9 +72,9 @@ to quickly create a Cobra application.`,
 			cfg, err = rest.InClusterConfig()
 		} else {
 			cfg, err = clientcmd.BuildConfigFromFlags(masterURL, kubeconfig)
-			if err != nil {
-				glog.Fatalf("Error building kubeconfig: %s", err.Error())
-			}
+		}
+		if err != nil {
+			glog.Fatalf("Error building kubeconfig: %s", err.Error())
 		}
 
 		kubeClient, err := kubernetes.NewForConfig(cfg)

@@ -54,5 +54,6 @@ test-cluster   1h
 ## Detailed instructions
 
 - [kube-on-kube-operator 开发(一)](http://blog.tianfeiyu.com/2019/08/05/kube_on_kube_operator_1/)
+- [kube-on-kube-operator 开发(二)](http://blog.tianfeiyu.com/2019/08/07/kube_on_kube_operator_2/)
 
 

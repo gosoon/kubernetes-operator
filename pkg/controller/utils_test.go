@@ -35,7 +35,7 @@ func TestConvertNodesToString(t *testing.T) {
 				{IP: "192.168.1.2"},
 				{IP: "192.168.1.3"},
 			},
-			expect: "192.168.1.2 192.168.1.3",
+			expect: "192.168.1.2,192.168.1.3",
 		},
 		{
 			nodeList: []ecsv1.Node{

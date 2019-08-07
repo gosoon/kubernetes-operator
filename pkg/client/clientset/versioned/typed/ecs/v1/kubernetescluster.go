@@ -46,9 +46,6 @@ type KubernetesClusterInterface interface {
 	List(opts metav1.ListOptions) (*v1.KubernetesClusterList, error)
 	Watch(opts metav1.ListOptions) (watch.Interface, error)
 	Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1.KubernetesCluster, err error)
-	//GetScale(kubernetesClusterName string, options metav1.GetOptions) (*autoscaling.Scale, error)
-	//UpdateScale(kubernetesClusterName string, scale *autoscaling.Scale) (*autoscaling.Scale, error)
-
 	KubernetesClusterExpansion
 }
 
@@ -192,29 +189,3 @@ func (c *kubernetesClusters) Patch(name string, pt types.PatchType, data []byte,
 		Into(result)
 	return
 }
-
-//GetScale takes name of the kubernetesCluster, and returns the corresponding autoscaling.Scale object, and an error if there is any.
-//func (c *kubernetesClusters) GetScale(kubernetesClusterName string, options metav1.GetOptions) (result *autoscaling.Scale, err error) {
-//result = &autoscaling.Scale{}
-//err = c.client.Get().
-//Resource("kubernetesclusters").
-//Name(kubernetesClusterName).
-//SubResource("scale").
-//VersionedParams(&options, scheme.ParameterCodec).
-//Do().
-//Into(result)
-//return
-//}
-
-//// UpdateScale takes the top resource name and the representation of a scale and updates it. Returns the server's representation of the scale, and an error, if there is any.
-//func (c *kubernetesClusters) UpdateScale(kubernetesClusterName string, scale *autoscaling.Scale) (result *autoscaling.Scale, err error) {
-//result = &autoscaling.Scale{}
-//err = c.client.Put().
-//Resource("kubernetesclusters").
-//Name(kubernetesClusterName).
-//SubResource("scale").
-//Body(scale).
-//Do().
-//Into(result)
-//return
-//}

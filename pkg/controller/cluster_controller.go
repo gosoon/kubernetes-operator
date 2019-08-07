@@ -225,7 +225,7 @@ func (c *Controller) syncHandler(key string) error {
 
 	// Get the KubernetesCluster resource with this namespace/name
 	kubernetesCluster, err := c.kubernetesClusterLister.KubernetesClusters(namespace).Get(name)
-	fmt.Printf("%+v\n", kubernetesCluster)
+	//fmt.Printf("%+v\n", kubernetesCluster)
 	switch {
 	case errors.IsNotFound(err):
 		// The KubernetesCluster resource may no longer exist, in which case we stop

@@ -31,6 +31,7 @@ import (
 // FakeKubernetesClusters implements KubernetesClusterInterface
 type FakeKubernetesClusters struct {
 	Fake *FakeEcsV1
+	ns   string
 }
 
 var kubernetesclustersResource = schema.GroupVersionResource{Group: "ecs.yun.com", Version: "v1", Resource: "kubernetesclusters"}
@@ -40,7 +41,8 @@ var kubernetesclustersKind = schema.GroupVersionKind{Group: "ecs.yun.com", Versi
 // Get takes name of the kubernetesCluster, and returns the corresponding kubernetesCluster object, and an error if there is any.
 func (c *FakeKubernetesClusters) Get(name string, options v1.GetOptions) (result *ecsv1.KubernetesCluster, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootGetAction(kubernetesclustersResource, name), &ecsv1.KubernetesCluster{})
+		Invokes(testing.NewGetAction(kubernetesclustersResource, c.ns, name), &ecsv1.KubernetesCluster{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -50,7 +52,8 @@ func (c *FakeKubernetesClusters) Get(name string, options v1.GetOptions) (result
 // List takes label and field selectors, and returns the list of KubernetesClusters that match those selectors.
 func (c *FakeKubernetesClusters) List(opts v1.ListOptions) (result *ecsv1.KubernetesClusterList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootListAction(kubernetesclustersResource, kubernetesclustersKind, opts), &ecsv1.KubernetesClusterList{})
+		Invokes(testing.NewListAction(kubernetesclustersResource, kubernetesclustersKind, c.ns, opts), &ecsv1.KubernetesClusterList{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -71,13 +74,15 @@ func (c *FakeKubernetesClusters) List(opts v1.ListOptions) (result *ecsv1.Kubern
 // Watch returns a watch.Interface that watches the requested kubernetesClusters.
 func (c *FakeKubernetesClusters) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewRootWatchAction(kubernetesclustersResource, opts))
+		InvokesWatch(testing.NewWatchAction(kubernetesclustersResource, c.ns, opts))
+
 }
 
 // Create takes the representation of a kubernetesCluster and creates it.  Returns the server's representation of the kubernetesCluster, and an error, if there is any.
 func (c *FakeKubernetesClusters) Create(kubernetesCluster *ecsv1.KubernetesCluster) (result *ecsv1.KubernetesCluster, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootCreateAction(kubernetesclustersResource, kubernetesCluster), &ecsv1.KubernetesCluster{})
+		Invokes(testing.NewCreateAction(kubernetesclustersResource, c.ns, kubernetesCluster), &ecsv1.KubernetesCluster{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -87,7 +92,8 @@ func (c *FakeKubernetesClusters) Create(kubernetesCluster *ecsv1.KubernetesClust
 // Update takes the representation of a kubernetesCluster and updates it. Returns the server's representation of the kubernetesCluster, and an error, if there is any.
 func (c *FakeKubernetesClusters) Update(kubernetesCluster *ecsv1.KubernetesCluster) (result *ecsv1.KubernetesCluster, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateAction(kubernetesclustersResource, kubernetesCluster), &ecsv1.KubernetesCluster{})
+		Invokes(testing.NewUpdateAction(kubernetesclustersResource, c.ns, kubernetesCluster), &ecsv1.KubernetesCluster{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -98,7 +104,8 @@ func (c *FakeKubernetesClusters) Update(kubernetesCluster *ecsv1.KubernetesClust
 // Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
 func (c *FakeKubernetesClusters) UpdateStatus(kubernetesCluster *ecsv1.KubernetesCluster) (*ecsv1.KubernetesCluster, error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateSubresourceAction(kubernetesclustersResource, "status", kubernetesCluster), &ecsv1.KubernetesCluster{})
+		Invokes(testing.NewUpdateSubresourceAction(kubernetesclustersResource, "status", c.ns, kubernetesCluster), &ecsv1.KubernetesCluster{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -108,13 +115,14 @@ func (c *FakeKubernetesClusters) UpdateStatus(kubernetesCluster *ecsv1.Kubernete
 // Delete takes name of the kubernetesCluster and deletes it. Returns an error if one occurs.
 func (c *FakeKubernetesClusters) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(kubernetesclustersResource, name), &ecsv1.KubernetesCluster{})
+		Invokes(testing.NewDeleteAction(kubernetesclustersResource, c.ns, name), &ecsv1.KubernetesCluster{})
+
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeKubernetesClusters) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(kubernetesclustersResource, listOptions)
+	action := testing.NewDeleteCollectionAction(kubernetesclustersResource, c.ns, listOptions)
 
 	_, err := c.Fake.Invokes(action, &ecsv1.KubernetesClusterList{})
 	return err
@@ -123,29 +131,10 @@ func (c *FakeKubernetesClusters) DeleteCollection(options *v1.DeleteOptions, lis
 // Patch applies the patch and returns the patched kubernetesCluster.
 func (c *FakeKubernetesClusters) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *ecsv1.KubernetesCluster, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(kubernetesclustersResource, name, pt, data, subresources...), &ecsv1.KubernetesCluster{})
+		Invokes(testing.NewPatchSubresourceAction(kubernetesclustersResource, c.ns, name, pt, data, subresources...), &ecsv1.KubernetesCluster{})
+
 	if obj == nil {
 		return nil, err
 	}
 	return obj.(*ecsv1.KubernetesCluster), err
 }
-
-// GetScale takes name of the kubernetesCluster, and returns the corresponding scale object, and an error if there is any.
-//func (c *FakeKubernetesClusters) GetScale(kubernetesClusterName string, options v1.GetOptions) (result *autoscaling.Scale, err error) {
-//obj, err := c.Fake.
-//Invokes(testing.NewRootGetSubresourceAction(kubernetesclustersResource, "scale", kubernetesClusterName), &autoscaling.Scale{})
-//if obj == nil {
-//return nil, err
-//}
-//return obj.(*autoscaling.Scale), err
-//}
-
-//// UpdateScale takes the representation of a scale and updates it. Returns the server's representation of the scale, and an error, if there is any.
-//func (c *FakeKubernetesClusters) UpdateScale(kubernetesClusterName string, scale *autoscaling.Scale) (result *autoscaling.Scale, err error) {
-//obj, err := c.Fake.
-//Invokes(testing.NewRootUpdateSubresourceAction(kubernetesclustersResource, "scale", scale), &autoscaling.Scale{})
-//if obj == nil {
-//return nil, err
-//}
-//return obj.(*autoscaling.Scale), err
-//}

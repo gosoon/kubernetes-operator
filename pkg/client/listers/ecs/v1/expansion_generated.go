@@ -21,3 +21,7 @@ package v1
 // KubernetesClusterListerExpansion allows custom methods to be added to
 // KubernetesClusterLister.
 type KubernetesClusterListerExpansion interface{}
+
+// KubernetesClusterNamespaceListerExpansion allows custom methods to be added to
+// KubernetesClusterNamespaceLister.
+type KubernetesClusterNamespaceListerExpansion interface{}

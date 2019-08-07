@@ -29,7 +29,7 @@ type FakeEcsV1 struct {
 }
 
 func (c *FakeEcsV1) KubernetesClusters(namespace string) v1.KubernetesClusterInterface {
-	return &FakeKubernetesClusters{c}
+	return &FakeKubernetesClusters{c, namespace}
 }
 
 // RESTClient returns a RESTClient that is used to communicate

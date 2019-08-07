@@ -41,5 +41,5 @@ func New(f internalinterfaces.SharedInformerFactory, namespace string, tweakList
 
 // KubernetesClusters returns a KubernetesClusterInformer.
 func (v *version) KubernetesClusters() KubernetesClusterInformer {
-	return &kubernetesClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+	return &kubernetesClusterInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }

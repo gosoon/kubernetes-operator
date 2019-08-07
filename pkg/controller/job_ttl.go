@@ -60,6 +60,7 @@ func (c *Controller) jobTTLControl(cluster *ecsv1.KubernetesCluster) {
 			return
 		}
 
+		// TODO: handle job failed
 		// if job running timeout and set operation status to failed
 		lastTransitionTime := cluster.Status.LastTransitionTime.Unix()
 		nowTime := time.Now().Unix()

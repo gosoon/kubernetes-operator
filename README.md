@@ -28,6 +28,7 @@ $ kubectl create -f deploy/crds/ecs_v1_kubernetescluster_crd.yaml
 // update your image address and deploy kubernetes-operator
 $ kubectl create -f deploy/operator.yaml
 
+// CustomResources is KubernetesCluster,"ecs" for short in the kubernetes-operator
 $ kubectl get crd
 NAME                                  CREATED AT
 kubernetesclusters.ecs.yun.com        2019-08-05T12:23:52Z

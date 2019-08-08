@@ -17,13 +17,16 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned/scheme"
@@ -136,6 +139,18 @@ func initDefaultConfig() {
 }
 
 func main() {
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	go func() {
+		// listening OS shutdown singal
+		signalChan := make(chan os.Signal, 1)
+		signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+		<-signalChan
+
+		fmt.Println("Got OS shutdown signal, shutting down server gracefully...")
+		ctx.Done()
+	}()
+
 	cmdStdout := make(chan string)
 	cmdError := make(chan error, 1)
 
@@ -167,14 +182,14 @@ func main() {
 	case enum.KubeCreating:
 		go func() { execKubeCreatingCmds(cmdStdout, cmdError) }()
 	case enum.KubeScalingUp:
-		go func() {
-			deployEtcdCmd := exec.Command("/bin/bash", "-c", `df -lh`)
-			s := execCmd(deployEtcdCmd, cmdError)
-			fmt.Println("case:", s)
-			cmdStdout <- "asda"
-			fmt.Println("cmdStdout <- s ")
-		}()
-		//go func() { execKubeScalingUpCmds(cmdStdout, cmdError) }()
+		//go func() {
+		//deployEtcdCmd := exec.Command("/bin/bash", "-c", `df -lh`)
+		//s := execCmd(deployEtcdCmd, cmdError)
+		//fmt.Println("case:", s)
+		//cmdStdout <- "asda"
+		//fmt.Println("cmdStdout <- s ")
+		//}()
+		go func() { execKubeScalingUpCmds(cmdStdout, cmdError) }()
 	case enum.KubeScalingDown:
 		go func() { execKubeScalingDownCmds(cmdStdout, cmdError) }()
 	case enum.KubeTerminating:
@@ -198,6 +213,8 @@ func main() {
 		callback("", err)
 	case stdout := <-cmdStdout:
 		callback(stdout, nil)
+	case <-ctx.Done():
+		os.Exit(0)
 	}
 }
 

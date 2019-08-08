@@ -16,6 +16,7 @@
 *.log
 logs/
 log/
+output/
 
 # other
 .DS_Store

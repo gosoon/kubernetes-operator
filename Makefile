@@ -3,7 +3,7 @@ BIN := $(shell basename $(CURDIR))
 # PLATFORM := $(shell go env GOOS)
 PLATFORM := linux
 AnsibleinitPath := cmd/ansible/ansibleinit.go
-OperatorPath := cmd/operator/app.go
+OperatorPath := cmd/kube-operator/app.go
 
 # ifneq (PLATFORM, "windows")
 # 	PLATFORM = linux
@@ -25,7 +25,7 @@ images:
 	docker build --no-cache -f build/ansible/Dockerfile -t ansibleinit .
 	
 	GO111MODULE=on GOPROXY=https://mirrors.aliyun.com/goproxy/ GOOS=$(PLATFORM) GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o output/kubernetes-operator $(OperatorPath)
-	docker build --no-cache -f build/operator/Dockerfile -t kubernetes-operator .
+	docker build --no-cache -f build/kube-operator/Dockerfile -t kubernetes-operator .
 	@rm -rf output 
 
 check:

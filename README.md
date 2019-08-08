@@ -3,17 +3,25 @@
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gosoon/kubernetes-operator)](https://goreportcard.com/report/github.com/gosoon/kubernetes-operator)
 
-kubernetes-operator is a control plane and manage all kubernetes cluster lifecycle (kube-on-kube-operator).
+kubernetes-operator is a control plane and manage all kubernetes cluster lifecycle.
 
 <img src="doc/images/image-20190805195135765.png"></img>
 
 ## Introduce
 
-kubernetes-operator contains several large parts：
+**kubernetes-operator contains several large parts**：
 
-- Kubernetes-proxy: is a proxy and all requests pass through，look like a gateway
-- Operator: is a kubernetes operator deploy in meta kubernetes and manage all kubernetes clusters(create、scale、delete、upgrade、Fault self-healing...)
-- Cluster deploy: use ansible deploy kubernetes cluster and multiple kubernetes cluster applications, eg: metric-server、 promethus、log-polit、helm...
+- kubernetes-proxy: is a proxy and all requests pass through，look like a gateway.
+- kube-operator: is a kubernetes operator deploy in meta kubernetes and manage all kubernetes clusters(create、scale、delete).
+- cluster deploy: At present, the main focus is on kube-on-kube,and use ansible deploy kubernetes cluster and multiple kubernetes cluster applications, eg: metric-server、 promethus、log-polit、helm...
+- node-operator: Manage cluster upgrade, fault self-healing, etc.
+
+**The kubernetes-operator goal**：
+
+- kube-on-kube：Similar to Ant Financial kube-on-kube-operator.
+- kube-to-kube：The difference with `kube-on-kube`  is that the master component of the business cluster is not in the meta cluster.
+- kube-to-cloud-kube : Manage clusters on multiple cloud environments.
+
 
 ## Getting started
 

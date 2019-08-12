@@ -19,6 +19,7 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"time"
 
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
@@ -27,6 +28,11 @@ import (
 
 	mapset "github.com/deckarep/golang-set"
 )
+
+// Returns 0 for resyncPeriod in case resyncing is not needed.
+func NoResyncPeriodFunc() time.Duration {
+	return 0
+}
 
 func convertNodesToString(nodes []ecsv1.Node) string {
 	var nodeStr string

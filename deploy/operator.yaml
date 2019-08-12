@@ -17,8 +17,6 @@ spec:
         - name: kubernetes-operator
           # Replace this with the built image name
           image: REPLACE_IMAGE
-          command:
-          - kubernetes-operator
           imagePullPolicy: Always
           env:
             - name: WATCH_NAMESPACE

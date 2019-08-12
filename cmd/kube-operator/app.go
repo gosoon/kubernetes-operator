@@ -30,17 +30,16 @@ import (
 	"github.com/gosoon/kubernetes-operator/pkg/kuberesource"
 	"github.com/gosoon/kubernetes-operator/pkg/server"
 	ctrl "github.com/gosoon/kubernetes-operator/pkg/server/controller"
+	"github.com/gosoon/kubernetes-operator/pkg/utils/signals"
 
 	"github.com/gosoon/glog"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/resouer/k8s-controller-custom-resource/pkg/signals"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/tools/leaderelection"
-	"k8s.io/kubernetes/pkg/controller"
 )
 
 var (
@@ -105,7 +104,8 @@ to quickly create a Cobra application.`,
 
 		// add leader elector
 		run := func(ctx context.Context) {
-			kubernetesClusterInformerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, controller.NoResyncPeriodFunc())
+			kubernetesClusterInformerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient,
+				ecsv1controller.NoResyncPeriodFunc())
 			ecsv1Controller := ecsv1controller.NewController(kubeClient, kubernetesClusterClient,
 				kubernetesClusterInformerFactory.Ecs().V1().KubernetesClusters())
 

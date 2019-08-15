@@ -45,8 +45,8 @@ kubernetesclusters.ecs.yun.com        2019-08-05T12:23:52Z
 $ bash test/create_ecs.sh  
 
 $ kubectl get ecs
-NAME           AGE
-test-cluster   1h
+NAME           STATUS        AGE
+test-cluster   Prechecking   45m
 ```
 
 

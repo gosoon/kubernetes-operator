@@ -12,6 +12,13 @@ spec:
     shortNames:
     - ecs
   scope: Namespaced
+  additionalPrinterColumns:
+    - name: Status
+      type: string
+      JSONPath: .status.phase
+    - name: Age
+      type: date
+      JSONPath: .metadata.creationTimestamp
   subresources:
     status: {}
   validation:

@@ -240,68 +240,74 @@ func (c *Controller) syncHandler(key string) error {
 
 // processKubernetesClusterCreateOrUpdate is handle all status in kubernetesCluster.
 func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *ecsv1.KubernetesCluster) error {
+	operation := kubernetesCluster.Annotations[enum.Operation]
+
 	switch kubernetesCluster.Status.Phase {
 	// phase is "" express create new kubernetesCluster
 	case enum.New:
-		err := c.processClusterNew(kubernetesCluster)
-		if err != nil {
-			return err
-		}
+		// precheck must be performed before New, KubeScalingUp, KubeScalingDown operate
+		return c.processOperatePrecheck(kubernetesCluster)
 
 	// TODO: callback controller to ensure create success
 	case enum.Creating, enum.Running, enum.Scaling:
 		if kubernetesCluster.DeletionTimestamp != nil {
-			if kubernetesCluster.Annotations[enum.Operation] == enum.KubeTerminating {
+			if operation == enum.KubeTerminating {
 				return c.processClusterTerminating(kubernetesCluster)
 			}
 			return nil
 		}
 		// annotation
-		switch kubernetesCluster.Annotations[enum.Operation] {
+		switch operation {
+		// precheck must be performed before New, KubeScalingUp, KubeScalingDown operate
+		case enum.KubeScalingUp, enum.KubeScalingDown:
+			return c.processOperatePrecheck(kubernetesCluster)
+
+		// other operate is only update status.phase
 		case enum.KubeCreating:
-			return c.processKubeCreating(kubernetesCluster)
+			return c.processOperateCreating(kubernetesCluster)
 		case enum.KubeCreateFailed:
 			return c.processOperateFailed(kubernetesCluster)
 		case enum.KubeCreateFinished:
 			return c.processOperateFinished(kubernetesCluster)
-		case enum.KubeScalingUp:
-			return c.processClusterScaleUp(kubernetesCluster)
 		case enum.KubeScaleUpFailed:
 			return c.processOperateFailed(kubernetesCluster)
 		case enum.KubeScaleUpFinished:
 			return c.processOperateFinished(kubernetesCluster)
-		case enum.KubeScalingDown:
-			return c.processClusterScaleDown(kubernetesCluster)
 		case enum.KubeScaleDownFailed:
 			return c.processOperateFailed(kubernetesCluster)
 		case enum.KubeScaleDownFinished:
 			return c.processOperateFinished(kubernetesCluster)
 		default:
-			//
+
 		}
 
 	// Terminating
 	case enum.Terminating:
-		if kubernetesCluster.Annotations[enum.Operation] == enum.KubeTerminateFailed {
+		if operation == enum.KubeTerminateFailed {
 			return c.processOperateFailed(kubernetesCluster)
 		}
+
 	// Failed
 	case enum.Failed:
 		// delete retry or last job failed
 		if kubernetesCluster.DeletionTimestamp != nil {
-			if kubernetesCluster.Annotations[enum.Operation] == enum.KubeTerminating {
+			if operation == enum.KubeTerminating {
 				return c.processClusterTerminating(kubernetesCluster)
 			}
 		}
 		// retry operate
-		switch kubernetesCluster.Annotations[enum.Operation] {
+		switch operation {
 		case enum.KubeCreating:
-			return c.processNewOperate(kubernetesCluster)
+			return c.processOperateNew(kubernetesCluster)
 		case enum.KubeScalingUp:
 			return c.processClusterScaleUp(kubernetesCluster)
 		case enum.KubeScalingDown:
 			return c.processClusterScaleDown(kubernetesCluster)
 		}
+
+	// Prechecking
+	case enum.Prechecking:
+		return c.processClusterPrecheck(kubernetesCluster)
 
 	default:
 

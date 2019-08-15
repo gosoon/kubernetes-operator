@@ -87,7 +87,7 @@ func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env,
 		corev1.EnvVar{
 			Name:  "NODE_HOSTS",
-			Value: convertNodesToString(cluster.Spec.NodeList),
+			Value: convertNodesToString(cluster.Spec.Cluster.NodeList),
 		})
 
 	return job
@@ -139,7 +139,7 @@ func newDeleteKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env,
 		corev1.EnvVar{
 			Name:  "NODE_HOSTS",
-			Value: convertNodesToString(cluster.Spec.NodeList),
+			Value: convertNodesToString(cluster.Spec.Cluster.NodeList),
 		})
 
 	return job
@@ -270,15 +270,15 @@ func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.E
 	envs := []corev1.EnvVar{
 		{
 			Name:  "MASTER_HOSTS",
-			Value: convertNodesToString(cluster.Spec.MasterList),
+			Value: convertNodesToString(cluster.Spec.Cluster.MasterList),
 		},
 		{
 			Name:  "MASTER_VIP",
-			Value: cluster.Spec.MasterVIP,
+			Value: cluster.Spec.Cluster.MasterVIP,
 		},
 		{
 			Name:  "ETCD_HOSTS",
-			Value: convertNodesToString(cluster.Spec.EtcdList),
+			Value: convertNodesToString(cluster.Spec.Cluster.EtcdList),
 		},
 		{
 			Name:  "OPERATION",
@@ -290,7 +290,7 @@ func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.E
 		},
 		{
 			Name:  "PRIVATE_KEY",
-			Value: cluster.Spec.AuthConfig.PrivateSSHKey,
+			Value: cluster.Spec.Cluster.AuthConfig.PrivateSSHKey,
 		},
 		{
 			Name:  "CLUSTER_NAME",

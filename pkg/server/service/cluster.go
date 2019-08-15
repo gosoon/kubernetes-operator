@@ -41,17 +41,20 @@ func (s *service) CreateCluster(ctx context.Context, region string, namespace st
 				Namespace: clusterInfo.Namespace,
 			},
 			Spec: ecsv1.KubernetesClusterSpec{
-				TimeoutMins:   clusterInfo.TimeoutMins,
-				ClusterType:   clusterInfo.ClusterType,
-				ContainerCIDR: clusterInfo.ContainerCIDR,
-				ServiceCIDR:   clusterInfo.ServiceCIDR,
-				MasterList:    clusterInfo.MasterList,
-				MasterVIP:     clusterInfo.MasterVIP,
-				NodeList:      clusterInfo.NodeList,
-				EtcdList:      clusterInfo.EtcdList,
-				Region:        region,
-				AuthConfig: ecsv1.AuthConfig{
-					PrivateSSHKey: clusterInfo.PrivateSSHKey,
+				Cluster: ecsv1.Cluster{
+					// TODO: valid ClusterType in admission webhook
+					TimeoutMins:   clusterInfo.TimeoutMins,
+					ClusterType:   ecsv1.ClusterType(clusterInfo.ClusterType),
+					ContainerCIDR: clusterInfo.ContainerCIDR,
+					ServiceCIDR:   clusterInfo.ServiceCIDR,
+					MasterList:    clusterInfo.MasterList,
+					MasterVIP:     clusterInfo.MasterVIP,
+					NodeList:      clusterInfo.NodeList,
+					EtcdList:      clusterInfo.EtcdList,
+					Region:        region,
+					AuthConfig: ecsv1.AuthConfig{
+						PrivateSSHKey: clusterInfo.PrivateSSHKey,
+					},
 				},
 			},
 		}

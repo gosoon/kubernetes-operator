@@ -5,9 +5,10 @@
 package mock_service
 
 import (
+	reflect "reflect"
+
 	gomock "github.com/golang/mock/gomock"
 	types "github.com/gosoon/kubernetes-operator/pkg/types"
-	reflect "reflect"
 )
 
 // MockInterface is a mock of Interface interface
@@ -48,7 +49,7 @@ func (mr *MockInterfaceMockRecorder) CreateCluster(arg0, arg1, arg2, arg3 interf
 }
 
 // CreateClusterCallback mocks base method
-func (m *MockInterface) CreateClusterCallback(arg0, arg1, arg2 string, arg3 *types.CallBack) error {
+func (m *MockInterface) CreateClusterCallback(arg0, arg1, arg2 string, arg3 *types.Callback) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateClusterCallback", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -76,7 +77,7 @@ func (mr *MockInterfaceMockRecorder) DeleteCluster(arg0, arg1, arg2, arg3 interf
 }
 
 // DeleteClusterCallback mocks base method
-func (m *MockInterface) DeleteClusterCallback(arg0, arg1, arg2 string, arg3 *types.CallBack) error {
+func (m *MockInterface) DeleteClusterCallback(arg0, arg1, arg2 string, arg3 *types.Callback) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteClusterCallback", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -119,7 +120,7 @@ func (mr *MockInterfaceMockRecorder) ScaleDown(arg0, arg1, arg2, arg3 interface{
 }
 
 // ScaleDownCallback mocks base method
-func (m *MockInterface) ScaleDownCallback(arg0, arg1, arg2 string, arg3 *types.CallBack) error {
+func (m *MockInterface) ScaleDownCallback(arg0, arg1, arg2 string, arg3 *types.Callback) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ScaleDownCallback", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)
@@ -147,7 +148,7 @@ func (mr *MockInterfaceMockRecorder) ScaleUp(arg0, arg1, arg2, arg3 interface{})
 }
 
 // ScaleUpCallback mocks base method
-func (m *MockInterface) ScaleUpCallback(arg0, arg1, arg2 string, arg3 *types.CallBack) error {
+func (m *MockInterface) ScaleUpCallback(arg0, arg1, arg2 string, arg3 *types.Callback) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ScaleUpCallback", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)

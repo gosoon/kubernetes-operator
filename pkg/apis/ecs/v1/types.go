@@ -19,23 +19,73 @@ type KubernetesCluster struct {
 // KubernetesClusterSpec defines the desired state of KubernetesCluster
 type KubernetesClusterSpec struct {
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
-	TimeoutMins   string     `json:"timeout_mins,omitempty"`
-	ClusterType   string     `json:"clusterType,omitempty"`
-	ContainerCIDR string     `json:"containerCIDR,omitempty"`
-	ServiceCIDR   string     `json:"serviceCIDR,omitempty"`
-	MasterList    []Node     `json:"masterList" tag:"required"`
-	MasterVIP     string     `json:"masterVIP,omitempty"`
-	NodeList      []Node     `json:"nodeList" tag:"required"`
-	EtcdList      []Node     `json:"etcdList,omitempty"`
-	Region        string     `json:"region,omitempty"`
-	AuthConfig    AuthConfig `json:"authConfig,omitempty"`
+	Cluster Cluster `json:"cluster,omitempty"`
+
+	// Addons are some of the applications that need to be pre-installed in the cluster,eg: helm,promethus,logpolit...
+	Addons Addons `json:"addons,omitempty"`
 }
+
+// Cluster xxx
+type Cluster struct {
+	TimeoutMins string `json:"timeout_mins,omitempty"`
+
+	// ClusterType is a specified cluster,eg: kubernetes,k3s
+	ClusterType ClusterType `json:"clusterType,omitempty"`
+
+	// ContainerCIDR
+	ContainerCIDR string `json:"containerCIDR,omitempty"`
+
+	// ServiceCIDR is apiserver and controller-manager flag `--service-cluster-ip-range`
+	ServiceCIDR string `json:"serviceCIDR,omitempty"`
+
+	// MasterList
+	MasterList []Node `json:"masterList" tag:"required"`
+
+	// MasterVIP is a vip by lvs,haproxy or etc
+	MasterVIP string `json:"masterVIP,omitempty"`
+
+	// NodeList
+	NodeList []Node `json:"nodeList" tag:"required"`
+
+	// EtcdList
+	EtcdList []Node `json:"etcdList,omitempty"`
+
+	// Region
+	Region string `json:"region,omitempty"`
+
+	// login destination host used authConfig
+	AuthConfig AuthConfig `json:"authConfig,omitempty"`
+}
+
+// ClusterType is a specified cluster,eg: kubernetes,k3s
+type ClusterType string
+
+const (
+	// KubernetesClusterType
+	KubernetesClusterType ClusterType = "kubernetes"
+
+	// K3sClusterType
+	K3sClusterType ClusterType = "k3s"
+
+	// kubeedge
+	KubeedgeClusterType ClusterType = "kubeedge"
+)
 
 // AuthConfig defines the nodes peer authentication
 type AuthConfig struct {
-	Username      string `json:"username,omitempty"`
-	Password      string `json:"password,omitempty"`
+	// Username
+	Username string `json:"username,omitempty"`
+
+	// Password
+	Password string `json:"password,omitempty"`
+
+	// PrivateSSHKey
 	PrivateSSHKey string `json:"privateSSHKey,omitempty"`
+}
+
+// Addons are some of the applications that need to be pre-installed in the Cluster
+type Addons struct {
+	// TODO
 }
 
 // KubernetesClusterStatus defines the observed state of KubernetesCluster
@@ -63,10 +113,11 @@ type KubernetesClusterList struct {
 	Items           []KubernetesCluster `json:"items"`
 }
 
-// users
-// "None,Creating,Running,Failed,Scaling"
-type KubernetesOperatorPhase string
-
+// Node xxx
 type Node struct {
+	// IP
 	IP string `json:"ip,omitempty"`
 }
+
+// "None,Creating,Running,Failed,Scaling"
+type KubernetesOperatorPhase string

@@ -54,7 +54,7 @@ func (c *Controller) processOperateFailed(cluster *ecsv1.KubernetesCluster) erro
 	return nil
 }
 
-func (c *Controller) processKubeCreating(cluster *ecsv1.KubernetesCluster) error {
+func (c *Controller) processOperateCreating(cluster *ecsv1.KubernetesCluster) error {
 	// if kubeCreateFailed and retry,the status is KubeCreating
 	if cluster.Status.Phase != enum.Creating {
 		// update status
@@ -70,7 +70,7 @@ func (c *Controller) processKubeCreating(cluster *ecsv1.KubernetesCluster) error
 	return nil
 }
 
-func (c *Controller) processNewOperate(cluster *ecsv1.KubernetesCluster) error {
+func (c *Controller) processOperateNew(cluster *ecsv1.KubernetesCluster) error {
 	// if the reason filed is not null,indicating that the job failed,the reason have the job create failed,
 	// job timeout...
 	if cluster.Status.Reason != "" {
@@ -85,6 +85,23 @@ func (c *Controller) processNewOperate(cluster *ecsv1.KubernetesCluster) error {
 		_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(cluster.Namespace).UpdateStatus(curCluster)
 		if err != nil {
 			glog.Errorf("update finished cluster status failed with:%v", err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *Controller) processOperatePrecheck(cluster *ecsv1.KubernetesCluster) error {
+	if cluster.Status.Phase != enum.Prechecking {
+		curCluster := cluster.DeepCopy()
+		namespace := curCluster.Namespace
+
+		// update status to prechecking
+		curCluster.Status.Phase = enum.Prechecking
+		curCluster.Status.LastTransitionTime = metav1.Now()
+		curCluster, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
+		if err != nil {
+			glog.Errorf("update status to [Prechecking] failed with:%v", err)
 			return err
 		}
 	}

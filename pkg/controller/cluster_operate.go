@@ -95,7 +95,7 @@ func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) err
 		glog.Errorf("get old spec failed with:%v", err)
 		return err
 	}
-	nodeList := diffNodeList(oldSpec.NodeList, cluster.Spec.NodeList, cluster.Annotations[enum.Operation])
+	nodeList := diffNodeList(oldSpec.Cluster.NodeList, cluster.Spec.Cluster.NodeList, cluster.Annotations[enum.Operation])
 
 	// create job
 	scaleUpClusterJob := newScaleUpClusterJob(curCluster, nodeList)
@@ -149,7 +149,7 @@ func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) e
 		glog.Errorf("get old spec failed with:%v", err)
 		return err
 	}
-	nodeList := diffNodeList(oldSpec.NodeList, cluster.Spec.NodeList, cluster.Annotations[enum.Operation])
+	nodeList := diffNodeList(oldSpec.Cluster.NodeList, cluster.Spec.Cluster.NodeList, cluster.Annotations[enum.Operation])
 
 	// create job
 	scaleDownClusterJob := newScaleDownClusterJob(curCluster, nodeList)

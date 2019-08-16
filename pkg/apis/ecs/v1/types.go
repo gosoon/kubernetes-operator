@@ -79,7 +79,7 @@ type AuthConfig struct {
 	// Password
 	Password string `json:"password,omitempty"`
 
-	// PrivateSSHKey
+	// PrivateSSHKey, use base64 encode
 	PrivateSSHKey string `json:"privateSSHKey,omitempty"`
 }
 

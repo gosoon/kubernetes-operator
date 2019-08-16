@@ -22,6 +22,7 @@ import (
 	"github.com/gosoon/kubernetes-operator/pkg/apis/ecs"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
+	"github.com/gosoon/kubernetes-operator/pkg/utils"
 	"github.com/gosoon/kubernetes-operator/pkg/utils/pointer"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -267,6 +268,11 @@ func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.E
 	// pack hostsYAML
 	hostsYAML := compressHostsYAML(cluster)
 
+	privateSSHKey := cluster.Spec.Cluster.AuthConfig.PrivateSSHKey
+	if valided, key := utils.ValidBase64Str(privateSSHKey); valided {
+		privateSSHKey = key
+	}
+
 	envs := []corev1.EnvVar{
 		{
 			Name:  "MASTER_HOSTS",
@@ -290,7 +296,7 @@ func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.E
 		},
 		{
 			Name:  "PRIVATE_KEY",
-			Value: cluster.Spec.Cluster.AuthConfig.PrivateSSHKey,
+			Value: privateSSHKey,
 		},
 		{
 			Name:  "CLUSTER_NAME",

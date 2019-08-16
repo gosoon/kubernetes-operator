@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/gosoon/kubernetes-operator/pkg/types"
+	"github.com/gosoon/kubernetes-operator/pkg/utils"
 
 	"github.com/gosoon/glog"
 	"github.com/pkg/sftp"
@@ -65,6 +66,9 @@ func NewSSHServer(host *types.SSHInfo) (Interface, error) {
 		auth = append(auth, ssh.Password(host.Password))
 	} else {
 		pemBytes := []byte(host.Key)
+		if valided, key := utils.ValidBase64Str(host.Key); valided {
+			pemBytes = []byte(key)
+		}
 		var signer ssh.Signer
 		if host.Password == "" {
 			signer, err = ssh.ParsePrivateKey(pemBytes)

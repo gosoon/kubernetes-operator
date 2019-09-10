@@ -116,7 +116,7 @@ func (s *service) DeleteCluster(ctx context.Context, region string, namespace st
 	}
 
 	if !clusterInfo.Retry {
-		// set DeletePropagation to Foreground,apiserver first set crd DeletionTimestamp field
+		// set DeletePropagation to Foreground,apiserver first set cr DeletionTimestamp field
 		// ref: https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/
 		p := metav1.DeletePropagationForeground
 		err = clientset.EcsV1().KubernetesClusters(namespace).Delete(name, &metav1.DeleteOptions{PropagationPolicy: &p})

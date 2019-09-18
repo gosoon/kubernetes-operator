@@ -55,9 +55,12 @@ type Cluster struct {
 
 	// login destination host used authConfig
 	AuthConfig AuthConfig `json:"authConfig,omitempty"`
+
+	// kubernetes version
+	KubeVersion string `json:"kubeVersion"`
 }
 
-// ClusterType is a specified cluster,eg: kubernetes,k3s
+// ClusterType is a specified cluster,eg: kubernetes,k3s,kind...
 type ClusterType string
 
 const (

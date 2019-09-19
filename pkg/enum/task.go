@@ -50,6 +50,7 @@ const (
 	// phase
 	New         = ecsv1.KubernetesOperatorPhase("")
 	Creating    = ecsv1.KubernetesOperatorPhase("Creating")
+	Prechecking = ecsv1.KubernetesOperatorPhase("Prechecking")
 	Scaling     = ecsv1.KubernetesOperatorPhase("Scaling")
 	Running     = ecsv1.KubernetesOperatorPhase("Running")
 	Failed      = ecsv1.KubernetesOperatorPhase("Failed")
@@ -61,6 +62,7 @@ const (
 	// event reason
 	SyncedSuccess = string("Synced")
 
+	// job events
 	CreateKubeJobSuccess      = string("CreateKubeJobSuccess")
 	CreateKubeJobFailed       = string("CreateKubeJobFailed")
 	CreateScaleUpJobSuccess   = string("CreateScaleUpJobSuccess")

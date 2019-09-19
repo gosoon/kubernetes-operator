@@ -41,17 +41,20 @@ func (s *service) CreateCluster(ctx context.Context, region string, namespace st
 				Namespace: clusterInfo.Namespace,
 			},
 			Spec: ecsv1.KubernetesClusterSpec{
-				TimeoutMins:   clusterInfo.TimeoutMins,
-				ClusterType:   clusterInfo.ClusterType,
-				ContainerCIDR: clusterInfo.ContainerCIDR,
-				ServiceCIDR:   clusterInfo.ServiceCIDR,
-				MasterList:    clusterInfo.MasterList,
-				MasterVIP:     clusterInfo.MasterVIP,
-				NodeList:      clusterInfo.NodeList,
-				EtcdList:      clusterInfo.EtcdList,
-				Region:        region,
-				AuthConfig: ecsv1.AuthConfig{
-					PrivateSSHKey: clusterInfo.PrivateSSHKey,
+				Cluster: ecsv1.Cluster{
+					// TODO: valid ClusterType in admission webhook
+					TimeoutMins:   clusterInfo.TimeoutMins,
+					ClusterType:   ecsv1.ClusterType(clusterInfo.ClusterType),
+					ContainerCIDR: clusterInfo.ContainerCIDR,
+					ServiceCIDR:   clusterInfo.ServiceCIDR,
+					MasterList:    clusterInfo.MasterList,
+					MasterVIP:     clusterInfo.MasterVIP,
+					NodeList:      clusterInfo.NodeList,
+					EtcdList:      clusterInfo.EtcdList,
+					Region:        region,
+					AuthConfig: ecsv1.AuthConfig{
+						PrivateSSHKey: clusterInfo.PrivateSSHKey,
+					},
 				},
 			},
 		}
@@ -113,7 +116,7 @@ func (s *service) DeleteCluster(ctx context.Context, region string, namespace st
 	}
 
 	if !clusterInfo.Retry {
-		// set DeletePropagation to Foreground,apiserver first set crd DeletionTimestamp field
+		// set DeletePropagation to Foreground,apiserver first set cr DeletionTimestamp field
 		// ref: https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/
 		p := metav1.DeletePropagationForeground
 		err = clientset.EcsV1().KubernetesClusters(namespace).Delete(name, &metav1.DeleteOptions{PropagationPolicy: &p})

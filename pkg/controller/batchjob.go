@@ -22,6 +22,7 @@ import (
 	"github.com/gosoon/kubernetes-operator/pkg/apis/ecs"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/enum"
+	"github.com/gosoon/kubernetes-operator/pkg/utils"
 	"github.com/gosoon/kubernetes-operator/pkg/utils/pointer"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -87,7 +88,7 @@ func newCreateKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env,
 		corev1.EnvVar{
 			Name:  "NODE_HOSTS",
-			Value: convertNodesToString(cluster.Spec.NodeList),
+			Value: convertNodesToString(cluster.Spec.Cluster.NodeList),
 		})
 
 	return job
@@ -139,7 +140,7 @@ func newDeleteKubernetesClusterJob(cluster *ecsv1.KubernetesCluster) *batchv1.Jo
 	job.Spec.Template.Spec.Containers[0].Env = append(job.Spec.Template.Spec.Containers[0].Env,
 		corev1.EnvVar{
 			Name:  "NODE_HOSTS",
-			Value: convertNodesToString(cluster.Spec.NodeList),
+			Value: convertNodesToString(cluster.Spec.Cluster.NodeList),
 		})
 
 	return job
@@ -267,18 +268,23 @@ func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.E
 	// pack hostsYAML
 	hostsYAML := compressHostsYAML(cluster)
 
+	privateSSHKey := cluster.Spec.Cluster.AuthConfig.PrivateSSHKey
+	if valided, key := utils.ValidBase64Str(privateSSHKey); valided {
+		privateSSHKey = key
+	}
+
 	envs := []corev1.EnvVar{
 		{
 			Name:  "MASTER_HOSTS",
-			Value: convertNodesToString(cluster.Spec.MasterList),
+			Value: convertNodesToString(cluster.Spec.Cluster.MasterList),
 		},
 		{
 			Name:  "MASTER_VIP",
-			Value: cluster.Spec.MasterVIP,
+			Value: cluster.Spec.Cluster.MasterVIP,
 		},
 		{
 			Name:  "ETCD_HOSTS",
-			Value: convertNodesToString(cluster.Spec.EtcdList),
+			Value: convertNodesToString(cluster.Spec.Cluster.EtcdList),
 		},
 		{
 			Name:  "OPERATION",
@@ -290,7 +296,7 @@ func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.E
 		},
 		{
 			Name:  "PRIVATE_KEY",
-			Value: cluster.Spec.AuthConfig.PrivateSSHKey,
+			Value: privateSSHKey,
 		},
 		{
 			Name:  "CLUSTER_NAME",

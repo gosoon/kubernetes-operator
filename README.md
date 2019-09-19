@@ -34,7 +34,8 @@ $ make images
 $ kubectl create -f deploy/crds/ecs_v1_kubernetescluster_crd.yaml
 
 // update your image address and deploy kubernetes-operator
-$ kubectl create -f deploy/operator.yaml
+$ kubectl create -f deploy/role.yaml  
+$ kubectl create -f deploy/kube-operator.yaml
 
 // CustomResources is KubernetesCluster,"ecs" for short in the kubernetes-operator
 $ kubectl get crd
@@ -45,8 +46,8 @@ kubernetesclusters.ecs.yun.com        2019-08-05T12:23:52Z
 $ bash test/create_ecs.sh  
 
 $ kubectl get ecs
-NAME           AGE
-test-cluster   1h
+NAME           STATUS        AGE
+test-cluster   Prechecking   45m
 ```
 
 
@@ -63,5 +64,6 @@ test-cluster   1h
 
 - [kube-on-kube-operator 开发(一)](http://blog.tianfeiyu.com/2019/08/05/kube_on_kube_operator_1/)
 - [kube-on-kube-operator 开发(二)](http://blog.tianfeiyu.com/2019/08/07/kube_on_kube_operator_2/)
+- [kube-on-kube-operator 开发(三)](http://blog.tianfeiyu.com/2019/09/01/kube_on_kube_operator_3/)
 
 

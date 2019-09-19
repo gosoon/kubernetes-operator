@@ -102,7 +102,7 @@ func compressHostsYAML(cluster *ecsv1.KubernetesCluster) string {
 	etcdList := map[string]*types.Host{}
 	hostList := map[string]*types.Host{}
 
-	for _, node := range cluster.Spec.MasterList {
+	for _, node := range cluster.Spec.Cluster.MasterList {
 		ip := node.IP
 		masterList[ip] = nil
 		hostList[ip] = &types.Host{
@@ -112,7 +112,7 @@ func compressHostsYAML(cluster *ecsv1.KubernetesCluster) string {
 		}
 	}
 
-	for _, node := range cluster.Spec.NodeList {
+	for _, node := range cluster.Spec.Cluster.NodeList {
 		ip := node.IP
 		nodeList[ip] = nil
 		hostList[ip] = &types.Host{
@@ -122,7 +122,7 @@ func compressHostsYAML(cluster *ecsv1.KubernetesCluster) string {
 		}
 	}
 
-	for _, node := range cluster.Spec.EtcdList {
+	for _, node := range cluster.Spec.Cluster.EtcdList {
 		ip := node.IP
 		etcdList[ip] = nil
 		hostList[ip] = &types.Host{

@@ -1,8 +1,14 @@
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  creationTimestamp: null
   name: kubernetes-operator
+  namespace: ecs-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kubernetes-operator
+  namespace: ecs-system
 rules:
 - apiGroups:
   - ""
@@ -53,3 +59,16 @@ rules:
   - '*'
   verbs:
   - '*'
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: kubernetes-operator
+subjects:
+- kind: ServiceAccount
+  name: kubernetes-operator
+  namespace: ecs-system
+roleRef:
+  kind: ClusterRole
+  name: kubernetes-operator
+  apiGroup: rbac.authorization.k8s.io 

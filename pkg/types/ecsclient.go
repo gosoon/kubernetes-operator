@@ -31,8 +31,10 @@ type EcsClient struct {
 	MasterVIP     string       `json:"masterVIP"`
 	NodeList      []ecsv1.Node `json:"nodeList"`
 	EtcdList      []ecsv1.Node `json:"etcdList"`
-	PrivateSSHKey string       `json:"privateSSHKey"`
-	Retry         bool         `json:"retry"`
+
+	// PrivateSSHKey,because of ssh private key has multiple special characters, use base64 encode in it
+	PrivateSSHKey string `json:"privateSSHKey"`
+	Retry         bool   `json:"retry"`
 }
 
 // Callback xxx

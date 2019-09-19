@@ -1,7 +1,13 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ecs-system
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kubernetes-operator
+  namespace: ecs-system
 spec:
   replicas: 3
   selector:

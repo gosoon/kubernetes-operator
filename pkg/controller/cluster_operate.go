@@ -66,7 +66,7 @@ func (c *Controller) processClusterNew(cluster *ecsv1.KubernetesCluster) error {
 	curCluster.Finalizers = []string{fmt.Sprintf("kubernetescluster.ecs.yun.com/%v", curCluster.Name)}
 	curCluster, err = c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Update(curCluster)
 	if err != nil {
-		glog.Errorf("update %s/%s spec failed with:%v", err, namespace, name)
+		glog.Errorf("set finalizers to %s/%s failed with:%v", namespace, name, err)
 		c.recorder.Event(curCluster, corev1.EventTypeWarning, enum.SetFinalizersFailed, err.Error())
 		return err
 	}
@@ -95,7 +95,7 @@ func (c *Controller) processClusterScaleUp(cluster *ecsv1.KubernetesCluster) err
 		glog.Errorf("get old spec failed with:%v", err)
 		return err
 	}
-	nodeList := diffNodeList(oldSpec.NodeList, cluster.Spec.NodeList, cluster.Annotations[enum.Operation])
+	nodeList := diffNodeList(oldSpec.Cluster.NodeList, cluster.Spec.Cluster.NodeList, cluster.Annotations[enum.Operation])
 
 	// create job
 	scaleUpClusterJob := newScaleUpClusterJob(curCluster, nodeList)
@@ -149,7 +149,7 @@ func (c *Controller) processClusterScaleDown(cluster *ecsv1.KubernetesCluster) e
 		glog.Errorf("get old spec failed with:%v", err)
 		return err
 	}
-	nodeList := diffNodeList(oldSpec.NodeList, cluster.Spec.NodeList, cluster.Annotations[enum.Operation])
+	nodeList := diffNodeList(oldSpec.Cluster.NodeList, cluster.Spec.Cluster.NodeList, cluster.Annotations[enum.Operation])
 
 	// create job
 	scaleDownClusterJob := newScaleDownClusterJob(curCluster, nodeList)

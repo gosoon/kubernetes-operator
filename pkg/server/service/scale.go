@@ -45,7 +45,7 @@ func (s *service) ScaleUp(ctx context.Context, region string, namespace string, 
 
 	if !clusterInfo.Retry {
 		// update node list
-		kubernetesCluster.Spec.NodeList = clusterInfo.NodeList
+		kubernetesCluster.Spec.Cluster.NodeList = clusterInfo.NodeList
 	}
 
 	// update operation annotations
@@ -78,7 +78,7 @@ func (s *service) ScaleDown(ctx context.Context, region string, namespace string
 
 	if !clusterInfo.Retry {
 		// update node list
-		kubernetesCluster.Spec.NodeList = clusterInfo.NodeList
+		kubernetesCluster.Spec.Cluster.NodeList = clusterInfo.NodeList
 	}
 
 	// update operation annotations

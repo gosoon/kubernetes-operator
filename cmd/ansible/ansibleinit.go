@@ -280,6 +280,7 @@ func sendRequest(path string) {
 	}
 
 	resp, err := c.Post().
+		Body().
 		Do().
 		Raw()
 

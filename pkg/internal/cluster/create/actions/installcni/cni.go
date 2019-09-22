@@ -56,7 +56,7 @@ func (a *action) Execute(ctx *actions.ActionContext) error {
 		err = t.Execute(&out, &struct {
 			PodSubnet string
 		}{
-			PodSubnet: ctx.Config.Networking.PodSubnet,
+			PodSubnet: ctx.Cluster.Config.Networking.PodSubnet,
 		})
 		if err != nil {
 			return errors.Wrap(err, "failed to execute CNI manifest template")

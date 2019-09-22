@@ -29,19 +29,8 @@ func NewAction() actions.Action {
 
 // Execute runs the action
 func (a *action) Execute(ctx *actions.ActionContext) error {
-	ctx.Status.Start("Starting control-plane 🕹️ ")
+	ctx.Status.Start("Starting control-plane")
 	defer ctx.Status.End(false)
-
-	//allNodes, err := ctx.Nodes()
-	//if err != nil {
-	//return err
-	//}
-
-	// get the target node for this task
-	//node, err := nodes.BootstrapControlPlaneNode(allNodes)
-	//if err != nil {
-	//return err
-	//}
 
 	// run kubeadm
 	cmd := exec.Command(
@@ -51,7 +40,7 @@ func (a *action) Execute(ctx *actions.ActionContext) error {
 		// TODO(bentheelder): limit the set of acceptable errors
 		"--ignore-preflight-errors=all",
 		// specify our generated config file
-		"--config=/tmp/kubeadm.conf",
+		"--config=/tmp/install/kubeadm.conf",
 		"--skip-token-print",
 		// increase verbosity for debugging
 		"--v=6",
@@ -63,10 +52,16 @@ func (a *action) Execute(ctx *actions.ActionContext) error {
 		return errors.Wrap(err, "failed to init node with kubeadm")
 	}
 
-	kubeConfigPath := ctx.ClusterContext.KubeConfigPath()
+	kubeConfigPath := ctx.Cluster.KubeConfigPath
 	hostPort := kubeadm.APIServerPort
-	if err := writeKubeConfig(kubeConfigPath, ctx.Config.Networking.APIServerAddress, hostPort); err != nil {
-		return errors.Wrap(err, "failed to get kubeconfig from node")
+
+	// set apiServerAddress is externalLoadBalancer or nodeAddress
+	apiServerAddress := ctx.Cluster.ExternalLoadBalancer
+	if ctx.Cluster.ExternalLoadBalancer == "" {
+		apiServerAddress = ctx.Cluster.NodeAddress
+	}
+	if err := writeKubeConfig(kubeConfigPath, apiServerAddress, hostPort); err != nil {
+		return errors.Wrap(err, "failed to init node with kubeadm")
 	}
 
 	// if we are only provisioning one node, remove the master taint

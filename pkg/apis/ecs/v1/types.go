@@ -32,8 +32,8 @@ type Cluster struct {
 	// ClusterType is a specified cluster,eg: kubernetes,k3s
 	ClusterType ClusterType `json:"clusterType,omitempty"`
 
-	// ContainerCIDR
-	ContainerCIDR string `json:"containerCIDR,omitempty"`
+	// PodCIDR
+	PodCIDR string `json:"podCIDR,omitempty"`
 
 	// ServiceCIDR is apiserver and controller-manager flag `--service-cluster-ip-range`
 	ServiceCIDR string `json:"serviceCIDR,omitempty"`
@@ -41,8 +41,8 @@ type Cluster struct {
 	// MasterList
 	MasterList []Node `json:"masterList" tag:"required"`
 
-	// MasterVIP is a vip by lvs,haproxy or etc
-	MasterVIP string `json:"masterVIP,omitempty"`
+	// ExternalLoadBalancer is a vip by lvs,haproxy or etc
+	ExternalLoadBalancer string `json:"externalLoadBalancer,omitempty"`
 
 	// NodeList
 	NodeList []Node `json:"nodeList" tag:"required"`
@@ -72,6 +72,9 @@ const (
 
 	// kubeedge
 	KubeedgeClusterType ClusterType = "kubeedge"
+
+	// kind
+	KindClusterType ClusterType = "kind"
 )
 
 // AuthConfig defines the nodes peer authentication
@@ -120,7 +123,26 @@ type KubernetesClusterList struct {
 type Node struct {
 	// IP
 	IP string `json:"ip,omitempty"`
+
+	// Role is used in kubeadm installer
+	Role NodeRole `json:"role:omitempty"`
 }
+
+// NodeRole defines possible role for nodes in a Kubernetes cluster managed by `kind`
+type NodeRole string
+
+const (
+	// ControlPlaneRole identifies a node that hosts a Kubernetes control-plane.
+	// NOTE: in single node clusters, control-plane nodes act also as a worker
+	// nodes, in which case the taint will be removed. see:
+	// https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/#control-plane-node-isolation
+	ControlPlaneRole NodeRole = "control-plane"
+
+	SecondaryControlPlaneRole NodeRole = "secondary-control-plane"
+
+	// WorkerRole identifies a node that hosts a Kubernetes worker
+	WorkerRole NodeRole = "worker"
+)
 
 // "None,Creating,Running,Failed,Scaling"
 type KubernetesOperatorPhase string

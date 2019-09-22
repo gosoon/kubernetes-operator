@@ -3,6 +3,7 @@ package types
 import (
 	"time"
 
+	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/apis/config"
 )
 
@@ -11,14 +12,13 @@ import (
 // package
 // See ClusterOption instead
 type ClusterOptions struct {
-	Config *config.Cluster
-	// NodeImage overrides the nodes' images in Config if non-zero
-	NodeImage string
-	//Retain       bool
-	WaitForReady time.Duration
-	//TODO: Refactor this. It is a temporary solution for a phased breakdown of different
-	//      operations, specifically create. see https://github.com/kubernetes-sigs/kind/issues/324
-	SetupKubernetes bool // if kind should setup kubernetes after creating nodes
-	LocalIP         string
-	Role            string
+	Name                 string
+	Config               *config.Cluster
+	NodeImage            string
+	WaitForReady         time.Duration
+	SetupKubernetes      bool // if kind should setup kubernetes after creating nodes
+	NodeAddress          string
+	Role                 ecsv1.NodeRole
+	ExternalLoadBalancer string
+	KubeConfigPath       string
 }

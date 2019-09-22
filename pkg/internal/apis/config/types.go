@@ -1,10 +1,12 @@
 package config
 
 import (
+	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Cluster contains kind cluster configuration
+// Cluster contains local cluster configuration
 type Cluster struct {
 	// TypeMeta representing the type of the object and its API schema version.
 	metav1.TypeMeta
@@ -43,41 +45,24 @@ type Node struct {
 	IP string
 
 	// Role defines the role of the node in the in the Kubernetes cluster
-	// created by kind
-	//
-	// Defaults to "control-plane"
-	Role NodeRole
-
-	// Image is the node image to use when creating this node
-	// If unset a default image will be used, see defaults.Image
-	Image string
-
-	/* Advanced fields */
-
-	// ExtraMounts describes additional mount points for the node container
-	// These may be used to bind a hostPath
-	//ExtraMounts []cri.Mount
-
-	// ExtraPortMappings describes additional port mappings for the node container
-	// binded to a host Port
-	//ExtraPortMappings []cri.PortMapping
+	Role ecsv1.NodeRole
 }
 
 // NodeRole defines possible role for nodes in a Kubernetes cluster managed by `kind`
-type NodeRole string
+//type NodeRole string
 
-const (
-	// ControlPlaneRole identifies a node that hosts a Kubernetes control-plane.
-	// NOTE: in single node clusters, control-plane nodes act also as a worker
-	// nodes, in which case the taint will be removed. see:
-	// https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/#control-plane-node-isolation
-	ControlPlaneRole NodeRole = "control-plane"
+//const (
+//// ControlPlaneRole identifies a node that hosts a Kubernetes control-plane.
+//// NOTE: in single node clusters, control-plane nodes act also as a worker
+//// nodes, in which case the taint will be removed. see:
+//// https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/#control-plane-node-isolation
+//ControlPlaneRole NodeRole = "control-plane"
 
-	SecondaryControlPlaneRole NodeRole = "secondary-control-plane"
+//SecondaryControlPlaneRole NodeRole = "secondary-control-plane"
 
-	// WorkerRole identifies a node that hosts a Kubernetes worker
-	WorkerRole NodeRole = "worker"
-)
+//// WorkerRole identifies a node that hosts a Kubernetes worker
+//WorkerRole NodeRole = "worker"
+//)
 
 // Networking contains cluster wide network settings
 type Networking struct {
@@ -89,7 +74,7 @@ type Networking struct {
 	// APIServerAddress is the listen address on the host for the Kubernetes
 	// API Server. This should be an IP address.
 	//
-	// Defaults to 127.0.0.1
+	// Defaults to 0.0.0.0
 	APIServerAddress string
 	// PodSubnet is the CIDR used for pod IPs
 	// kind will select a default if unspecified

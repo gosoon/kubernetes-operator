@@ -1,6 +1,9 @@
 package create
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/gosoon/glog"
 	"github.com/gosoon/kubernetes-operator/pkg/cluster/create"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/context"
@@ -13,6 +16,7 @@ import (
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions/waitforready"
 	createtypes "github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/types"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/delete"
+	"github.com/gosoon/kubernetes-operator/pkg/internal/util/cli"
 )
 
 // Cluster creates a cluster
@@ -23,19 +27,23 @@ func Cluster(ctx *context.Context, options ...create.ClusterOption) error {
 		return err
 	}
 
-	// then validate 检查 docker 暴露端口等信息
-	//if err := opts.Config.Validate(); err != nil {
-	//return err
-	//}
+	fmt.Printf("clusterOptions:%+v \n", opts)
 
-	// 拉取 master node image and docker cp bin to local
+	if err := validate(opts); err != nil {
+		return err
+	}
+
+	ctx.ClusterOptions = opts
+
+	status := cli.NewStatus(os.Stdout)
+	// pull docker image
 	// attempt to explicitly pull the required node images if they doesn't exist locally
 	// we don't care if this errors, we'll still try to run which also pulls
-	ensureNodeImages(status, opts.Config)
+	ensureNodeImages(status, opts.NodeImage)
 
-	// 4.prepare node, copy docker image bin to local and  为 node 和 master 生成配置文件
+	// prepare node, copy docker image bin to local path and  为 node 和 master 生成配置文件
 	// Create node containers implementing defined config Nodes
-	if err := provisionNodes(status, opts.Config, ctx.Name(), ctx.ClusterLabel()); err != nil {
+	if err := provisionNodes(status, ctx); err != nil {
 		// In case of errors nodes are deleted (except if retain is explicitly set)
 		glog.Error(err)
 
@@ -71,15 +79,7 @@ func Cluster(ctx *context.Context, options ...create.ClusterOption) error {
 		)
 	}
 
-	// run all actions
-	// TODO: compare node list and get local ip
-	localIP := getLocalIP(opts.Config)
-	if localIP == "" {
-		return nil
-	}
-	role = ""
-
-	actionsContext := actions.NewActionContext(opts.Config, ctx, status, localIP, role)
+	actionsContext := actions.NewActionContext(opts, ctx.Server, ctx.Port, status)
 	for _, action := range actionsToRun {
 		if err := action.Execute(actionsContext); err != nil {
 			//if !opts.Retain {
@@ -88,9 +88,6 @@ func Cluster(ctx *context.Context, options ...create.ClusterOption) error {
 			return err
 		}
 	}
-
-	// print how to set KUBECONFIG to point to the cluster etc.
-	printUsage(ctx.Name())
 
 	return nil
 
@@ -108,30 +105,6 @@ func collectOptions(options ...create.ClusterOption) (*createtypes.ClusterOption
 		}
 		opts = newOpts
 	}
-
-	// do post processing for options
-	// first ensure we at least have a default cluster config
-	//if opts.Config == nil {
-	//cfg, err := encoding.Load("")
-	//if err != nil {
-	//return nil, err
-	//}
-	//opts.Config = cfg
-	//}
-
-	// if NodeImage was set, override the image on all nodes
-	if opts.NodeImage != "" {
-		// Apply image override to all the Nodes defined in Config
-		// TODO(fabrizio pandini): this should be reconsidered when implementing
-		//     https://github.com/kubernetes-sigs/kind/issues/133
-		for i := range opts.Config.Nodes {
-			opts.Config.Nodes[i].Image = opts.NodeImage
-		}
-	}
-
-	// default config fields (important for usage as a library, where the config
-	// may be constructed in memory rather than from disk)
-	//encoding.Scheme.Default(opts.Config)
 
 	return opts, nil
 }

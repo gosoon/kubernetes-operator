@@ -5,8 +5,8 @@ import (
 	"text/template"
 
 	"github.com/gosoon/glog"
-
 	"github.com/pkg/errors"
+
 	"k8s.io/apimachinery/pkg/util/version"
 )
 
@@ -445,9 +445,6 @@ func Config(data ConfigData) (config string, err error) {
 	if err != nil {
 		return "", errors.Wrap(err, "failed to parse config template")
 	}
-
-	// derive any automatic fields if not supplied
-	//data.Derive()
 
 	// execute the template
 	var buff bytes.Buffer

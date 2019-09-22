@@ -3,19 +3,7 @@ package constants
 // DefaultClusterName is the default cluster Context name
 const DefaultClusterName = "default"
 
-/* node role value constants */
 const (
-	// ControlPlaneNodeRoleValue identifies a node that hosts a Kubernetes
-	// control-plane.
-	//
-	// NOTE: in single node clusters, control-plane nodes act as worker nodes
-	ControlPlaneNodeRoleValue string = "control-plane"
-
-	SecondaryControlPlaneRole string = "secondary-control-plane"
-
-	// WorkerNodeRoleValue identifies a node that hosts a Kubernetes worker
-	WorkerNodeRoleValue string = "worker"
-
 	// ExternalLoadBalancerNodeRoleValue identifies a node that hosts an
 	// external load balancer for the API server in HA configurations.
 	//
@@ -31,4 +19,7 @@ const (
 	// Please note that `kind` nodes hosting external etcd are not
 	// kubernetes nodes
 	ExternalEtcdNodeRoleValue string = "external-etcd"
+
+	// InstallPath is write kubeadm config default path
+	InstallPath string = "/tmp/install/"
 )

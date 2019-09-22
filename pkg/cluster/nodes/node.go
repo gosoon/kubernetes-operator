@@ -1,22 +1,50 @@
 package nodes
 
 import (
+	"fmt"
+	"net"
 	"path/filepath"
 	"strings"
 	"time"
 
+	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/exec"
+	"github.com/gosoon/kubernetes-operator/pkg/internal/util/env"
+
 	"github.com/pkg/errors"
 )
 
-// Node represents a handle to a kind node
-// This struct must be created by one of: CreateControlPlane
-// It should not be manually instantiated
-// Node impleemnts exec.Cmder
-type Node struct {
-	IP    string
-	Role  string
-	Image string
+// ConfigNodeAddressAndRole is return the host ip and role,get host ip and role from kubernetes cluster
+func ConfigNodeAddressAndRole(cluster *ecsv1.KubernetesCluster) (string, ecsv1.NodeRole) {
+	var hosts []string
+	addrs, err := net.InterfaceAddrs()
+	if err == nil {
+		for _, address := range addrs {
+			if ipnet, ok := address.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
+				hosts = append(hosts, ipnet.IP.String())
+			}
+		}
+	}
+
+	var clusterNodeList []ecsv1.Node
+	clusterNodeList = append(clusterNodeList, cluster.Spec.Cluster.NodeList...)
+	clusterNodeList = append(clusterNodeList, cluster.Spec.Cluster.MasterList...)
+
+	for _, node := range clusterNodeList {
+		for _, host := range hosts {
+			if node.IP == host {
+				return node.IP, node.Role
+			}
+		}
+	}
+	return "", ""
+}
+
+// ConstructImage is return the node image,image representative kubernetes version and contain kubelet,
+// kubectl,kubeadm binary
+// defaule image is registry.cn-hangzhou.aliyuncs.com/aliyun_kube_system/kubernetes:v1.xxx
+func ConstructImage(registry string, cluster *ecsv1.KubernetesCluster) string {
+	return registry + "/kubernetes" + ":" + cluster.Spec.Cluster.KubeVersion
 }
 
 // control plane nodes are "Ready".
@@ -75,11 +103,22 @@ func WriteFile(dest, content string) error {
 	return exec.Command("cp", "/dev/stdin", dest).SetStdin(strings.NewReader(content)).Run()
 }
 
-// use grpc copy file
-func CopyFrom(sourcePath, destPath) {
-
+// KubeConfigPath returns the path to where the Kubeconfig would be placed
+// by kind based on the configuration.
+func KubeConfigPath(clusterName string) string {
+	// configDir matches the standard directory expected by kubectl etc
+	configDir := filepath.Join(env.HomeDir(), ".kube")
+	// note that the file name however does not, we do not want to overwrite
+	// the standard config, though in the future we may (?) merge them
+	fileName := fmt.Sprintf("config-%s", clusterName)
+	return filepath.Join(configDir, fileName)
 }
 
-func CopyTo(sourcePath, destPath) {
+// use grpc copy file
+func CopyFrom(sourcePath string, destPath string) error {
+	return nil
+}
 
+func CopyTo(sourcePath string, destPath string) error {
+	return nil
 }

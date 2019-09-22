@@ -62,15 +62,15 @@ const (
 	KubeconfigCmd = `ssh -i ./private-key root@%v cat ~/.kube/config`
 
 	// env
-	OperationEnv        = "OPERATION"
-	ClusterNameEnv      = "CLUSTER_NAME"
-	ClsuterNamespaceEnv = "CLUSTER_NAMESPACE"
-	MasterHostsEnv      = "MASTER_HOSTS"
-	MasterVIPEnv        = "MASTER_VIP"
-	EtcdHostsEnv        = "ETCD_HOSTS"
-	NodeHostsEnv        = "NODE_HOSTS"
-	HostsYAMLEnv        = "HOSTS_YAML"
-	PrivateKeyEnv       = "PRIVATE_KEY"
+	OperationEnv            = "OPERATION"
+	ClusterNameEnv          = "CLUSTER_NAME"
+	ClsuterNamespaceEnv     = "CLUSTER_NAMESPACE"
+	MasterHostsEnv          = "MASTER_HOSTS"
+	ExternalLoadBalancerEnv = "MASTER_VIP"
+	EtcdHostsEnv            = "ETCD_HOSTS"
+	NodeHostsEnv            = "NODE_HOSTS"
+	HostsYAMLEnv            = "HOSTS_YAML"
+	PrivateKeyEnv           = "PRIVATE_KEY"
 
 	// config
 	region                  = "config.region"
@@ -91,8 +91,8 @@ const (
 var (
 	cfgFile string
 
-	MasterHostsVal, MasterVIPVal, NodeHostsVal, EtcdHostsVal, OperationVal string
-	ClusterNameVal, ClusterNamespaceVal, HostsYAMLVal, PrivateKeyVal       string
+	MasterHostsVal, ExternalLoadBalancerVal, NodeHostsVal, EtcdHostsVal, OperationVal string
+	ClusterNameVal, ClusterNamespaceVal, HostsYAMLVal, PrivateKeyVal                  string
 )
 
 func init() {
@@ -102,7 +102,7 @@ func init() {
 
 	// get all env
 	MasterHostsVal = os.Getenv(MasterHostsEnv)
-	MasterVIPVal = os.Getenv(MasterVIPEnv)
+	ExternalLoadBalancerVal = os.Getenv(ExternalLoadBalancerEnv)
 	NodeHostsVal = os.Getenv(NodeHostsEnv)
 	EtcdHostsVal = os.Getenv(EtcdHostsEnv)
 	OperationVal = os.Getenv(OperationEnv)
@@ -418,13 +418,13 @@ func envSaveFile() bool {
 	defer f.Sync()
 
 	envMaps := map[string]string{
-		MasterHostsEnv:      MasterHostsVal,
-		MasterVIPEnv:        MasterVIPVal,
-		NodeHostsEnv:        NodeHostsVal,
-		EtcdHostsEnv:        EtcdHostsVal,
-		OperationEnv:        OperationVal,
-		ClusterNameEnv:      ClusterNameVal,
-		ClsuterNamespaceEnv: ClusterNamespaceVal,
+		MasterHostsEnv:          MasterHostsVal,
+		ExternalLoadBalancerEnv: ExternalLoadBalancerVal,
+		NodeHostsEnv:            NodeHostsVal,
+		EtcdHostsEnv:            EtcdHostsVal,
+		OperationEnv:            OperationVal,
+		ClusterNameEnv:          ClusterNameVal,
+		ClsuterNamespaceEnv:     ClusterNamespaceVal,
 	}
 
 	var envsStr string

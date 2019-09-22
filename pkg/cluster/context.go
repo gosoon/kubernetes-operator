@@ -3,7 +3,9 @@ package cluster
 import (
 	"github.com/gosoon/kubernetes-operator/pkg/cluster/constants"
 	"github.com/gosoon/kubernetes-operator/pkg/cluster/create"
+	internalcontext "github.com/gosoon/kubernetes-operator/pkg/internal/cluster/context"
 	internalcreate "github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create"
+	"google.golang.org/grpc"
 )
 
 // DefaultName is the default cluster name
@@ -19,10 +21,10 @@ type Context struct {
 
 // NewContext returns a new cluster management context
 // if name is "" the default name will be used (constants.DefaultClusterName)
-func NewContext(name string) *Context {
+func NewContext(name string, server *grpc.Server, port string) *Context {
 	// wrap a new internal context
 	return &Context{
-		ic: internalcontext.NewContext(name),
+		ic: internalcontext.NewContext(name, server, port),
 	}
 }
 

@@ -8,8 +8,8 @@ import (
 	"github.com/gosoon/glog"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/constants"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/constants"
 
 	"google.golang.org/grpc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

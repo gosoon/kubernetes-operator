@@ -42,9 +42,10 @@ func Run(image string, opts ...RunOpt) error {
 
 	// construct the actual docker run argv
 	args := []string{"run"}
+	args = append(args, o.RunArgs...)
 	args = append(args, image)
-	args = append(args, o.ContainerArgs...)
 	cmd := exec.Command("docker", args...)
+
 	output, err := exec.CombinedOutputLines(cmd)
 	if err != nil {
 		// log error output if there was any

@@ -1,5 +1,7 @@
 syntax = 'proto3';
 
+import "google/api/annotations.proto";
+
 package v1;
 
 message File {
@@ -202,7 +204,7 @@ message KubernetesClusterRequest {
 }
 
 message InstallClusterResponse {
-    bool Success = 1;
+    bool success = 1;
 }
 
 service Installer {
@@ -210,5 +212,10 @@ service Installer {
     rpc CopyFile(File) returns (stream File){}
    
     // dispatch cluster config to all agent 
-    rpc InstallCluster(stream KubernetesClusterRequest) returns (InstallClusterResponse) {} 
+    rpc InstallCluster(KubernetesClusterRequest) returns (InstallClusterResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/cluster/create"
+            body: "*"
+        };
+    } 
 }

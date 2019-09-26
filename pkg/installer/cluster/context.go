@@ -1,8 +1,8 @@
 package cluster
 
 import (
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/constants"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/create"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/constants"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/create"
 	internalcontext "github.com/gosoon/kubernetes-operator/pkg/internal/cluster/context"
 	internalcreate "github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create"
 	"google.golang.org/grpc"

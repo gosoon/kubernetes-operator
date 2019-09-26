@@ -22,17 +22,6 @@ func (a *action) Execute(ctx *actions.ActionContext) error {
 	ctx.Status.Start("Installing CNI")
 	defer ctx.Status.End(false)
 
-	//allNodes, err := ctx.Nodes()
-	//if err != nil {
-	//return err
-	//}
-
-	// get the target node for this task
-	//node, err := nodes.BootstrapControlPlaneNode(allNodes)
-	//if err != nil {
-	//return err
-	//}
-
 	// read the manifest from the node
 	var raw bytes.Buffer
 	if err := exec.Command("cat", "/tmp/manifests/default-cni.yaml").SetStdout(&raw).Run(); err != nil {

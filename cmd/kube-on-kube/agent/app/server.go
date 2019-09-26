@@ -8,8 +8,8 @@ import (
 	"github.com/gosoon/glog"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/create"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/create"
 	"github.com/gosoon/kubernetes-operator/pkg/installer/util/protobuf"
 	"github.com/pkg/errors"
 
@@ -18,7 +18,7 @@ import (
 
 // Options xxx
 type Options struct {
-	Flags   *flagpole
+	Flags   *Flagpole
 	Context *cluster.Context
 	Server  *grpc.Server
 }
@@ -94,8 +94,8 @@ func (s *installer) DoInstallCluster(cluster *ecsv1.KubernetesCluster) error {
 	// 3.callback server
 	if err := s.Options.Context.Create(
 		create.WithNodeImage(s.Options.Flags.ImageName, s.Options.Flags.Registry, cluster),
-		create.WithConfig(cluster),
 		create.WithNodeAddressAndRole(cluster),
+		create.WithConfig(cluster),
 		create.WithExternalLoadBalancer(cluster),
 		create.WithKubeConfigPath(),
 		create.WaitForReady(s.Options.Flags.Wait),

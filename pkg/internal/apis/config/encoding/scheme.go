@@ -7,14 +7,14 @@ import (
 )
 
 // Ecsv1ToInternalCluster is convert ecsv1.KubernetesCluster to internal cluster config
-func Ecsv1ToInternalCluster(cluster *ecsv1.KubernetesCluster) *config.Cluster {
+func Ecsv1ToInternalCluster(cluster *ecsv1.KubernetesCluster, nodeAddress string) *config.Cluster {
 	out := &config.Cluster{
 		ExternalLoadBalancer: cluster.Spec.Cluster.ExternalLoadBalancer,
 		Networking: config.Networking{
-			APIServerPort: kubeadm.APIServerPort,
-			//APIServerAddress: "", // local IP
-			PodSubnet:     cluster.Spec.Cluster.PodCIDR,
-			ServiceSubnet: cluster.Spec.Cluster.ServiceCIDR,
+			APIServerPort:    kubeadm.APIServerPort,
+			APIServerAddress: nodeAddress,
+			PodSubnet:        cluster.Spec.Cluster.PodCIDR,
+			ServiceSubnet:    cluster.Spec.Cluster.ServiceCIDR,
 		},
 		KubeVersion: cluster.Spec.Cluster.KubeVersion,
 	}

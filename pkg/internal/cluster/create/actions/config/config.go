@@ -2,8 +2,8 @@ package config
 
 import (
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/constants"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/nodes"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/constants"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/nodes"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/kubeadm"
 
@@ -44,8 +44,6 @@ func (a *Action) Execute(ctx *actions.ActionContext) error {
 
 	if ctx.Cluster.Role == ecsv1.WorkerRole {
 		configData.ControlPlane = false
-
-		// TODO : copy apiserver and etcd ca from ControlPlane
 	}
 
 	if err := writeKubeadmConfig(configData); err != nil {

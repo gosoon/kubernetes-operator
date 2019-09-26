@@ -49,6 +49,7 @@ func (a *action) Execute(ctx *actions.ActionContext) error {
 	lines, err := exec.CombinedOutputLines(cmd)
 	glog.Info(strings.Join(lines, "\n"))
 	if err != nil {
+		glog.Error(err)
 		return errors.Wrap(err, "failed to init node with kubeadm")
 	}
 
@@ -61,6 +62,7 @@ func (a *action) Execute(ctx *actions.ActionContext) error {
 		apiServerAddress = ctx.Cluster.NodeAddress
 	}
 	if err := writeKubeConfig(kubeConfigPath, apiServerAddress, hostPort); err != nil {
+		glog.Error(err)
 		return errors.Wrap(err, "failed to init node with kubeadm")
 	}
 

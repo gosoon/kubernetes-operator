@@ -1,13 +1,17 @@
 package app
 
 import (
+	"context"
 	"net"
+	"net/http"
 
 	"github.com/gosoon/glog"
-	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
+
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type flagpole struct {
@@ -30,24 +34,45 @@ func NewServerCommand() *cobra.Command {
 	return cmd
 }
 
+// run is start grpc gateway
 func run(flags *flagpole) {
 	// start grpc server
-	l, err := net.Listen("tcp", ":"+flags.Port)
+	grpcServerEndpoint := ":" + flags.Port
+	l, err := net.Listen("tcp", grpcServerEndpoint)
 	if err != nil {
 		glog.Fatalf("failed to listen: %v", err)
 	}
-	server := grpc.NewServer()
+	grpcServer := grpc.NewServer()
 
 	installer := NewInstaller(&Options{
 		Flags:  flags,
-		Server: server,
+		Server: grpcServer,
 	})
 	// register grpc server
-	installerv1.RegisterInstallerServer(server, installer)
+	installerv1.RegisterInstallerServer(grpcServer, installer)
+	reflection.Register(grpcServer)
+	go func() {
+		glog.Info("starting grpc server...")
+		glog.Fatal(grpcServer.Serve(l))
+	}()
+	// start http server
+	//
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	// Register gRPC server endpoint
+	// Note: Make sure the gRPC server is running properly and accessible
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	err = installerv1.RegisterInstallerHandlerFromEndpoint(ctx, mux, grpcServerEndpoint, opts)
+	if err != nil {
+		glog.Fatal(err)
+	}
 
-	go server.Serve(l)
+	glog.Info("starting http server...")
+	// Start HTTP server (and proxy calls to gRPC server endpoint)
+	glog.Fatal(http.ListenAndServe(":8080", mux))
 
-	master := []ecsv1.Node{{IP: "127.0.0.1"}}
-	cluster := &ecsv1.KubernetesCluster{Spec: ecsv1.KubernetesClusterSpec{Cluster: ecsv1.Cluster{MasterList: master}}}
-	installer.DispatchClusterConfig(cluster)
+	//master := []ecsv1.Node{{IP: "127.0.0.1"}}
+	//cluster := &ecsv1.KubernetesCluster{Spec: ecsv1.KubernetesClusterSpec{Cluster: ecsv1.Cluster{MasterList: master}}}
+	//installer.DispatchClusterConfig(cluster)
 }

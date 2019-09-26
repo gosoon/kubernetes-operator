@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/gosoon/glog"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/create"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/create"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/context"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions"
 	configaction "github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions/config"
@@ -57,7 +57,6 @@ func Cluster(ctx *context.Context, options ...create.ClusterOption) error {
 	}
 
 	actionsToRun := []actions.Action{
-		//loadbalancer.NewAction(), // setup external loadbalancer  // 检查是否有 loadbalancer
 		configaction.NewAction(), // setup kubeadm config  // 创建 kubeadm 配置 /kind/kubeadm.conf
 	}
 

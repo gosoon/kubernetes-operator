@@ -9,11 +9,12 @@ import (
 	"google.golang.org/grpc"
 
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/constants"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/constants"
 )
 
-type flagpole struct {
+// TODO: this
+type Flagpole struct {
 	Config    string
 	ImageName string
 	Retain    bool
@@ -24,7 +25,7 @@ type flagpole struct {
 
 // NewServerCommand returns a new cobra.Command for kube-on-kube server
 func NewServerCommand() *cobra.Command {
-	flags := &flagpole{}
+	flags := &Flagpole{}
 	cmd := &cobra.Command{
 		Args:  cobra.NoArgs,
 		Use:   "cluster",
@@ -41,7 +42,7 @@ func NewServerCommand() *cobra.Command {
 	return cmd
 }
 
-func run(flags *flagpole) {
+func run(flags *Flagpole) {
 	// start grpc server
 	l, err := net.Listen("tcp", ":"+flags.Port)
 	if err != nil {

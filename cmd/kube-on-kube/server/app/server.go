@@ -3,8 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"io"
-	"os"
 	"sync"
 
 	"github.com/gosoon/glog"
@@ -16,12 +14,13 @@ import (
 	"google.golang.org/grpc"
 )
 
+// Options is installer server options
 type Options struct {
 	Flags  *flagpole
 	Server *grpc.Server
 }
 
-// install xxx
+// installer xxx
 type installer struct {
 	Options *Options
 }
@@ -30,12 +29,19 @@ func NewInstaller(opt *Options) *installer {
 	return &installer{Options: opt}
 }
 
-func (s *installer) CopyFile(stream installerv1.Installer_CopyFileServer) error {
+func (s *installer) CopyFile(
+	file *installerv1.File,
+	stream installerv1.Installer_CopyFileServer) error {
+
 	return nil
 }
 
-func (s *installer) InstallCluster(installerv1.Installer_InstallClusterServer) error {
-	return nil
+func (s *installer) InstallCluster(
+	ctx context.Context,
+	cluster *installerv1.KubernetesClusterRequest) (*installerv1.InstallClusterResponse, error) {
+
+	fmt.Println("ok")
+	return &installerv1.InstallClusterResponse{Success: true}, nil
 }
 
 // InstallCluster is send KubernetesCluster config to all installer agent
@@ -81,80 +87,80 @@ func (s *installer) dispatchConfig(
 	}
 	defer conn.Close()
 
-	failedResult := func(err error) {
-		result <- types.DispatchConfigResult{
-			Host:    node.IP,
-			Success: false,
-			Message: err.Error(),
-		}
-	}
+	//failedResult := func(err error) {
+	//result <- types.DispatchConfigResult{
+	//Host:    node.IP,
+	//Success: false,
+	//Message: err.Error(),
+	//}
+	//}
 
-	client := installerv1.NewInstallerClient(conn)
+	//client := installerv1.NewInstallerClient(conn)
 
 	// connect installer agent
-	stream, err := client.InstallCluster(context.Background())
-	if err != nil {
-		glog.Error(err)
-		failedResult(err)
-		return
-	}
+	//stream, err := client.InstallCluster(context.Background())
+	//if err != nil {
+	//glog.Error(err)
+	//failedResult(err)
+	//return
+	//}
 
 	// send clusterProto to installer agent
-	err = stream.Send(clusterProto)
-	if err != nil {
-		glog.Error(err)
-		failedResult(err)
-		return
-	}
+	//err = stream.Send(clusterProto)
+	//if err != nil {
+	//glog.Error(err)
+	//failedResult(err)
+	//return
+	//}
 
 	// grpc client send EOF
-	_, err = stream.CloseAndRecv()
-	if err != nil {
-		glog.Error(err)
-		return
-	}
+	//_, err = stream.CloseAndRecv()
+	//if err != nil {
+	//glog.Error(err)
+	//return
+	//}
 }
 
-func (s *installer) CopyFrom(fileName string) error {
-	address := "127.0.0.1:10023"
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
-	if err != nil {
-		fmt.Println("did not connect: %v", err)
-	}
-	defer conn.Close()
-	client := installerv1.NewInstallerClient(conn)
+//func (s *installer) CopyFrom(fileName string) error {
+//address := "127.0.0.1:10023"
+//conn, err := grpc.Dial(address, grpc.WithInsecure())
+//if err != nil {
+//fmt.Println("did not connect: %v", err)
+//}
+//defer conn.Close()
+//client := installerv1.NewInstallerClient(conn)
 
-	stream, err := client.CopyFile(context.Background(), &installerv1.File{Name: fileName})
-	if err != nil {
-		glog.Error(err)
-		return err
-	}
-	defer stream.CloseSend()
+//stream, err := client.CopyFile(context.Background(), &installerv1.File{Name: fileName})
+//if err != nil {
+//glog.Error(err)
+//return err
+//}
+//defer stream.CloseSend()
 
-	destFile, err := os.OpenFile(fileName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
-	if err != nil {
-		fmt.Println(err)
-	}
+//destFile, err := os.OpenFile(fileName, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, os.ModePerm)
+//if err != nil {
+//fmt.Println(err)
+//}
 
-	waitc := make(chan struct{})
-	go func() {
-		for {
-			file, err := stream.Recv()
-			if err == io.EOF {
-				// read done.
-				fmt.Println("read done ")
-				close(waitc)
-				return
-			}
-			if err != nil {
-				fmt.Println("Failed to receive a note : %v", err)
-			}
-			_, err = destFile.Write(file.Content)
-			if err != nil {
-				fmt.Println(err)
-			}
-		}
-	}()
-	<-waitc
-	return nil
-}
+//waitc := make(chan struct{})
+//go func() {
+//for {
+//file, err := stream.Recv()
+//if err == io.EOF {
+//// read done.
+//fmt.Println("read done ")
+//close(waitc)
+//return
+//}
+//if err != nil {
+//fmt.Println("Failed to receive a note : %v", err)
+//}
+//_, err = destFile.Write(file.Content)
+//if err != nil {
+//fmt.Println(err)
+//}
+//}
+//}()
+//<-waitc
+//return nil
+//}

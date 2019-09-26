@@ -17,6 +17,7 @@ func ensureNodeImages(status *cli.Status, image string) {
 	}
 	status.Start(fmt.Sprintf("Ensuring node image (%s) ", image))
 
+	fmt.Println("pull image ...")
 	// attempt to explicitly pull the image if it doesn't exist locally
 	// we don't care if this errors, we'll still try to run which also pulls
 	_, _ = docker.PullIfNotPresent(image, 3)

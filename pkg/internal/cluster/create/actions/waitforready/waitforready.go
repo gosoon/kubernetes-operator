@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/nodes"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/nodes"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions"
 )
 

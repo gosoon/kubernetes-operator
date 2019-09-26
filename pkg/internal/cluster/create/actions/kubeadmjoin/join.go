@@ -13,10 +13,10 @@ import (
 	"github.com/gosoon/glog"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/constants"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/nodes"
 	"github.com/gosoon/kubernetes-operator/pkg/exec"
 	"github.com/gosoon/kubernetes-operator/pkg/fs"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/constants"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/nodes"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions"
 
 	"github.com/pkg/errors"

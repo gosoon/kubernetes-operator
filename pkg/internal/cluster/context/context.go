@@ -1,7 +1,7 @@
 package context
 
 import (
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/constants"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/constants"
 	createtypes "github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/types"
 	"google.golang.org/grpc"
 )

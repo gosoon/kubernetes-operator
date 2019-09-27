@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/gosoon/kubernetes-operator/cmd/kube-on-kube/server/app"
+	"github.com/gosoon/kubernetes-operator/cmd/installer/kube-on-kube/server/app"
 )
 
 func main() {

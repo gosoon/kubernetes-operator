@@ -40,7 +40,7 @@ func (s *installer) InstallCluster(
 	ctx context.Context,
 	cluster *installerv1.KubernetesClusterRequest) (*installerv1.InstallClusterResponse, error) {
 
-	fmt.Println("ok")
+	fmt.Printf("cluster:%v \n", cluster)
 	return &installerv1.InstallClusterResponse{Success: true}, nil
 }
 

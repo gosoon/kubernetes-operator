@@ -39,6 +39,9 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// this is a installer is used ssh mode by ansible
+// the init process is starting in k8s job
+
 const (
 	// cmd
 	DeployEtcdCmd = `ansible-playbook -i ansible/inventory/production/hosts.yaml \

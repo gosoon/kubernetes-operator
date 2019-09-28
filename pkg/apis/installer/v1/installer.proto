@@ -1,56 +1,53 @@
 syntax = 'proto3';
 
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 
 package v1;
 
+// Enable custom Marshal method.
+option (gogoproto.marshaler_all) = true;
+// Enable custom Unmarshal method.
+option (gogoproto.unmarshaler_all) = true;
+// Enable custom Size method (Required by Marshal and Unmarshal).
+option (gogoproto.sizer_all) = true;
+// Enable registration with golang/protobuf for the grpc-gateway.
+option (gogoproto.goproto_registration) = true;
+// Enable generation of XXX_MessageName methods for grpc-go/status.
+option (gogoproto.messagename_all) = true;
+
+option (gogoproto.goproto_getters_all) = false;
+
 message File {
-    string name = 1;
-    
-    bytes content = 2;
+    string name = 1 ;
+    bytes content = 2 ;
 }
 
 message TypeMeta {
   string kind = 1;
 
-  string apiVersion = 2;
+  string APIVersion = 2;
 }
 
 // ObjectMeta is metadata that all persisted resources must have, which includes all objects
 // users must create.
 message ObjectMeta {
-   string name = 1;
-
-   string generateName = 2;
-
-   string namespace = 3;
-   
-   string selfLink = 4;
-   
-   string uid = 5;
-   
-   string resourceVersion = 6;
-   
-   int64 generation = 7;
-   
-   Time creationTimestamp = 8;
-   
-   Time deletionTimestamp = 9;
-   
-   int64 deletionGracePeriodSeconds = 10;
-   
-   map<string, string> labels = 11;
-   
-   map<string, string> annotations = 12;
-
-   repeated OwnerReference ownerReferences = 13;
-  
-   // +patchStrategy=merge
-   repeated string finalizers = 14;
-   
-   string clusterName = 15;
-  
-   repeated ManagedFieldsEntry managedFields = 17;
+    string name = 1 ;
+    string generateName = 2 ;
+    string namespace = 3 ;
+    string selfLink = 4 ;
+    string uid = 5 ;
+    string resourceVersion = 6 ;
+    int64 generation = 7 ;
+    Time creationTimestamp = 8 [(gogoproto.nullable) = false];
+    Time deletionTimestamp = 9 ;
+    int64 deletionGracePeriodSeconds = 10 ;
+    map<string, string> labels = 11 ;
+    map<string, string> annotations = 12 ;
+    repeated OwnerReference ownerReferences = 13 [(gogoproto.nullable) = false];
+    repeated string finalizers = 14 ;
+    string clusterName = 15 ;
+    ManagedFieldsEntry managedFields = 17 ;
 }
 
 // OwnerReference contains enough information to let you identify an owning
@@ -149,9 +146,8 @@ message Fields {
 }
 
 message KubernetesClusterSpec {
-    Cluster cluster = 1;
-    
-    Addons addons = 2;
+    Cluster cluster = 1 [(gogoproto.nullable) = false];
+    Addons addons = 2 [(gogoproto.nullable) = false];
 }
 
 message Cluster {
@@ -163,17 +159,17 @@ message Cluster {
     
     string serviceCIDR = 4;
     
-    repeated Node masterList = 5;
+    repeated Node masterList = 5 [(gogoproto.nullable) = false];
     
     string externalLoadBalancer = 6;
     
-    repeated Node nodeList = 7;
+    repeated Node nodeList = 7 [(gogoproto.nullable) = false];
     
-    repeated Node etcdList = 8;
+    repeated Node etcdList = 8 [(gogoproto.nullable) = false];;
     
     string region = 9;
     
-    AuthConfig authConfig = 10;
+    AuthConfig authConfig = 10 [(gogoproto.nullable) = false];;
     
     string kubeVersion = 11;
 }
@@ -183,7 +179,7 @@ message Addons {
 }
 
 message Node {
-    string ip = 1;
+    string IP = 1;
 }
 
 message AuthConfig {
@@ -195,12 +191,12 @@ message AuthConfig {
 }
 
 
-message KubernetesClusterRequest { 
-    TypeMeta typeMeta = 1;
+message KubernetesClusterRequest {
+    TypeMeta typeMeta = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
+
+    ObjectMeta objectMeta = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
     
-    ObjectMeta objectMeta = 2;
-    
-    KubernetesClusterSpec spec = 3;
+    KubernetesClusterSpec spec = 3 [(gogoproto.nullable) = false];
 }
 
 message InstallClusterResponse {

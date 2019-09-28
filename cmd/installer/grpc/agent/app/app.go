@@ -20,8 +20,6 @@ type Flagpole struct {
 	Retain    bool
 	Wait      time.Duration
 	Port      string
-	Registry  string
-}
 
 // NewServerCommand returns a new cobra.Command for kube-on-kube server
 func NewServerCommand() *cobra.Command {

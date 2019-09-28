@@ -24,19 +24,13 @@ func (a *action) Execute(ctx *actions.ActionContext) error {
 
 	// read the manifest from the node
 	var raw bytes.Buffer
-	if err := exec.Command("cat", "/tmp/manifests/default-cni.yaml").SetStdout(&raw).Run(); err != nil {
+	if err := exec.Command("cat", "/tmp/install/kubernetes/manifests/default-cni.yaml").SetStdout(&raw).Run(); err != nil {
 		return errors.Wrap(err, "failed to read CNI manifest")
 	}
 	manifest := raw.String()
 
-	// TODO: remove this check?
-	// backwards compatibility for mounting your own manifest file to the default
-	// location
-	// NOTE: this is intentionally undocumented, as an internal implementation
-	// detail. Going forward users should disable the default CNI and install
-	// their own, or use the default. The internal templating mechanism is
-	// not intended for external usage and is unstable.
-	if strings.Contains(manifest, "would you kindly template this file") {
+	// note:the default networking is calico, version is v3.8
+	if strings.Contains(manifest, "networking manifest") {
 		t, err := template.New("cni-manifest").Parse(manifest)
 		if err != nil {
 			return errors.Wrap(err, "failed to parse CNI manifest template")

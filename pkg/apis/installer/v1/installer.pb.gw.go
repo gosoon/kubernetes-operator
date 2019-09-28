@@ -152,7 +152,7 @@ func RegisterInstallerHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 }
 
 var (
-	pattern_Installer_InstallCluster_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "v1", "cluster"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Installer_InstallCluster_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "cluster", "create"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

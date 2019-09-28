@@ -10,7 +10,6 @@ import (
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions"
 	configaction "github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions/config"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions/installcni"
-	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions/installstorage"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions/kubeadminit"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions/kubeadmjoin"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions/waitforready"
@@ -47,43 +46,45 @@ func Cluster(ctx *context.Context, options ...create.ClusterOption) error {
 		// In case of errors nodes are deleted (except if retain is explicitly set)
 		glog.Error(err)
 
-		// 执行失败清理
 		// if exec failed and cleanup
-		//if !opts.Retain {
-		// TODO
 		_ = delete.Cluster(ctx)
-		//}
 		return err
 	}
 
+	// this step is setup kubeadm config
 	actionsToRun := []actions.Action{
-		configaction.NewAction(), // setup kubeadm config  // 创建 kubeadm 配置 /kind/kubeadm.conf
+		configaction.NewAction(),
 	}
 
 	if opts.SetupKubernetes {
+		// start control plane
+		// run kubeadm init
 		actionsToRun = append(actionsToRun,
-			kubeadminit.NewAction(), // run kubeadm init   // start control plane
+			kubeadminit.NewAction(),
 		)
+
 		// this step might be skipped, but is next after init
+		// this step is installing cni,default networking is calico
 		if !opts.Config.Networking.DisableDefaultCNI {
 			actionsToRun = append(actionsToRun,
-				installcni.NewAction(), // install CNI
+				installcni.NewAction(),
 			)
 		}
+
 		// add remaining steps
+		// if current is worker node, run kubeadm join
+		// and wait for cluster readiness
 		actionsToRun = append(actionsToRun,
-			installstorage.NewAction(),                // install StorageClass
-			kubeadmjoin.NewAction(),                   // run kubeadm join
-			waitforready.NewAction(opts.WaitForReady), // wait for cluster readiness
+			kubeadmjoin.NewAction(),
+			waitforready.NewAction(opts.WaitForReady),
 		)
 	}
 
 	actionsContext := actions.NewActionContext(opts, ctx.Server, ctx.Port, status)
 	for _, action := range actionsToRun {
 		if err := action.Execute(actionsContext); err != nil {
-			//if !opts.Retain {
+			// if failed and cleanup
 			_ = delete.Cluster(ctx)
-			//}
 			return err
 		}
 	}

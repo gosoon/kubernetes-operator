@@ -34,6 +34,11 @@ func (a *action) Execute(ctx *actions.ActionContext) error {
 
 	// run kubeadm
 	cmd := exec.Command(
+		// --service-cidr
+		// --kubernetes-version
+		// --image-repository
+		// --pod-network-cidr
+
 		// init because this is the control plane node
 		"kubeadm", "init",
 		// preflight errors are expected, in particular for swap being enabled

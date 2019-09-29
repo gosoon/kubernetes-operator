@@ -1,7 +1,6 @@
-package app
+package agent
 
 import (
-	"fmt"
 	"net"
 	"testing"
 
@@ -65,7 +64,6 @@ func TestInstallCluster(t *testing.T) {
 		},
 	}
 
-	fmt.Println("start install")
 	err = installer.DoInstallCluster(kubernetesCluster)
 	if err != nil {
 		glog.Error(err)

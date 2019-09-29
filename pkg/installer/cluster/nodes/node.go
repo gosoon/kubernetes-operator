@@ -59,8 +59,8 @@ func ConfigNodeAddressAndRole(cluster *ecsv1.KubernetesCluster) (string, ecsv1.N
 // ConstructImage is return the node image,image representative kubernetes version and contain kubelet,
 // kubectl,kubeadm binary
 // defaule image is registry.cn-hangzhou.aliyuncs.com/aliyun_kube_system/kubernetes:v1.xxx
-func ConstructImage(registry string, cluster *ecsv1.KubernetesCluster) string {
-	return registry + "/kubernetes" + ":" + cluster.Spec.Cluster.KubeVersion
+func ConstructImage(cluster *ecsv1.KubernetesCluster) string {
+	return cluster.Spec.Cluster.ImagesRegistry + "/kubernetes" + ":" + cluster.Spec.Cluster.KubeVersion
 }
 
 // control plane nodes are "Ready".
@@ -120,7 +120,6 @@ func WriteFile(dest, content string) error {
 }
 
 // KubeConfigPath returns the path to where the Kubeconfig would be placed
-// by kind based on the configuration.
 func KubeConfigPath(clusterName string) string {
 	// configDir matches the standard directory expected by kubectl etc
 	configDir := filepath.Join(env.HomeDir(), ".kube")

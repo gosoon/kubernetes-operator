@@ -25,17 +25,15 @@ import (
 	"google.golang.org/grpc"
 
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
-	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster"
-	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/constants"
+	grpcagent "github.com/gosoon/kubernetes-operator/pkg/installer/grpc/agent"
 )
 
-// TODO: this
 type Flagpole struct {
-	Config    string
-	ImageName string
-	Retain    bool
-	Wait      time.Duration
-	Port      string
+	Config string
+	Retain bool
+	Wait   time.Duration
+	Port   string
+}
 
 // NewServerCommand returns a new cobra.Command for kube-on-kube server
 func NewServerCommand() *cobra.Command {
@@ -49,10 +47,8 @@ func NewServerCommand() *cobra.Command {
 			run(flags)
 		},
 	}
-	cmd.Flags().StringVar(&flags.ImageName, "image", "", "node docker image to use for booting the cluster")
-	cmd.Flags().StringVar(&flags.Registry, "registry", "registry.cn-hangzhou.aliyuncs.com/aliyun_kube_system", "kubernetes image registry")
 	cmd.Flags().DurationVar(&flags.Wait, "wait", time.Duration(0), "Wait for control plane node to be ready (default 0s)")
-	cmd.Flags().StringVar(&flags.Port, "port", "10023", "installer agent grpc server port(default 10023)")
+	cmd.Flags().StringVar(&flags.Port, "port", "10023", "installer grpc agent port(default 10023)")
 	return cmd
 }
 
@@ -64,17 +60,12 @@ func run(flags *Flagpole) {
 	}
 	server := grpc.NewServer()
 
-	// create a cluster context and create the cluster
-	ctx := cluster.NewContext(constants.DefaultClusterName, server, flags.Port)
-
-	installer := NewInstaller(&Options{
-		Flags:   flags,
-		Context: ctx,
-		Server:  server,
+	agent := grpcagent.NewAgent(&grpcagent.Options{
+		Port:   flags.Port,
+		Server: server,
 	})
 
 	// register grpc server
-	installerv1.RegisterInstallerServer(server, installer)
-
+	installerv1.RegisterInstallerServer(server, agent)
 	glog.Fatal(server.Serve(l))
 }

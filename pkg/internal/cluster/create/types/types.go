@@ -32,7 +32,7 @@ type ClusterOptions struct {
 	Config               *config.Cluster
 	NodeImage            string
 	WaitForReady         time.Duration
-	SetupKubernetes      bool // if kind should setup kubernetes after creating nodes
+	SetupKubernetes      bool
 	NodeAddress          string
 	Role                 ecsv1.NodeRole
 	ExternalLoadBalancer string

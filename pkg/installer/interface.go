@@ -16,7 +16,12 @@
 
 package installer
 
+import (
+	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
+)
+
 // Installer is a interface define all installer implementation operation
+// you can define your self installer
 type Installer interface {
 	// ClusterNew is creating a new cluster
 	ClusterNew(cluster *ecsv1.KubernetesCluster) error

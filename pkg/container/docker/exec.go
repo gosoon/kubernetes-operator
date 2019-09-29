@@ -58,7 +58,7 @@ func (c *containerCmd) Run() error {
 		"exec",
 		// run with privileges so we can remount etc..
 		// this might not make sense in the most general sense, but it is
-		// important to many kind commands
+		// important
 		"--privileged",
 	}
 	if c.stdin != nil {

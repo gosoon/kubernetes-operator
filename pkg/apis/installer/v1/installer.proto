@@ -5,6 +5,11 @@ import "google/api/annotations.proto";
 
 package v1;
 
+// note:
+// if you chenaged ecsv1.KubernetesCluster and you must update installerv1.KubernetesClusterRequest
+// ecsv1.KubernetesCluster and installerv1.KubernetesClusterRequest are related
+
+
 // Enable custom Marshal method.
 option (gogoproto.marshaler_all) = true;
 // Enable custom Unmarshal method.
@@ -172,14 +177,18 @@ message Cluster {
     AuthConfig authConfig = 10 [(gogoproto.nullable) = false];;
     
     string kubeVersion = 11;
+    
+    string imagesRegistry = 12;
 }
 
 message Addons {
 
 }
 
+
 message Node {
     string IP = 1;
+    string role = 2;
 }
 
 message AuthConfig {

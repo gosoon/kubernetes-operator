@@ -7,7 +7,7 @@ import (
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
 )
 
-func TestClusterConvertToProtobuf(t *testing.T) {
+func TestConvertClusterTypes(t *testing.T) {
 	testCases := []*installerv1.KubernetesClusterRequest{
 		{
 			TypeMeta: installerv1.TypeMeta{

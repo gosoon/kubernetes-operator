@@ -105,8 +105,6 @@ func runKubeadmJoinControlPlane(ctx *actions.ActionContext) error {
 		"ca.crt", "ca.key",
 		"front-proxy-ca.crt", "front-proxy-ca.key",
 		"sa.pub", "sa.key",
-		// TODO(someone): if we gain external etcd support these will be
-		// handled differently
 		"etcd/ca.crt", "etcd/ca.key",
 	}
 
@@ -183,11 +181,11 @@ func copyCAFromControlPlaneNode(client installerv1.InstallerClient, fileNames []
 		wg.Add(1)
 
 		// if any file sync failed and write err to errs channel
-		go func(srcFile string, destFile *os.File, errc chan<- string) {
+		go func(srcFile string, destFile *os.File, errCh chan<- string) {
 			defer wg.Done()
 			stream, err := client.CopyFile(ctx, &installerv1.File{Name: srcFile})
 			if err != nil {
-				errc <- err.Error()
+				errCh <- err.Error()
 				return
 			}
 			defer stream.CloseSend()
@@ -197,12 +195,12 @@ func copyCAFromControlPlaneNode(client installerv1.InstallerClient, fileNames []
 					return
 				}
 				if err != nil {
-					errc <- err.Error()
+					errCh <- err.Error()
 					return
 				}
 				_, err = destFile.Write(fileStream.Content)
 				if err != nil {
-					errc <- err.Error()
+					errCh <- err.Error()
 					return
 				}
 			}
@@ -224,7 +222,6 @@ func copyCAFromControlPlaneNode(client installerv1.InstallerClient, fileNames []
 // runKubeadmJoin executes kubadm join command
 func runKubeadmJoin() error {
 	// run kubeadm join
-	// TODO(bentheelder): this should be using the config file
 	cmd := exec.Command(
 		"kubeadm", "join",
 		// the join command uses the config file generated in a well known location

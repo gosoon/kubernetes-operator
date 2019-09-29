@@ -23,6 +23,7 @@ import (
 
 	"github.com/gosoon/glog"
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
+	grpcserver "github.com/gosoon/kubernetes-operator/pkg/installer/grpc/server"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
@@ -30,8 +31,12 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+// flagpole contains all required flags by grpc agent and server
+// because of agent deploy in all nodes,so agent required flags are passed through the server.
 type flagpole struct {
-	Port string
+	ServerPort     string
+	AgentPort      string
+	ImagesRegistry string
 }
 
 // NewServerCommand returns a new cobra.Command for kube-on-kube server
@@ -46,24 +51,27 @@ func NewServerCommand() *cobra.Command {
 			run(flags)
 		},
 	}
-	cmd.Flags().StringVar(&flags.Port, "port", "10022", "installer agent grpc server port(default 10022)")
+	cmd.Flags().StringVar(&flags.ServerPort, "serverPort", "10022", "installer grpc server port(default 10022)")
+	cmd.Flags().StringVar(&flags.AgentPort, "agentPort", "10023", "installer grpc agent port(default 10023)")
+	cmd.Flags().StringVar(&flags.ImagesRegistry, "registry", "registry.cn-hangzhou.aliyuncs.com/aliyun_kube_system", "kubernetes image registry")
 	return cmd
 }
 
 // run is start grpc gateway
 func run(flags *flagpole) {
-	// start grpc server
-	grpcServerEndpoint := ":" + flags.Port
+	grpcServerEndpoint := ":" + flags.ServerPort
 	l, err := net.Listen("tcp", grpcServerEndpoint)
 	if err != nil {
 		glog.Fatalf("failed to listen: %v", err)
 	}
 	grpcServer := grpc.NewServer()
-
-	installer := NewInstaller(&Options{
-		Flags:  flags,
-		Server: grpcServer,
+	installer := grpcserver.NewInstaller(&grpcserver.Options{
+		ServerPort:     flags.ServerPort,
+		AgentPort:      flags.AgentPort,
+		ImagesRegistry: flags.ImagesRegistry,
+		Server:         grpcServer,
 	})
+
 	// register grpc server
 	installerv1.RegisterInstallerServer(grpcServer, installer)
 	reflection.Register(grpcServer)
@@ -71,8 +79,8 @@ func run(flags *flagpole) {
 		glog.Info("starting grpc server...")
 		glog.Fatal(grpcServer.Serve(l))
 	}()
+
 	// start http server
-	//
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	// Register gRPC server endpoint
@@ -87,8 +95,4 @@ func run(flags *flagpole) {
 	glog.Info("starting http server...")
 	// Start HTTP server (and proxy calls to gRPC server endpoint)
 	glog.Fatal(http.ListenAndServe(":8080", mux))
-
-	//master := []ecsv1.Node{{IP: "127.0.0.1"}}
-	//cluster := &ecsv1.KubernetesCluster{Spec: ecsv1.KubernetesClusterSpec{Cluster: ecsv1.Cluster{MasterList: master}}}
-	//installer.DispatchClusterConfig(cluster)
 }

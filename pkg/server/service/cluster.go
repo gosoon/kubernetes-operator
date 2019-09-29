@@ -52,7 +52,7 @@ func (s *service) CreateCluster(ctx context.Context, region string, namespace st
 					NodeList:             clusterInfo.NodeList,
 					EtcdList:             clusterInfo.EtcdList,
 					Region:               region,
-					KuberVersion:         clusterInfo.KubeVersion,
+					KubeVersion:          clusterInfo.KubeVersion,
 					AuthConfig: ecsv1.AuthConfig{
 						PrivateSSHKey: clusterInfo.PrivateSSHKey,
 					},

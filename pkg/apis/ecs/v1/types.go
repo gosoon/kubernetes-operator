@@ -8,6 +8,10 @@ import (
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // KubernetesCluster is the Schema for the kubernetesclusters API
+//
+// note:
+// if you chenaged ecsv1.KubernetesCluster and you must update installerv1.KubernetesClusterRequest
+// ecsv1.KubernetesCluster and installerv1.KubernetesClusterRequest are related
 type KubernetesCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -58,6 +62,9 @@ type Cluster struct {
 
 	// kubernetes version
 	KubeVersion string `json:"kubeVersion"`
+
+	// ImagesRegistry, default "registry.cn-hangzhou.aliyuncs.com/aliyun_kube_system"
+	ImagesRegistry string `json:"imagesRegistry"`
 }
 
 // ClusterType is a specified cluster,eg: kubernetes,k3s,kind...

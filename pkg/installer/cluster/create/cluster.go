@@ -31,12 +31,9 @@ import (
 type ClusterOption func(*internaltypes.ClusterOptions) (*internaltypes.ClusterOptions, error)
 
 // WithNodeImages is kubernetes version image,image contain kubelet,kubectl,kubeadm binary
-func WithNodeImage(imageName string, registry string, cluster *ecsv1.KubernetesCluster) ClusterOption {
+func WithNodeImage(cluster *ecsv1.KubernetesCluster) ClusterOption {
 	return func(o *internaltypes.ClusterOptions) (*internaltypes.ClusterOptions, error) {
-		o.NodeImage = nodes.ConstructImage(registry, cluster)
-		if imageName != "" {
-			o.NodeImage = imageName
-		}
+		o.NodeImage = nodes.ConstructImage(cluster)
 		return o, nil
 	}
 }

@@ -42,11 +42,7 @@ type Cmder interface {
 	Command(string, ...string) Cmd
 }
 
-// DefaultCmder is a LocalCmder instance used for convienience, packages
-// originally using os/exec.Command can instead use pkg/kind/exec.Command
-// which forwards to this instance
-// TODO(bentheelder): swap this for testing
-// TODO(bentheelder): consider not using a global for this :^)
+// DefaultCmder is a LocalCmder instance used for convienience
 var DefaultCmder = &LocalCmder{}
 
 // Command is a convience wrapper over DefaultCmder.Command

@@ -27,10 +27,7 @@ type Cluster struct {
 	// TypeMeta representing the type of the object and its API schema version.
 	metav1.TypeMeta
 
-	// Nodes contains the list of nodes defined in the `kind` Cluster
-	// If unset this will default to a single control-plane node
-	// Note that if more than one control plane is specified, an external
-	// control plane load balancer will be provisioned implicitly
+	// Nodes contains the list of nodes defined in the Cluster
 	Nodes []Node
 
 	ExternalLoadBalancer string
@@ -52,33 +49,18 @@ type Cluster struct {
 
 	// kubernetes version
 	KubeVersion string
+
+	// ImagesRegistry contains all images during install cluster
+	ImagesRegistry string
 }
 
-// Node contains settings for a node in the `kind` Cluster.
-// A node in kind config represent a container that will be provisioned with all the components
-// required for the assigned role in the Kubernetes cluster
+// Node contains settings for a node in the Cluster.
 type Node struct {
 	IP string
 
 	// Role defines the role of the node in the in the Kubernetes cluster
 	Role ecsv1.NodeRole
 }
-
-// NodeRole defines possible role for nodes in a Kubernetes cluster managed by `kind`
-//type NodeRole string
-
-//const (
-//// ControlPlaneRole identifies a node that hosts a Kubernetes control-plane.
-//// NOTE: in single node clusters, control-plane nodes act also as a worker
-//// nodes, in which case the taint will be removed. see:
-//// https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/#control-plane-node-isolation
-//ControlPlaneRole NodeRole = "control-plane"
-
-//SecondaryControlPlaneRole NodeRole = "secondary-control-plane"
-
-//// WorkerRole identifies a node that hosts a Kubernetes worker
-//WorkerRole NodeRole = "worker"
-//)
 
 // Networking contains cluster wide network settings
 type Networking struct {
@@ -93,12 +75,10 @@ type Networking struct {
 	// Defaults to 0.0.0.0
 	APIServerAddress string
 	// PodSubnet is the CIDR used for pod IPs
-	// kind will select a default if unspecified
 	PodSubnet string
 	// ServiceSubnet is the CIDR used for services VIPs
-	// kind will select a default if unspecified
 	ServiceSubnet string
-	// If DisableDefaultCNI is true, kind will not install the default CNI setup.
+	// If DisableDefaultCNI is true  will not install the default CNI setup.
 	// Instead the user should install their own CNI after creating the cluster.
 	DisableDefaultCNI bool
 }

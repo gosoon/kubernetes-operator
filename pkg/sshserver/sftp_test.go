@@ -61,6 +61,7 @@ func TestCopyFile(t *testing.T) {
 		if err != nil {
 			t.Log(err)
 		}
+		ch := make(chan types.PrecheckResult)
 		sshServer.Dossh(ch)
 		if !assert.Equal(t, nil, err) {
 			t.Fatalf("expected: %v but get %v", nil, err)

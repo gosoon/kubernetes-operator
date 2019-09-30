@@ -58,8 +58,6 @@ func (s *agent) CopyFile(f *installerv1.File, stream installerv1.Installer_CopyF
 			return err
 		}
 	}
-
-	return nil
 }
 
 // InstallCluster is a grpc server and receiver installer server send clusterProto data

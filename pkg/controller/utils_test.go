@@ -87,7 +87,7 @@ func TestDiffNodeList(t *testing.T) {
 			},
 			operation: enum.KubeScalingUp,
 			expect: []ecsv1.Node{
-				{"192.168.1.3"},
+				{IP: "192.168.1.3"},
 			},
 		},
 		{
@@ -130,7 +130,7 @@ func TestDiffNodeList(t *testing.T) {
 			},
 			operation: enum.KubeScalingDown,
 			expect: []ecsv1.Node{
-				{"192.168.1.3"},
+				{IP: "192.168.1.3"},
 			},
 		},
 		{

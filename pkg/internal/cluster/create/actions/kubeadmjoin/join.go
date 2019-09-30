@@ -125,7 +125,9 @@ func runKubeadmJoinControlPlane(ctx *actions.ActionContext) error {
 
 	client := installerv1.NewInstallerClient(conn)
 	// copy ca files from controlPlane
-	copyCAFromControlPlaneNode(client, fileNames)
+	if err = copyCAFromControlPlaneNode(client, fileNames); err != nil {
+		return err
+	}
 
 	// creates a temporary folder on the host that should acts as a transit area
 	// for moving necessary cluster certificates

@@ -79,7 +79,7 @@ func provisionNodes(
 	if err = exec.Command("/bin/sh", "-c",
 		`echo "KUBELET_EXTRA_ARGS=--fail-swap-on=false" > /etc/default/kubelet`,
 	).Run(); err != nil {
-		glog.Error("Image build Failed! Failed to add kubelet extra args: %v", err)
+		glog.Errorf("Image build Failed! Failed to add kubelet extra args: %v", err)
 		return err
 	}
 

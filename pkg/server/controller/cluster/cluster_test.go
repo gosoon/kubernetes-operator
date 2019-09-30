@@ -206,7 +206,7 @@ func TestCreateClusterCallback(t *testing.T) {
 		},
 	}
 
-	callback := &types.CallBack{}
+	callback := &types.Callback{}
 	body, _ := json.Marshal(callback)
 
 	for _, test := range testCases {
@@ -242,7 +242,7 @@ func TestDeleteClusterCallback(t *testing.T) {
 		},
 	}
 
-	callback := &types.CallBack{}
+	callback := &types.Callback{}
 	body, _ := json.Marshal(callback)
 
 	for _, test := range testCases {
@@ -278,7 +278,7 @@ func TestScaleUpClusterCallback(t *testing.T) {
 		},
 	}
 
-	callback := &types.CallBack{}
+	callback := &types.Callback{}
 	body, _ := json.Marshal(callback)
 
 	for _, test := range testCases {
@@ -314,7 +314,7 @@ func TestScaleDownClusterCallback(t *testing.T) {
 		},
 	}
 
-	callback := &types.CallBack{}
+	callback := &types.Callback{}
 	body, _ := json.Marshal(callback)
 
 	for _, test := range testCases {

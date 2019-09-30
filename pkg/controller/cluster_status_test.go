@@ -112,7 +112,7 @@ func TestProcessOperateFailed(t *testing.T) {
 	}
 }
 
-func TestProcessKubeCreating(t *testing.T) {
+func TestProcessOperateCreating(t *testing.T) {
 	fakeClient := fake.NewSimpleClientset()
 	kubernetesClusterClient := ecsfake.NewSimpleClientset()
 	informerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, controller.NoResyncPeriodFunc())
@@ -155,14 +155,14 @@ func TestProcessKubeCreating(t *testing.T) {
 		if err != nil {
 			t.Fatalf("error injecting ecs add: %v", err)
 		}
-		err = ecsv1Controller.processKubeCreating(test)
+		err = ecsv1Controller.processOperateCreating(test)
 		if !assert.Equal(t, nil, err) {
 			t.Fatalf("expected: %v but get %v", nil, err)
 		}
 	}
 }
 
-func TestProcessNewOperate(t *testing.T) {
+func TestProcessOperateNew(t *testing.T) {
 	fakeClient := fake.NewSimpleClientset()
 	kubernetesClusterClient := ecsfake.NewSimpleClientset()
 	informerFactory := informers.NewSharedInformerFactory(kubernetesClusterClient, controller.NoResyncPeriodFunc())
@@ -214,7 +214,7 @@ func TestProcessNewOperate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("error injecting ecs add: %v", err)
 		}
-		err = ecsv1Controller.processNewOperate(test)
+		err = ecsv1Controller.processOperateNew(test)
 		if !assert.Equal(t, nil, err) {
 			t.Fatalf("expected: %v but get %v", nil, err)
 		}

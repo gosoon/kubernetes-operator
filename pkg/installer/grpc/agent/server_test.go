@@ -7,36 +7,27 @@ import (
 	"github.com/gosoon/glog"
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
-	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster"
-	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/constants"
 
 	"google.golang.org/grpc"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const port = "10023"
+
 func TestInstallCluster(t *testing.T) {
-	flag := &flagpole{
-		Port:     "10023",
-		Registry: "registry.cn-hangzhou.aliyuncs.com/aliyun_kube_system",
-	}
 	// start grpc server
 	l, err := net.Listen("tcp", ":"+"10023")
 	if err != nil {
 		glog.Fatalf("failed to listen: %v", err)
 	}
 	server := grpc.NewServer()
-
-	// create a cluster context and create the cluster
-	ctx := cluster.NewContext(constants.DefaultClusterName, server, "10023")
-
-	installer := NewInstaller(&Options{
-		Flags:   flag,
-		Context: ctx,
-		Server:  server,
+	agent := NewAgent(&Options{
+		Server: server,
+		Port:   port,
 	})
 
 	// register grpc server
-	installerv1.RegisterInstallerServer(server, installer)
+	installerv1.RegisterInstallerServer(server, agent)
 
 	go func() {
 		glog.Fatal(server.Serve(l))
@@ -64,7 +55,7 @@ func TestInstallCluster(t *testing.T) {
 		},
 	}
 
-	err = installer.DoInstallCluster(kubernetesCluster)
+	err = agent.ClusterNew(kubernetesCluster)
 	if err != nil {
 		glog.Error(err)
 	}

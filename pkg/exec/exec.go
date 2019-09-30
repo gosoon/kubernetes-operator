@@ -1,22 +1,20 @@
 /*
-Copyright 2018 The Kubernetes Authors.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+ * Copyright 2019 gosoon.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 // Package exec contains an interface for executing commands, along with helpers
-// TODO(bentheelder): add standardized timeout functionality & a default timeout
-// so that commands cannot hang indefinitely (!)
 package exec
 
 import (
@@ -25,7 +23,7 @@ import (
 	"io"
 	"os"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/gosoon/glog"
 )
 
 // Cmd abstracts over running a command somewhere, this is useful for testing
@@ -44,11 +42,7 @@ type Cmder interface {
 	Command(string, ...string) Cmd
 }
 
-// DefaultCmder is a LocalCmder instance used for convienience, packages
-// originally using os/exec.Command can instead use pkg/kind/exec.Command
-// which forwards to this instance
-// TODO(bentheelder): swap this for testing
-// TODO(bentheelder): consider not using a global for this :^)
+// DefaultCmder is a LocalCmder instance used for convienience
 var DefaultCmder = &LocalCmder{}
 
 // Command is a convience wrapper over DefaultCmder.Command
@@ -99,10 +93,10 @@ func RunLoggingOutputOnFail(cmd Cmd) error {
 	cmd.SetStderr(&buff)
 	err := cmd.Run()
 	if err != nil {
-		log.Error("failed with:")
+		glog.Error("failed with:")
 		scanner := bufio.NewScanner(&buff)
 		for scanner.Scan() {
-			log.Error(scanner.Text())
+			glog.Error(scanner.Text())
 		}
 	}
 	return err

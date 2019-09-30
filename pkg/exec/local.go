@@ -23,7 +23,7 @@ import (
 	"github.com/gosoon/glog"
 )
 
-// LocalCmd wraps os/exec.Cmd, implementing the kind/pkg/exec.Cmd interface
+// LocalCmd wraps os/exec.Cmd, implementing interface
 type LocalCmd struct {
 	*osexec.Cmd
 }

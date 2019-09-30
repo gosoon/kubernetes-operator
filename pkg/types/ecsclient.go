@@ -20,17 +20,18 @@ import ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 
 // EcsClient xxx
 type EcsClient struct {
-	Name          string       `json:"name"`
-	Namespace     string       `json:"namespace"`
-	Region        string       `json:"region"`
-	TimeoutMins   string       `json:"timeoutMins"`
-	ClusterType   string       `json:"clusterType"`
-	ContainerCIDR string       `json:"containerCIDR"`
-	ServiceCIDR   string       `json:"serviceCIDR"`
-	MasterList    []ecsv1.Node `json:"masterList"`
-	MasterVIP     string       `json:"masterVIP"`
-	NodeList      []ecsv1.Node `json:"nodeList"`
-	EtcdList      []ecsv1.Node `json:"etcdList"`
+	Name                 string       `json:"name"`
+	Namespace            string       `json:"namespace"`
+	Region               string       `json:"region"`
+	TimeoutMins          string       `json:"timeoutMins"`
+	ClusterType          string       `json:"clusterType"`
+	PodCIDR              string       `json:"podCIDR"`
+	ServiceCIDR          string       `json:"serviceCIDR"`
+	MasterList           []ecsv1.Node `json:"masterList"`
+	ExternalLoadBalancer string       `json:"externalLoadBalancer"`
+	NodeList             []ecsv1.Node `json:"nodeList"`
+	EtcdList             []ecsv1.Node `json:"etcdList"`
+	KubeVersion          string       `json:"kubeVersion"`
 
 	// PrivateSSHKey,because of ssh private key has multiple special characters, use base64 encode in it
 	PrivateSSHKey string `json:"privateSSHKey"`

@@ -248,6 +248,10 @@ func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *e
 		// precheck must be performed before New, KubeScalingUp, KubeScalingDown operate
 		return c.processOperatePrecheck(kubernetesCluster)
 
+	// Prechecking
+	case enum.Prechecking:
+		return c.processClusterPrecheck(kubernetesCluster)
+
 	// TODO: callback controller to ensure create success
 	case enum.Creating, enum.Running, enum.Scaling:
 		if kubernetesCluster.DeletionTimestamp != nil {
@@ -304,10 +308,6 @@ func (c *Controller) processKubernetesClusterCreateOrUpdate(kubernetesCluster *e
 		case enum.KubeScalingDown:
 			return c.processClusterScaleDown(kubernetesCluster)
 		}
-
-	// Prechecking
-	case enum.Prechecking:
-		return c.processClusterPrecheck(kubernetesCluster)
 
 	default:
 

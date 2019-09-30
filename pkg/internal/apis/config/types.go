@@ -1,18 +1,33 @@
+/*
+ * Copyright 2019 gosoon.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package config
 
 import (
+	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Cluster contains kind cluster configuration
+// Cluster contains local cluster configuration
 type Cluster struct {
 	// TypeMeta representing the type of the object and its API schema version.
 	metav1.TypeMeta
 
-	// Nodes contains the list of nodes defined in the `kind` Cluster
-	// If unset this will default to a single control-plane node
-	// Note that if more than one control plane is specified, an external
-	// control plane load balancer will be provisioned implicitly
+	// Nodes contains the list of nodes defined in the Cluster
 	Nodes []Node
 
 	ExternalLoadBalancer string
@@ -34,50 +49,18 @@ type Cluster struct {
 
 	// kubernetes version
 	KubeVersion string
+
+	// ImagesRegistry contains all images during install cluster
+	ImagesRegistry string
 }
 
-// Node contains settings for a node in the `kind` Cluster.
-// A node in kind config represent a container that will be provisioned with all the components
-// required for the assigned role in the Kubernetes cluster
+// Node contains settings for a node in the Cluster.
 type Node struct {
 	IP string
 
 	// Role defines the role of the node in the in the Kubernetes cluster
-	// created by kind
-	//
-	// Defaults to "control-plane"
-	Role NodeRole
-
-	// Image is the node image to use when creating this node
-	// If unset a default image will be used, see defaults.Image
-	Image string
-
-	/* Advanced fields */
-
-	// ExtraMounts describes additional mount points for the node container
-	// These may be used to bind a hostPath
-	//ExtraMounts []cri.Mount
-
-	// ExtraPortMappings describes additional port mappings for the node container
-	// binded to a host Port
-	//ExtraPortMappings []cri.PortMapping
+	Role ecsv1.NodeRole
 }
-
-// NodeRole defines possible role for nodes in a Kubernetes cluster managed by `kind`
-type NodeRole string
-
-const (
-	// ControlPlaneRole identifies a node that hosts a Kubernetes control-plane.
-	// NOTE: in single node clusters, control-plane nodes act also as a worker
-	// nodes, in which case the taint will be removed. see:
-	// https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/#control-plane-node-isolation
-	ControlPlaneRole NodeRole = "control-plane"
-
-	SecondaryControlPlaneRole NodeRole = "secondary-control-plane"
-
-	// WorkerRole identifies a node that hosts a Kubernetes worker
-	WorkerRole NodeRole = "worker"
-)
 
 // Networking contains cluster wide network settings
 type Networking struct {
@@ -89,15 +72,13 @@ type Networking struct {
 	// APIServerAddress is the listen address on the host for the Kubernetes
 	// API Server. This should be an IP address.
 	//
-	// Defaults to 127.0.0.1
+	// Defaults to 0.0.0.0
 	APIServerAddress string
 	// PodSubnet is the CIDR used for pod IPs
-	// kind will select a default if unspecified
 	PodSubnet string
 	// ServiceSubnet is the CIDR used for services VIPs
-	// kind will select a default if unspecified
 	ServiceSubnet string
-	// If DisableDefaultCNI is true, kind will not install the default CNI setup.
+	// If DisableDefaultCNI is true  will not install the default CNI setup.
 	// Instead the user should install their own CNI after creating the cluster.
 	DisableDefaultCNI bool
 }

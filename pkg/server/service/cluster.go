@@ -43,15 +43,16 @@ func (s *service) CreateCluster(ctx context.Context, region string, namespace st
 			Spec: ecsv1.KubernetesClusterSpec{
 				Cluster: ecsv1.Cluster{
 					// TODO: valid ClusterType in admission webhook
-					TimeoutMins:   clusterInfo.TimeoutMins,
-					ClusterType:   ecsv1.ClusterType(clusterInfo.ClusterType),
-					ContainerCIDR: clusterInfo.ContainerCIDR,
-					ServiceCIDR:   clusterInfo.ServiceCIDR,
-					MasterList:    clusterInfo.MasterList,
-					MasterVIP:     clusterInfo.MasterVIP,
-					NodeList:      clusterInfo.NodeList,
-					EtcdList:      clusterInfo.EtcdList,
-					Region:        region,
+					TimeoutMins:          clusterInfo.TimeoutMins,
+					ClusterType:          ecsv1.ClusterType(clusterInfo.ClusterType),
+					PodCIDR:              clusterInfo.PodCIDR,
+					ServiceCIDR:          clusterInfo.ServiceCIDR,
+					MasterList:           clusterInfo.MasterList,
+					ExternalLoadBalancer: clusterInfo.ExternalLoadBalancer,
+					NodeList:             clusterInfo.NodeList,
+					EtcdList:             clusterInfo.EtcdList,
+					Region:               region,
+					KubeVersion:          clusterInfo.KubeVersion,
 					AuthConfig: ecsv1.AuthConfig{
 						PrivateSSHKey: clusterInfo.PrivateSSHKey,
 					},

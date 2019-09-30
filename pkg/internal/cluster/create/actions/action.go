@@ -1,10 +1,25 @@
+/*
+ * Copyright 2019 gosoon.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package actions
 
 import (
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/nodes"
-	"github.com/gosoon/kubernetes-operator/pkg/internal/apis/config"
-	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/context"
+	createtypes "github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/types"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/util/cli"
+	"google.golang.org/grpc"
 )
 
 type Action interface {
@@ -13,40 +28,22 @@ type Action interface {
 
 // ActionContext is data supplied to all actions
 type ActionContext struct {
-	Status         *cli.Status
-	Config         *config.Cluster
-	ClusterContext *context.Context
-	//cache          *cachedData
-	LocalIP string
-	Role    string
+	Status  *cli.Status
+	Cluster *createtypes.ClusterOptions
+	Server  *grpc.Server
+	Port    string
 }
 
 func NewActionContext(
-	cfg *config.Cluster,
-	ctx *context.Context,
+	cluster *createtypes.ClusterOptions,
+	server *grpc.Server,
+	port string,
 	status *cli.Status,
-	localIP string,
-	role string,
 ) *ActionContext {
 	return &ActionContext{
-		Status:         status,
-		Config:         cfg,
-		ClusterContext: ctx,
-		LocalIP:        localIP,
-		Role:           role,
+		Status:  status,
+		Cluster: cluster,
+		Server:  server,
+		Port:    port,
 	}
-}
-
-// Nodes returns the list of cluster nodes, this is a cached call
-func (ac *ActionContext) Nodes() []nodes.Node {
-	allNodes := ac.Config.Nodes
-	var res []nodes.Node
-	for _, node := range allNodes {
-		res = append(res, nodes.Node{
-			IP:    node.IP,
-			Role:  string(node.Role),
-			Image: node.Image,
-		})
-	}
-	return res
 }

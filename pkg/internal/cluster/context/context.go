@@ -1,11 +1,25 @@
+/*
+ * Copyright 2019 gosoon.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package context
 
 import (
-	"fmt"
-	"path/filepath"
-
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/constants"
-	"github.com/gosoon/kubernetes-operator/pkg/internal/util/env"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/constants"
+	createtypes "github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/types"
+	"google.golang.org/grpc"
 )
 
 // Context is the private shared context underlying pkg/cluster.Context
@@ -15,32 +29,21 @@ import (
 // pkg/cluster.Context is a superset of this, packages like create and delete
 // consume this
 type Context struct {
-	name string
+	Name           string
+	ClusterOptions *createtypes.ClusterOptions
+	Server         *grpc.Server
+	Port           string
 }
 
 // NewContext returns a new internal cluster management context
 // if name is "" the default name will be used
-func NewContext(name string) *Context {
+func NewContext(name string, server *grpc.Server, port string) *Context {
 	if name == "" {
 		name = constants.DefaultClusterName
 	}
 	return &Context{
-		name: name,
+		Name:   name,
+		Server: server,
+		Port:   port,
 	}
-}
-
-// Name returns the cluster's name
-func (c *Context) Name() string {
-	return c.name
-}
-
-// KubeConfigPath returns the path to where the Kubeconfig would be placed
-// by kind based on the configuration.
-func (c *Context) KubeConfigPath() string {
-	// configDir matches the standard directory expected by kubectl etc
-	configDir := filepath.Join(env.HomeDir(), ".kube")
-	// note that the file name however does not, we do not want to overwrite
-	// the standard config, though in the future we may (?) merge them
-	fileName := fmt.Sprintf("config-%s", c.Name())
-	return filepath.Join(configDir, fileName)
 }

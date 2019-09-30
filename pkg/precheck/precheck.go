@@ -101,8 +101,8 @@ func (p *precheck) HostEnv(cluster *ecsv1.KubernetesCluster, results []chan type
 			Timeout:  p.opt.Timeout,
 		}
 
-		results[idx] = make(chan types.PrecheckResult, 1)
 		chanLimits <- true
+		results[idx] = make(chan types.PrecheckResult, 1)
 
 		wg.Add(1)
 		go p.execSSHManager(&wg, chanLimits, results[idx], &sshInfo)
@@ -123,7 +123,6 @@ func (p *precheck) execSSHManager(wg *sync.WaitGroup, chanLimits <-chan bool, ch
 	sshServer, err := sshserver.NewSSHServer(sshInfo)
 	if err != nil {
 		glog.Errorf("new ssh connect failed with:%v", err)
-
 		result := types.PrecheckResult{
 			Host:    sshInfo.IP,
 			CmdList: sshInfo.CmdList,

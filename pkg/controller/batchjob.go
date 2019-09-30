@@ -280,7 +280,7 @@ func compressEnvs(cluster *ecsv1.KubernetesCluster, operation string) []corev1.E
 		},
 		{
 			Name:  "MASTER_VIP",
-			Value: cluster.Spec.Cluster.MasterVIP,
+			Value: cluster.Spec.Cluster.ExternalLoadBalancer,
 		},
 		{
 			Name:  "ETCD_HOSTS",

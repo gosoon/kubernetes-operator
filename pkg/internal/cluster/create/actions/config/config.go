@@ -1,14 +1,29 @@
+/*
+ * Copyright 2019 gosoon.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package config
 
 import (
-	"fmt"
-
-	"github.com/gosoon/glog"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/constants"
-	"github.com/gosoon/kubernetes-operator/pkg/cluster/nodes"
-	"github.com/gosoon/kubernetes-operator/pkg/internal/apis/config"
+	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/constants"
+	"github.com/gosoon/kubernetes-operator/pkg/installer/cluster/nodes"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/create/actions"
 	"github.com/gosoon/kubernetes-operator/pkg/internal/cluster/kubeadm"
+
+	"github.com/gosoon/glog"
 	"github.com/pkg/errors"
 )
 
@@ -26,105 +41,51 @@ func (a *Action) Execute(ctx *actions.ActionContext) error {
 	ctx.Status.Start("Creating kubeadm config")
 	defer ctx.Status.End(false)
 
-	kubeVersion := ctx.Config.KubeVersion
-
-	if ctx.Config.ExternalLoadBalancer == "" {
-
-	}
-
-	// get the control plane endpoint, in case the cluster has an external load balancer in
-	// front of the control-plane nodes
-	//controlPlaneEndpoint, controlPlaneEndpointIPv6, err := nodes.GetControlPlaneEndpoint(allNodes)
-	//if err != nil {
-	//return err
-	//}
+	kubeVersion := ctx.Cluster.Config.KubeVersion
 
 	// create kubeadm init config
-	fns := []func() error{}
-
 	configData := kubeadm.ConfigData{
-		//ClusterName:          ctx.ClusterContext.Name(),
+		ClusterName:          ctx.Cluster.Name, // to do
 		KubernetesVersion:    kubeVersion,
-		ControlPlaneEndpoint: ctx.LocalIP,
+		ControlPlaneEndpoint: ctx.Cluster.ExternalLoadBalancer, // is external load balancer ???
 		APIBindPort:          kubeadm.APIServerPort,
-		APIServerAddress:     ctx.Config.Networking.APIServerAddress,
+		APIServerAddress:     ctx.Cluster.Config.Networking.APIServerAddress,
 		Token:                kubeadm.Token,
-		PodSubnet:            ctx.Config.Networking.PodSubnet,
-		ServiceSubnet:        ctx.Config.Networking.ServiceSubnet,
+		PodSubnet:            ctx.Cluster.Config.Networking.PodSubnet,
+		ServiceSubnet:        ctx.Cluster.Config.Networking.ServiceSubnet,
 		ControlPlane:         true,
-		IPv6:                 ctx.Config.Networking.IPFamily == "ipv6",
-		NodeAddress:          ctx.LocalIP,
+		//IPv6:                 ctx.Config.Networking.IPFamily == "ipv6",
+		NodeAddress: ctx.Cluster.NodeAddress,
 	}
 
-	if ctx.Role == constants.WorkerNodeRoleValue {
+	if ctx.Cluster.Role == ecsv1.WorkerRole {
 		configData.ControlPlane = false
 	}
 
-	fns = append(fns, func() error {
-		return writeKubeadmConfig(ctx.Config, configData)
-	})
+	if err := writeKubeadmConfig(configData); err != nil {
+		return err
+	}
+
+	// mark success
+	ctx.Status.End(true)
 
 	return nil
 }
 
-// getKubeadmConfig generates the kubeadm config contents for the cluster
+// generateKubeadmConfig generates the kubeadm config contents for the cluster
 // by running data through the template.
-func getKubeadmConfig(cfg *config.Cluster, data kubeadm.ConfigData) (path string, err error) {
+func generateKubeadmConfig(data kubeadm.ConfigData) (path string, err error) {
 	// generate the config contents
 	config, err := kubeadm.Config(data)
 	if err != nil {
 		return "", err
 	}
-	// fix all the patches to have name metadata matching the generated config
-	//patches, jsonPatches := setPatchNames(
-	//allPatchesFromConfig(cfg),
-	//)
-	// apply patches
-	// TODO(bentheelder): this does not respect per node patches at all
-	// either make patches cluster wide, or change this
-	//patched, err := kustomize.Build([]string{config}, patches, jsonPatches)
-	//if err != nil {
-	//return "", err
-	//}
 	return config, nil
 }
 
-func allPatchesFromConfig(cfg *config.Cluster) (patches []string, jsonPatches []config.PatchJSON6902) {
-	return cfg.KubeadmConfigPatches, cfg.KubeadmConfigPatchesJSON6902
-}
-
-// setPatchNames sets the targeted object name on every patch to be the fixed
-// name we use when generating config objects (we have one of each type, all of
-// which have the same fixed name)
-func setPatchNames(patches []string, jsonPatches []config.PatchJSON6902) ([]string, []config.PatchJSON6902) {
-	fixedPatches := make([]string, len(patches))
-	fixedJSONPatches := make([]config.PatchJSON6902, len(jsonPatches))
-	for i, patch := range patches {
-		// insert the generated name metadata
-		fixedPatches[i] = fmt.Sprintf("metadata:\nname: %s\n%s", kubeadm.ObjectName, patch)
-	}
-	for i, patch := range jsonPatches {
-		// insert the generated name metadata
-		patch.Name = kubeadm.ObjectName
-		fixedJSONPatches[i] = patch
-	}
-	return fixedPatches, fixedJSONPatches
-}
-
 // writeKubeadmConfig writes the kubeadm configuration in the specified node
-func writeKubeadmConfig(cfg *config.Cluster, data kubeadm.ConfigData) error {
-	// get the node ip address
-	//nodeAddress, nodeAddressIPv6, err := node.IP()
-	//if err != nil {
-	//return errors.Wrap(err, "failed to get IP for node")
-	//}
-
-	// configure the right protocol addresses
-	//if cfg.Networking.IPFamily == "ipv6" {
-	//data.NodeAddress = nodeAddressIPv6
-	//}
-
-	kubeadmConfig, err := getKubeadmConfig(cfg, data)
+func writeKubeadmConfig(data kubeadm.ConfigData) error {
+	kubeadmConfig, err := generateKubeadmConfig(data)
 	if err != nil {
 		return errors.Wrap(err, "failed to generate kubeadm config content")
 	}
@@ -132,8 +93,7 @@ func writeKubeadmConfig(cfg *config.Cluster, data kubeadm.ConfigData) error {
 	glog.Infof("Using kubeadm config:\n" + kubeadmConfig)
 
 	// copy the config to the node
-	if err := nodes.WriteFile("/tmp/kubeadm.conf", kubeadmConfig); err != nil {
-		// TODO(bentheelder): logging here
+	if err := nodes.WriteFile(constants.InstallPath+"kubeadm.conf", kubeadmConfig); err != nil {
 		return errors.Wrap(err, "failed to copy kubeadm config to node")
 	}
 

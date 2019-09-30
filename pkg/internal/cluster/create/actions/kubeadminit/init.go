@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 gosoon.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package kubeadminit
 
 import (
@@ -29,29 +45,23 @@ func NewAction() actions.Action {
 
 // Execute runs the action
 func (a *action) Execute(ctx *actions.ActionContext) error {
-	ctx.Status.Start("Starting control-plane 🕹️ ")
+	ctx.Status.Start("Starting control-plane")
 	defer ctx.Status.End(false)
-
-	//allNodes, err := ctx.Nodes()
-	//if err != nil {
-	//return err
-	//}
-
-	// get the target node for this task
-	//node, err := nodes.BootstrapControlPlaneNode(allNodes)
-	//if err != nil {
-	//return err
-	//}
 
 	// run kubeadm
 	cmd := exec.Command(
+		// --service-cidr
+		// --kubernetes-version
+		// --image-repository
+		// --pod-network-cidr
+
 		// init because this is the control plane node
 		"kubeadm", "init",
 		// preflight errors are expected, in particular for swap being enabled
 		// TODO(bentheelder): limit the set of acceptable errors
 		"--ignore-preflight-errors=all",
 		// specify our generated config file
-		"--config=/tmp/kubeadm.conf",
+		"--config=/tmp/install/kubeadm.conf",
 		"--skip-token-print",
 		// increase verbosity for debugging
 		"--v=6",
@@ -60,13 +70,21 @@ func (a *action) Execute(ctx *actions.ActionContext) error {
 	lines, err := exec.CombinedOutputLines(cmd)
 	glog.Info(strings.Join(lines, "\n"))
 	if err != nil {
+		glog.Error(err)
 		return errors.Wrap(err, "failed to init node with kubeadm")
 	}
 
-	kubeConfigPath := ctx.ClusterContext.KubeConfigPath()
+	kubeConfigPath := ctx.Cluster.KubeConfigPath
 	hostPort := kubeadm.APIServerPort
-	if err := writeKubeConfig(kubeConfigPath, ctx.Config.Networking.APIServerAddress, hostPort); err != nil {
-		return errors.Wrap(err, "failed to get kubeconfig from node")
+
+	// set apiServerAddress is externalLoadBalancer or nodeAddress
+	apiServerAddress := ctx.Cluster.ExternalLoadBalancer
+	if ctx.Cluster.ExternalLoadBalancer == "" {
+		apiServerAddress = ctx.Cluster.NodeAddress
+	}
+	if err := writeKubeConfig(kubeConfigPath, apiServerAddress, hostPort); err != nil {
+		glog.Error(err)
+		return errors.Wrap(err, "failed to init node with kubeadm")
 	}
 
 	// if we are only provisioning one node, remove the master taint

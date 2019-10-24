@@ -1,0 +1,13 @@
+[Unit]
+Description=kubernetes-opeartor grpc installer agent service 
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/installer-agent
+Restart=on-failure
+RestartSec=5
+Type=notify
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

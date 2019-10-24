@@ -1,21 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kubernetes-operator
+  name: installer-server
   namespace: ecs-system
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
-      name: kubernetes-operator
+      name: installer-server
   template:
     metadata:
       labels:
-        name: kubernetes-operator
+        name: installer-server
     spec:
-      serviceAccountName: kubernetes-operator
       containers:
-        - name: kubernetes-operator
+        - name: installer-server
           # Replace this with the built image name
           image: REPLACE_IMAGE
           imagePullPolicy: Always
@@ -28,5 +27,3 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-            - name: OPERATOR_NAME
-              value: "kubernetes-operator"

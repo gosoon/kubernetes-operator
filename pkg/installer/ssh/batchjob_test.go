@@ -14,13 +14,28 @@
  * limitations under the License.
  */
 
-package server
+package ssh
 
-import installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
+import (
+	"testing"
 
-// injectClusterConfig is set some config by server,eg:image registry and node role
-// current only inject images registry
-func (inst *installer) injectClusterConfig(cluster *installerv1.KubernetesClusterRequest) *installerv1.KubernetesClusterRequest {
-	cluster.Spec.Cluster.ImagesRegistry = inst.opt.ImagesRegistry
-	return cluster
+	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
+	"github.com/gosoon/kubernetes-operator/pkg/enum"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+func TestNewCreateKubernetesClusterJob(t *testing.T) {
+	testCases := []*ecsv1.KubernetesCluster{
+		&ecsv1.KubernetesCluster{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "test-1",
+			},
+			Status: ecsv1.KubernetesClusterStatus{
+				Phase: enum.Running,
+			},
+		},
+	}
+	for _, test := range testCases {
+		_ = newCreateKubernetesClusterJob(test)
+	}
 }

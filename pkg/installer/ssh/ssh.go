@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-package controller
+package ssh
 
 import (
-	"testing"
+	clientset "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned"
 
-	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
-	"github.com/gosoon/kubernetes-operator/pkg/enum"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/record"
 )
 
-func TestNewCreateKubernetesClusterJob(t *testing.T) {
-	testCases := []*ecsv1.KubernetesCluster{
-		&ecsv1.KubernetesCluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test-1",
-			},
-			Status: ecsv1.KubernetesClusterStatus{
-				Phase: enum.Running,
-			},
-		},
-	}
-	for _, test := range testCases {
-		_ = newCreateKubernetesClusterJob(test)
-	}
+// Options is ssh installer must flags.
+type Options struct {
+	Kubeclientset              kubernetes.Interface
+	KubernetesClusterClientset clientset.Interface
+	Recorder                   record.EventRecorder
+}
+
+type installer struct {
+	opt *Options
+}
+
+// NewSSHInstaller is new a ssh installer object.
+func NewSSHInstaller(o *Options) *installer {
+	return &installer{opt: o}
 }

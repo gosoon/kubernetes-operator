@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 gosoon.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package protobuf
 
 import (
@@ -6,7 +22,6 @@ import (
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
 
-	"github.com/gosoon/glog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -34,13 +49,13 @@ func ClusterConvertToTypes(clusterRequest *installerv1.KubernetesClusterRequest)
 
 	bytes, err := json.Marshal(clusterRequest)
 	if err != nil {
-		glog.Error("marshal kubernetes cluster request failed with:", err)
+		//glog.Error("marshal kubernetes cluster request failed with:", err)
 		return cluster, err
 	}
 
 	err = json.Unmarshal(bytes, cluster)
 	if err != nil {
-		glog.Error("unmarshal kubernetes cluster request bytes failed with:", err)
+		//glog.Error("unmarshal kubernetes cluster request bytes failed with:", err)
 		return cluster, err
 	}
 
@@ -68,13 +83,13 @@ func ClusterConvertToProtobuf(cluster *ecsv1.KubernetesCluster) (*installerv1.Ku
 
 	bytes, err := json.Marshal(cluster)
 	if err != nil {
-		glog.Error("marshal kubernetes cluster types failed with:", err)
+		//glog.Error("marshal kubernetes cluster types failed with:", err)
 		return clusterRequest, err
 	}
 
 	err = json.Unmarshal(bytes, clusterRequest)
 	if err != nil {
-		glog.Error("unmarshal kubernetes cluster bytes failed with:", err)
+		//glog.Error("unmarshal kubernetes cluster bytes failed with:", err)
 		return clusterRequest, err
 	}
 

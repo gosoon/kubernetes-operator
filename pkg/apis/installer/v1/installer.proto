@@ -157,32 +157,20 @@ message KubernetesClusterSpec {
 
 message Cluster {
     string timeoutMins = 1;
-    
     string clusterType = 2;
-    
     string podCIDR = 3;
-    
     string serviceCIDR = 4;
-    
     repeated Node masterList = 5 [(gogoproto.nullable) = false];
-    
     string externalLoadBalancer = 6;
-    
     repeated Node nodeList = 7 [(gogoproto.nullable) = false];
-    
     repeated Node etcdList = 8 [(gogoproto.nullable) = false];;
-    
     string region = 9;
-    
     AuthConfig authConfig = 10 [(gogoproto.nullable) = false];;
-    
     string kubeVersion = 11;
-    
     string imagesRegistry = 12;
 }
 
 message Addons {
-
 }
 
 
@@ -193,18 +181,14 @@ message Node {
 
 message AuthConfig {
     string username = 1;
-    
     string password = 2;
-    
     string privateSSHKey = 3;
 }
 
 
 message KubernetesClusterRequest {
     TypeMeta typeMeta = 1 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
-
     ObjectMeta objectMeta = 2 [(gogoproto.nullable) = false, (gogoproto.embed) = true];
-    
     KubernetesClusterSpec spec = 3 [(gogoproto.nullable) = false];
 }
 

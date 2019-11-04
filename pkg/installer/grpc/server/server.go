@@ -1,20 +1,44 @@
+/*
+ * Copyright 2019 gosoon.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package server
 
 import (
 	"context"
+	"net"
+	"net/http"
 	"sync"
 
-	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 	installerv1 "github.com/gosoon/kubernetes-operator/pkg/apis/installer/v1"
 	"github.com/gosoon/kubernetes-operator/pkg/types"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 
 	"github.com/gosoon/glog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+)
+
+const (
+	ServerPort     = "10022"
+	AgentPort      = "10023"
+	ImagesRegistry = "registry.cn-hangzhou.aliyuncs.com/aliyun_kube_system"
 )
 
 // Options is installer server options
 type Options struct {
-	Server         *grpc.Server
 	ServerPort     string
 	AgentPort      string
 	ImagesRegistry string
@@ -22,33 +46,73 @@ type Options struct {
 
 // gserver xxx
 type installer struct {
-	Options *Options
+	opt *Options
 }
 
 // NewInstaller is a new installer server
 func NewInstaller(opt *Options) *installer {
-	return &installer{Options: opt}
+	grpcInstaller := &installer{opt: opt}
+
+	//start grpc installer's grpc server and http server
+	go grpcInstaller.Run()
+
+	return grpcInstaller
+}
+
+// run is start grpc gateway
+// TODO: remove http server,only use grcp server
+func (inst *installer) Run() {
+	grpcServerEndpoint := ":" + inst.opt.ServerPort
+	l, err := net.Listen("tcp", grpcServerEndpoint)
+	if err != nil {
+		glog.Fatalf("failed to listen: %v", err)
+	}
+	grpcServer := grpc.NewServer()
+
+	// register grpc server
+	installerv1.RegisterInstallerServer(grpcServer, inst)
+	reflection.Register(grpcServer)
+	go func() {
+		glog.Info("starting grpc server...")
+		glog.Fatal(grpcServer.Serve(l))
+	}()
+
+	// start http server
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	// Register gRPC server endpoint
+	// Note: Make sure the gRPC server is running properly and accessible
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	err = installerv1.RegisterInstallerHandlerFromEndpoint(ctx, mux, grpcServerEndpoint, opts)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
+	glog.Info("starting http server...")
+	// Start HTTP server (and proxy calls to gRPC server endpoint)
+	glog.Fatal(http.ListenAndServe(":8080", mux))
 }
 
 // CopyFile is a definition of InstallerServer Interface,server do not use CopyFile
 // so it is no a implementation
-func (s *installer) CopyFile(
+func (inst *installer) CopyFile(
 	file *installerv1.File,
 	stream installerv1.Installer_CopyFileServer) error {
 
 	return nil
 }
 
-func (s *installer) InstallCluster(
+func (inst *installer) InstallCluster(
 	ctx context.Context,
 	cluster *installerv1.KubernetesClusterRequest) (*installerv1.InstallClusterResponse, error) {
 
 	// images registry,retain,wait and others agent flags is inject by grpc server,
 	// because it's don't have to in kubernetes controller
-	cluster = s.injectClusterConfig(cluster)
+	cluster = inst.injectClusterConfig(cluster)
 
 	finish := make(chan bool)
-	go s.DispatchClusterConfig(ctx, cluster, finish)
+	go inst.DispatchClusterConfig(ctx, cluster, finish)
 
 	select {
 	case <-ctx.Done():
@@ -62,7 +126,7 @@ func (s *installer) InstallCluster(
 }
 
 // InstallCluster is send KubernetesCluster config to all installer agent
-func (s *installer) DispatchClusterConfig(
+func (inst *installer) DispatchClusterConfig(
 	ctx context.Context,
 	cluster *installerv1.KubernetesClusterRequest,
 	finish chan<- bool) {
@@ -73,16 +137,16 @@ func (s *installer) DispatchClusterConfig(
 	clusterNodeList = append(clusterNodeList, cluster.Spec.Cluster.MasterList...)
 
 	// dispatch config to echo node and record result in a result channel
-	// set dispatch concurrent default is 100
+	// set dispatch concurrent default is 16
 	results := make([]chan types.DispatchConfigResult, len(clusterNodeList))
-	chanLimits := make(chan bool, 100)
+	chanLimits := make(chan bool, 16)
 
 	var wg sync.WaitGroup
 	for idx, node := range clusterNodeList {
 		chanLimits <- true
 		results[idx] = make(chan types.DispatchConfigResult, 1)
 		wg.Add(1)
-		go s.dispatchConfig(node.IP, cluster, &wg, chanLimits, results[idx])
+		go inst.dispatchConfig(node.IP, cluster, &wg, chanLimits, results[idx])
 	}
 	wg.Wait()
 
@@ -99,7 +163,7 @@ func (s *installer) DispatchClusterConfig(
 	finish <- success
 }
 
-func (s *installer) dispatchConfig(
+func (inst *installer) dispatchConfig(
 	ip string,
 	cluster *installerv1.KubernetesClusterRequest,
 	wg *sync.WaitGroup,
@@ -117,7 +181,7 @@ func (s *installer) dispatchConfig(
 		}
 	}
 
-	address := ip + ":" + s.Options.AgentPort
+	address := ip + ":" + inst.opt.AgentPort
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		failedResult(err)
@@ -133,60 +197,3 @@ func (s *installer) dispatchConfig(
 		return
 	}
 }
-
-// ClusterNew is creating a new cluster
-func (s *installer) ClusterNew(cluster *ecsv1.KubernetesCluster, scaleUpNodeList []ecsv1.Node) error {
-	// TODO
-	return nil
-}
-
-// ClusterScaleUp is scale up a cluster node
-func (s *installer) ClusterScaleUp(cluster *ecsv1.KubernetesCluster, scaleUpNodeList []ecsv1.Node) error {
-	// TODO
-	return nil
-}
-
-// ClusterScaleDown is scale down a cluster node
-func (s *installer) ClusterScaleDown(cluster *ecsv1.KubernetesCluster, scaleDonwNodeList []ecsv1.Node) error {
-	// TODO
-	return nil
-}
-
-// ClusterTerminating is delete a cluster
-func (s *installer) ClusterTerminating(cluster *ecsv1.KubernetesCluster) error {
-	// TODO
-	return nil
-}
-
-//type nodeList []installerv1.Node
-
-//func (n nodeList) Less(i, j int) bool { return n[i].IP < n[j].IP }
-//func (n nodeList) Swap(i, j int)      { n[i], n[j] = n[j], n[i] }
-//func (n nodeList) Len() int           { return len(n) }
-
-//// InjectClusterConfig is set some config by server,eg:image registry and node role
-//func (s *installer) InjectClusterConfig(cluster *installerv1.KubernetesClusterRequest) *installerv1.KubernetesClusterRequest {
-//cluster.Spec.Cluster.ImagesRegistry = s.Options.ImagesRegistry
-
-//// set master role
-//// grpc server select some node and set to ControlPlaneRole,SecondaryControlPlaneRole,WorkerRole
-//if len(cluster.Spec.Cluster.MasterList) > 0 {
-//masterList := cluster.Spec.Cluster.MasterList
-//sort.Sort(nodeList(masterList))
-//for idx, master := range cluster.Spec.Cluster.MasterList {
-//cluster.Spec.Cluster.MasterList[idx].Role = string(ecsv1.SecondaryControlPlaneRole)
-//if master.IP == masterList[0].IP {
-//cluster.Spec.Cluster.MasterList[idx].Role = string(ecsv1.ControlPlaneRole)
-//}
-//}
-//}
-
-//// set node role,default all node is worker
-//if len(cluster.Spec.Cluster.NodeList) > 0 {
-//for idx := range cluster.Spec.Cluster.NodeList {
-//cluster.Spec.Cluster.NodeList[idx].Role = string(ecsv1.WorkerRole)
-//}
-//}
-
-//return cluster
-//}

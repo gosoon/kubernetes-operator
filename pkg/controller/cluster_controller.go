@@ -20,6 +20,16 @@ import (
 	"fmt"
 	"time"
 
+	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
+	clientset "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned"
+	ecsscheme "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned/scheme"
+	informers "github.com/gosoon/kubernetes-operator/pkg/client/informers/externalversions/ecs/v1"
+	listers "github.com/gosoon/kubernetes-operator/pkg/client/listers/ecs/v1"
+	"github.com/gosoon/kubernetes-operator/pkg/enum"
+	"github.com/gosoon/kubernetes-operator/pkg/installer"
+	grpcInstaller "github.com/gosoon/kubernetes-operator/pkg/installer/grpc/server"
+	sshInstaller "github.com/gosoon/kubernetes-operator/pkg/installer/ssh"
+
 	"github.com/gosoon/glog"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -32,13 +42,6 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
-
-	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
-	clientset "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned"
-	ecsscheme "github.com/gosoon/kubernetes-operator/pkg/client/clientset/versioned/scheme"
-	informers "github.com/gosoon/kubernetes-operator/pkg/client/informers/externalversions/ecs/v1"
-	listers "github.com/gosoon/kubernetes-operator/pkg/client/listers/ecs/v1"
-	"github.com/gosoon/kubernetes-operator/pkg/enum"
 )
 
 const (
@@ -69,6 +72,12 @@ type Controller struct {
 	// recorder is an event recorder for recording Event resources to the
 	// Kubernetes API.
 	recorder record.EventRecorder
+
+	// sshInstaller is deploy a binary kubernetes cluster by ssh way.
+	sshInstaller installer.Interface
+
+	// grpcInstaller is used to deploy a kubernetes cluster by kubeadm,deployed cluster is running in container.
+	grpcInstaller installer.Interface
 }
 
 // NewController returns a new kubernetesCluster controller
@@ -87,6 +96,19 @@ func NewController(
 	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclientset.CoreV1().Events("")})
 	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: ComponentName})
 
+	// init ssh and grpc installer
+	sshInstaller := sshInstaller.NewSSHInstaller(&sshInstaller.Options{
+		Kubeclientset:              kubeclientset,
+		KubernetesClusterClientset: kubernetesClusterClientset,
+		Recorder:                   recorder,
+	})
+
+	grpcInstaller := grpcInstaller.NewInstaller(&grpcInstaller.Options{
+		ServerPort:     grpcInstaller.ServerPort,
+		AgentPort:      grpcInstaller.AgentPort,
+		ImagesRegistry: grpcInstaller.ImagesRegistry,
+	})
+
 	controller := &Controller{
 		kubeclientset:              kubeclientset,
 		kubernetesClusterClientset: kubernetesClusterClientset,
@@ -94,6 +116,8 @@ func NewController(
 		kubernetesClusterSynced:    kubernetesClusterInformer.Informer().HasSynced,
 		workqueue:                  workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "KubernetesClusters"),
 		recorder:                   recorder,
+		sshInstaller:               sshInstaller,
+		grpcInstaller:              grpcInstaller,
 	}
 
 	glog.Info("Setting up event handlers")

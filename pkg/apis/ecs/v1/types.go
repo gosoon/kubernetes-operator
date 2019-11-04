@@ -33,8 +33,11 @@ type KubernetesClusterSpec struct {
 type Cluster struct {
 	TimeoutMins string `json:"timeout_mins,omitempty"`
 
-	// ClusterType is a specified cluster,eg: kubernetes,k3s
+	// ClusterType is a specified cluster,eg: kubernetes,kubeedge
 	ClusterType ClusterType `json:"clusterType,omitempty"`
+
+	// DeployMode is a cluster deploy mode,contains binary and container two modes.
+	DeployMode DeployMode `json:"deployMode,omitempty"`
 
 	// PodCIDR
 	PodCIDR string `json:"podCIDR,omitempty"`
@@ -153,3 +156,16 @@ const (
 
 // "None,Creating,Running,Failed,Scaling"
 type KubernetesOperatorPhase string
+
+// DeployMode is a cluster deploy mode,contains binary and container two modes,
+// binary mode is use k8s binary and config directorly deploy,
+// container mode is user kubeadm deploy.
+type DeployMode string
+
+const (
+	// BinaryDeployMode
+	BinaryDeployMode DeployMode = "binary"
+
+	// ContainerDeployMode
+	ContainerDeployMode DeployMode = "container"
+)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controller
+package ssh
 
 import (
 	"fmt"
@@ -37,7 +37,7 @@ const (
 )
 
 // jobTTLControl is handle job create failed or job running timeout.
-func (c *Controller) jobTTLControl(cluster *ecsv1.KubernetesCluster) {
+func (inst *installer) jobTTLControl(cluster *ecsv1.KubernetesCluster) {
 	name := cluster.Name
 	namespace := cluster.Namespace
 
@@ -45,7 +45,7 @@ func (c *Controller) jobTTLControl(cluster *ecsv1.KubernetesCluster) {
 	defer close(stopCh)
 
 	wait.Until(func() {
-		curCluster, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
+		curCluster, err := inst.opt.KubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).Get(name, metav1.GetOptions{})
 		if err != nil {
 			glog.Errorf("get %s/%s kubernetesCluster object failed with:%v", namespace, name, err)
 			stopCh <- struct{}{}
@@ -70,7 +70,7 @@ func (c *Controller) jobTTLControl(cluster *ecsv1.KubernetesCluster) {
 			curCluster.Status.Reason = fmt.Sprintf("the [%v] job running timeout(>%vs)", oldOperation, timeout)
 			curCluster.Status.Phase = enum.Failed
 			curCluster.Status.LastTransitionTime = metav1.Now()
-			_, err := c.kubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
+			_, err := inst.opt.KubernetesClusterClientset.EcsV1().KubernetesClusters(namespace).UpdateStatus(curCluster)
 			if err != nil {
 				glog.Errorf("jobTTLTimeout update %s/%s cluster status failed with:%v", namespace, name, err)
 			}

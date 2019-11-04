@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controller
+package ssh
 
 import (
 	"testing"

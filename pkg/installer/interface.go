@@ -20,9 +20,9 @@ import (
 	ecsv1 "github.com/gosoon/kubernetes-operator/pkg/apis/ecs/v1"
 )
 
-// Installer is a interface define all installer implementation operation
+// Interface is a installer interface define all installer implementation operation
 // you can define your self installer
-type Installer interface {
+type Interface interface {
 	// ClusterNew is creating a new cluster
 	ClusterNew(cluster *ecsv1.KubernetesCluster) error
 
@@ -30,7 +30,7 @@ type Installer interface {
 	ClusterScaleUp(cluster *ecsv1.KubernetesCluster, scaleUpNodeList []ecsv1.Node) error
 
 	// ClusterScaleDown is scale down a cluster node
-	ClusterScaleDown(cluster *ecsv1.KubernetesCluster, scaleDonwNodeList []ecsv1.Node) error
+	ClusterScaleDown(cluster *ecsv1.KubernetesCluster, scaleDownNodeList []ecsv1.Node) error
 
 	// ClusterTerminating is delete a cluster
 	ClusterTerminating(cluster *ecsv1.KubernetesCluster) error

@@ -2,7 +2,7 @@ GOFILES := $(shell find . -name '*.go' | grep -v -E '(./vendor)')
 BIN := $(shell basename $(CURDIR))
 # PLATFORM := $(shell go env GOOS)
 PLATFORM := linux
-AnsibleinitPath := cmd/ansible/ansibleinit.go
+AnsibleinitPath := cmd/installer/ssh/ansibleinit.go  
 OperatorPath := cmd/kube-operator/app.go
 
 # ifneq (PLATFORM, "windows")
@@ -19,6 +19,7 @@ linux: output/$(BIN)
 darwin: output/$(BIN)
 windows: output/$(BIN)
 
+.PHONY: images
 images: 
 	mkdir -p output
 	GO111MODULE=on GOPROXY=https://mirrors.aliyun.com/goproxy/ GOOS=$(PLATFORM) GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o output/ansibleinit $(AnsibleinitPath)

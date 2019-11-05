@@ -146,7 +146,10 @@ func (inst *installer) DispatchClusterConfig(
 		chanLimits <- true
 		results[idx] = make(chan types.DispatchConfigResult, 1)
 		wg.Add(1)
-		go inst.dispatchConfig(node.IP, cluster, &wg, chanLimits, results[idx])
+		go func(ip string) {
+			defer wg.Done()
+			inst.dispatchConfig(ip, cluster, chanLimits, results[idx])
+		}(node.IP)
 	}
 	wg.Wait()
 
@@ -166,11 +169,9 @@ func (inst *installer) DispatchClusterConfig(
 func (inst *installer) dispatchConfig(
 	ip string,
 	cluster *installerv1.KubernetesClusterRequest,
-	wg *sync.WaitGroup,
 	chanLimits <-chan bool,
 	result chan<- types.DispatchConfigResult) {
 
-	defer wg.Done()
 	defer func() { <-chanLimits }()
 
 	failedResult := func(err error) {

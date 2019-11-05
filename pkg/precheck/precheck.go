@@ -105,8 +105,10 @@ func (p *precheck) HostEnv(cluster *ecsv1.KubernetesCluster, results []chan type
 		results[idx] = make(chan types.PrecheckResult, 1)
 
 		wg.Add(1)
-		go p.execSSHManager(&wg, chanLimits, results[idx], &sshInfo)
-
+		go func() {
+			defer wg.Done()
+			p.execSSHManager(chanLimits, results[idx], &sshInfo)
+		}()
 	}
 	wg.Wait()
 
@@ -114,10 +116,10 @@ func (p *precheck) HostEnv(cluster *ecsv1.KubernetesCluster, results []chan type
 	finish <- true
 }
 
-func (p *precheck) execSSHManager(wg *sync.WaitGroup, chanLimits <-chan bool, ch chan<- types.PrecheckResult,
+func (p *precheck) execSSHManager(
+	chanLimits <-chan bool,
+	ch chan<- types.PrecheckResult,
 	sshInfo *types.SSHInfo) {
-
-	defer wg.Done()
 
 	// new sshServer and exec check script
 	sshServer, err := sshserver.NewSSHServer(sshInfo)

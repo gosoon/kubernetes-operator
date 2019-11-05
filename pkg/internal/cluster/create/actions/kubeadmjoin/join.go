@@ -208,7 +208,7 @@ func copyCAFromControlPlaneNode(client installerv1.InstallerClient, fileNames []
 			}
 		}(srcFile, destFile, errs)
 	}
-	wg.Done()
+	wg.Wait()
 	close(errs)
 
 	if len(errs) != 0 {

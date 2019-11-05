@@ -29,13 +29,18 @@ First you need to make two images，one is kubernetes-operator，the other one i
 
 ```
 $ make images
+```
 
-// deploy crd
-$ kubectl create -f deploy/crds/ecs_v1_kubernetescluster_crd.yaml
-
+```
 // update your image address and deploy kubernetes-operator
-$ kubectl create -f deploy/role.yaml  
-$ kubectl create -f deploy/kube-operator.yaml
+$ kubectl create -f  deploy/
+namespace/ecs-system created
+customresourcedefinition.apiextensions.k8s.io/kubernetesclusters.ecs.yun.com created
+deployment.apps/kubernetes-operator created
+clusterrole.rbac.authorization.k8s.io/kubernetes-operator created
+clusterrolebinding.rbac.authorization.k8s.io/kubernetes-operator created
+serviceaccount/kubernetes-operator created
+
 
 // CustomResources is KubernetesCluster,"ecs" for short in the kubernetes-operator
 $ kubectl get crd
@@ -54,7 +59,7 @@ test-cluster   Prechecking   45m
 
 ## Development Plan
 
-1. Support deploy k3s、kubeedge cluster
+1. support deploy k3s、kubeedge cluster
 2. support use kops deploy cluster
 3. support for multiple version deploy
 4. development node-operator 

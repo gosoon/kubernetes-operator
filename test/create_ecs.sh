@@ -6,6 +6,7 @@ request_body=$(cat<<EOF
 {
   "name": "test-cluster",
   "clusterType": "kubernetes",
+  "deployMode": "binary",
   "masterList": [
     {
       "ip": "192.168.72.81"

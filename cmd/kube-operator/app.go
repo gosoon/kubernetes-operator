@@ -121,7 +121,7 @@ to quickly create a Cobra application.`,
 			signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 			<-signalChan
 
-			glog.Infof("Got OS shutdown signal, shutting down webhook server gracefully...")
+			glog.Infof("Got OS shutdown signal, shutting down server gracefully...")
 			//server.Shutdown(context.Background())
 		}
 

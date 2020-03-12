@@ -24,5 +24,6 @@ require (
 	google.golang.org/grpc v1.21.0
 	k8s.io/api v0.0.0-20190718062839-c8a0b81cb10e
 	k8s.io/apimachinery v0.0.0-20190717022731-0bb8574e0887
+	k8s.io/client-go v12.0.0+incompatible // indirect
 	sigs.k8s.io/yaml v1.1.0
 )
